@@ -88,7 +88,7 @@
 
     #ifdef MODBUS_DEVICE_EM21
 
-        // Parameeter names.
+        // Parameter names.
         const char d1[] PROGMEM = "v1";
         const char d2[] PROGMEM = "v2";
         const char d3[] PROGMEM = "v3";
