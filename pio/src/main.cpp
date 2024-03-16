@@ -188,18 +188,13 @@ void setup() {
 
   // Setup everything else now the framework is up.
   #ifdef PWR_GENIE_MODE_SPL
-  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
-    {
       ssreader::begin();
-    }
   #endif
 
-  // Note changes to my_pg_Mode in the config will initiate a restart.
+  // Note changes to my_pg_Mode in the config do not initiate a restart.
+  // so we need to initialise modbus regardless of whether it's enabled yet.
   #ifdef PWR_GENIE_MODE_MODBUS
-    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
-    {
       initModbus();
-    }
   #endif
 
   }
