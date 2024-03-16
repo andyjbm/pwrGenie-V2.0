@@ -12,7 +12,7 @@ const char WM_HTTP_STYLE[] PROGMEM = "<style>"
 	// msg callout
 	".msg{background: #def;border-left: 5px solid #59d;padding: 0.5em}"
 	//".msg{padding:20px;margin:20px 0;border:1px solid #eee;border-left-width:5px;border-left-color:#777}
-	//.msg h4{margin-top:0;margin-bottom:5px}
+	".msg h4{margin-top:10px;margin-bottom:3px}"                           // Debug message panel titles.
 	//.msg.P{border-left-color:#1fa3ec}.msg.P h4{color:#1fa3ec}
 	//.msg.D{border-left-color:#dc3630}.msg.D h4{color:#dc3630}
 	//.msg.S{border-left-color: #5cb85c}.msg.S h4{color: #5cb85c}"

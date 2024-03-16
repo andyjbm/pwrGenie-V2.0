@@ -46,33 +46,39 @@ ESPAsync_WMParameter::ESPAsync_WMParameter(const char *custom)
   _WMParam_data._length = 0;
   _WMParam_data._value = NULL;
   _WMParam_data._labelPlacement = WFM_LABEL_BEFORE;
+  
+  _WMParam_data._type = WMParam_type::isNormal;
+  _WMParam_data._selectionType_Options = nullptr;
+  _WMParam_data._selectionType_Options_Count = 0;
 
   _customHTML = custom;
 }
 
 
 ESPAsync_WMParameter::ESPAsync_WMParameter(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length,
-                                 const char *custom, const int& labelPlacement, const bool isCheckbox)
+                                 const char *custom, const int& labelPlacement,
+                                 const WMParam_type type, const char **selectionType_Options, const byte selectionType_Options_Count)
 {
-  init(id, placeholder, defaultValue, length, custom, labelPlacement, isCheckbox);
+  init(id, placeholder, defaultValue, length, custom, labelPlacement, type, selectionType_Options, selectionType_Options_Count);
 }
 
 // KH, using struct
 ESPAsync_WMParameter::ESPAsync_WMParameter(const WMParam_Data& WMParam_data)
 {
   init(WMParam_data._id, WMParam_data._placeholder, WMParam_data._value, WMParam_data._length, "",
-       WMParam_data._labelPlacement, WMParam_data._isCheckbox);
+       WMParam_data._labelPlacement, WMParam_data._type, _WMParam_data._selectionType_Options, _WMParam_data._selectionType_Options_Count);
 }
 
 
 void ESPAsync_WMParameter::init(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length,
-                           const char *custom, const int& labelPlacement, const bool isCheckbox)
+                           const char *custom, const int& labelPlacement,
+                           const WMParam_type type, const char **selectionType_Options, const byte selectionType_Options_Count)
 {
   _WMParam_data._id = id;
   _WMParam_data._placeholder = placeholder;
   _WMParam_data._length = length;
   _WMParam_data._labelPlacement = labelPlacement;
-  _WMParam_data._isCheckbox = isCheckbox;
+  _WMParam_data._type = type;
   
   _WMParam_data._value = new char[_WMParam_data._length + 1];
 
@@ -82,6 +88,9 @@ void ESPAsync_WMParameter::init(const char *id, const __FlashStringHelper *place
   }
 
   _customHTML = custom;
+
+  _WMParam_data._selectionType_Options = selectionType_Options;
+  _WMParam_data._selectionType_Options_Count = selectionType_Options_Count;
 }
 
 
@@ -157,12 +166,10 @@ int ESPAsync_WMParameter::getLabelPlacement()
   return _WMParam_data._labelPlacement;
 }
 
-
-bool ESPAsync_WMParameter::getTypeIsBoolean()
+WMParam_type ESPAsync_WMParameter::getType()
 {
-  return _WMParam_data._isCheckbox;
+  return _WMParam_data._type;
 }
-
 
 const char* ESPAsync_WMParameter::getCustomHTML()
 {
@@ -1748,10 +1755,7 @@ void ESPAsync_WiFiManager::handleConfig(AsyncWebServerRequest *request)
   submit.replace("{v}","cfgsave");
   page += submit;
 
-  
   reportStatus(page);
-
-  char parLength[2];
 
   page += FPSTR(WM_FLDSET_START);
 
@@ -1763,22 +1767,28 @@ void ESPAsync_WiFiManager::handleConfig(AsyncWebServerRequest *request)
       break;
     }
 
-// Andy added checkbox boolean parameter.
+// Andy added checkbox/boolean & select/option parameter.
      String tmp_FORM_PARAM;
-     if (!_params[i]->getTypeIsBoolean()){
-       tmp_FORM_PARAM = FPSTR(WM_HTTP_WIFIFORM_PARAM);
-     } else {
-       tmp_FORM_PARAM = FPSTR(WM_HTTP_CONFIGFORM_BOOL_PARAM);
+     switch (_params[i]->getType()){
+      case WMParam_type::isCheckbox:
+        tmp_FORM_PARAM = FPSTR(WM_HTTP_CONFIGFORM_BOOL_PARAM);
+        break;
+      case WMParam_type::isSelection:
+        tmp_FORM_PARAM = FPSTR(WM_HTTP_CONFIGFORM_SELECTION_PARAM);
+        break;
+      default: // Hopefully WMParam_type::isNormal:
+        tmp_FORM_PARAM = FPSTR(WM_HTTP_CONFIGFORM_PARAM);
      }
+
      String pitem;
       switch (_params[i]->getLabelPlacement()) {
         case WFM_LABEL_BEFORE:
-          pitem = FPSTR(WM_HTTP_WIFIFORM_LABEL);
+          pitem = FPSTR(WM_HTTP_CONFIGFORM_LABEL);
           pitem += tmp_FORM_PARAM;
           break;
         case WFM_LABEL_AFTER:
           pitem = tmp_FORM_PARAM;
-          pitem += FPSTR(WM_HTTP_WIFIFORM_LABEL);
+          pitem += FPSTR(WM_HTTP_CONFIGFORM_LABEL);
           break;
         default:
           // WFM_NO_LABEL
@@ -1792,25 +1802,73 @@ void ESPAsync_WiFiManager::handleConfig(AsyncWebServerRequest *request)
       pitem.replace("{n}", _params[i]->getID());          // T_n id name alias
       pitem.replace("{p}", _params[i]->getPlaceholder()); // T_p replace legacy placeholder token
 
+      char parLength[2];
       snprintf(parLength, 2, "%d", _params[i]->getValueLength());
-
       pitem.replace("{l}", parLength);                    // T_l value length
       
       //pitem.replace("{v}", _params[i]->getValue());
 
-      if (!_params[i]->getTypeIsBoolean()){
-            // Text input box parameters.
-            pitem.replace("{v}", _params[i]->getValue()); // T_v value
-          } else { 
-            // Boolean Parameter. Use checkbox. And render it correctly (ticked or unticked)
-            int tmpbool = String(_params[i]->getValue()).toInt(); // This didn't convert to int easily.
-            if (tmpbool == 1){
-              pitem.replace("{c}", "checked");
-            } else {
-              pitem.replace("{c}", "");
-            }
+      // Added boolean/checkbox and selection/options datatypes.
+      // Switch case approach paves the way for more datatypes in the future. 
+      switch (_params[i]->getType())
+      {
+        case WMParam_type::isCheckbox:
+        {
+            // Boolean Parameter: Use checkbox. And render it correctly (ticked or unticked)
+          int tmpbool = String(_params[i]->getValue()).toInt(); // This didn't convert to int easily.
+          if (tmpbool == 1){
+            pitem.replace("{c}", "checked");
+          } else {
+            pitem.replace("{c}", "");
           }
-      
+          break;
+        }
+
+        case WMParam_type::isSelection:
+        {
+          String tmpOptions ="";          
+          // Selection. Have we got any options?
+          if ((_params[i]->_WMParam_data._selectionType_Options == nullptr) || \
+              (_params[i]->_WMParam_data._selectionType_Options_Count == 0))
+          {
+            break;
+          }
+          
+          // Selection. Need to enumerate through the options.
+          for (int k = 0; k < _params[i]->_WMParam_data._selectionType_Options_Count; k++)
+          {
+            // Check this option exists...
+            if (_params[i]->_WMParam_data._selectionType_Options[k] == NULL)
+            {
+              break;
+            }
+            
+            String thisOpt = FPSTR(WM_HTTP_CONFIGFORM_SEL_OPTIONS); // Make a new option.
+            thisOpt.replace("{o}", String(k));                                 // The enum Value
+
+            if (k == String(_params[i]->getValue()).toInt())
+            {
+              thisOpt.replace("{s}", " Selected");  // This one is selected
+            } else {
+              thisOpt.replace("{s}","");            // This one is not selected
+            }
+            thisOpt.replace("{d}", String(_params[i]->_WMParam_data._selectionType_Options[k]));  // The data (text) of the option.
+            tmpOptions += thisOpt;
+          } // End of building the options. Now add them to the selection.
+          
+          pitem.replace("{o}", tmpOptions);
+          break;
+        }
+
+        // Original String type of config box.
+        default: // Should be whats left is WMParam_type::isNormal
+        {
+          // Text input box parameters.
+          pitem.replace("{v}", _params[i]->getValue()); // T_v value
+          break;
+        }  
+      }
+
       pitem.replace("{c}", _params[i]->getCustomHTML());  // T_c meant for additional attributes, not html, but can stuff
     }
     else

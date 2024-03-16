@@ -22,13 +22,13 @@
 
   namespace emoncms {
     
-    bool send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize);
+    bool send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize, bool postEnabled = true);
     bool send2emoncms(emoncmsParams ecmsParam, const String &strJsonData);
   
   } // end namespace
 
   String strJsonData = new char[1024];  // Global. Keep our place on the heap.
-  bool emoncms::send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize){
+  bool emoncms::send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize, bool postEnabled){
     // Make a name:value pair JSON out of the two arrays names and results. Eg: "n1:v1","n2:v2",...,"n99:v99"
     strJsonData = ""; 
     int maxIndex = arraySize; // sizeof(mbResults)/sizeof(*mbResults);
@@ -38,7 +38,13 @@
       memcpy_P(bufr, ecmsDataNames[i],20);
       strJsonData += "\"" + (String)bufr + ":" + ecmsResults[i] + "\"";
     }
-    return send2emoncms(ecmsParam, strJsonData);
+    
+    // Only post the data if the option is enabled in the config.
+    if (postEnabled)
+    {
+      return send2emoncms(ecmsParam, strJsonData);
+    } 
+    return true;
   }
   
   WiFiClient ecms_client;

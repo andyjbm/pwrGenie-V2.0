@@ -4,6 +4,12 @@
 #include <Arduino.h>
 #include <vector>
 
+// This overrides WifiManager uri.h so that we can implement forwarding of wildcard uri requests.
+// See configMyWebHandlers in main.spp line 123 ish and the callback
+// that goes with it: handleEmoncms in main.cpp line 67 ish...
+// Basically a client call to the config portal with a chosen uri http://myip/uri2forward will get
+// forwarded to the emoncms server.
+
 class Uri {
 
     protected:

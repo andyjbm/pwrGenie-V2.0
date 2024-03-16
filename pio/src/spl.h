@@ -36,23 +36,27 @@
 
    splData splD;
 
-#if defined (ARDUINO_ARCH_ESP8266)
-   #define  SPL_datapin         D2   //D2 GPIO4
-   #define  SPL_clockpin        D1   //D1 GPIO5
-#elif defined(ESP32)
-   //Not sure this is right. Never built a SPL meter with ESP32 yet
-   #define  SPL_datapin         2   //D2 GPIO4
-   #define  SPL_clockpin        1   //D1 GPIO5
-#else
-   #error Architecture unrecognized by this code.
-#endif
+   #if defined (ARDUINO_ARCH_ESP8266)
+      #define  SPL_datapin         D2   //D2 GPIO4
+      #define  SPL_clockpin        D1   //D1 GPIO5
+   #elif defined(ESP32)
+      //Not sure this is right. Never built a SPL meter with ESP32 yet
+      #define  SPL_datapin         2   //D2 GPIO4
+      #define  SPL_clockpin        1   //D1 GPIO5
+   #else
+      #error Architecture unrecognized by this code.
+   #endif
 
-//   #define  SPL_datapin         2   //D2 GPIO4
-//   #define  SPL_clockpin        1   //D1 GPIO5
-   //#define  SPL_decode_timeout  15   // Data packet is about 9mS long... we use SPL_Complete instead now.
    #define  SPL_deadspace       80   // mS Time between datapackets
 
+   // Declarations
    namespace ssreader{
+
+      void DoSPLSend(bool postEnabled = true);
+      void begin();
+      IRAM_ATTR void cb_readClock();
+      void ssreaderLoop();
+      void add2leq(float db);
 
       // Somewhere to translate the received 7 segment pattern into a numeric Digit.
       struct segDecode{
@@ -88,6 +92,8 @@
       void add2leq(float db);
       void DoSPLSend();
    };  // End namespace ssreader.
+
+   // Definitions
 
    void ssreader::begin() { // "static" class so using namespace and begin instead of ctor.
 
@@ -207,7 +213,7 @@
    }
 
    // Called by foreground loop every x seconds to send data to emoncms.
-   void ssreader::DoSPLSend() {
+   void ssreader::DoSPLSend(bool postEnabled) {
       splD.leq10sec = leq::leqArray[leq10sec]->read();
       splD.leq5 = leq::leqArray[leq5]->read();
       splD.leq15 = leq::leqArray[leq15]->read();
@@ -215,6 +221,6 @@
       splD.leq5IsValid = (leq::leqArray[leq5]->isValid() ? 1 : 0);
       splD.leq15IsValid = (leq::leqArray[leq15]->isValid() ? 1 : 0);
 
-      emoncms::send2emoncms(EcmsParams, splDataNames, (float *) &splD, splDataElementCount);
+      emoncms::send2emoncms(EcmsParams, splDataNames, (float *) &splD, splDataElementCount, postEnabled);
    }
 #endif

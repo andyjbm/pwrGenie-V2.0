@@ -126,6 +126,7 @@
                CONSOLE(F(", LEQSizeSec: ")); CONSOLE(LEQSizeInSec); 
                CONSOLE(F(", LEQIsValid: ")); CONSOLELN(LEQvalid); 
             }
+            
             String getInfo(){
                String info = String(F("leq: "))  + String(read());
                info += String(F(", BufOutIx: ")) + String(BufOutIndex);

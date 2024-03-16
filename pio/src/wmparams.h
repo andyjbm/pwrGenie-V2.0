@@ -4,7 +4,6 @@
   #include <ESP.h>
   #include <Arduino.h>
   #include <string.h>
-
   #include "defs.h"
   #include "Globals.h"
   #include "Utils.h"
@@ -14,23 +13,9 @@
 
   #include "Ecms_Struct.h"
 
-  // struct wmparamData{
-  //     String jsonName;
-  //     String htmlName;
-  //     String customHTML;
-  //     String paramValue;
-  //     int tokenSize;
-  //     ESPAsync_WMParameter wmParameter;
-  // };
-
-  // The extra parameters to be configured (can be either global or just in the setup)
-  // After connecting, parameter.getValue() will get you the configured value
-  // id/name placeholder/prompt default length
-
-  //devicename,hostname,APSSID,APPassword,port,LoRa_1,LoRa_2,channel,username,password,vfact,enable_MB_Post
-
   extern ESPAsync_WiFiManager wm;
 
+  // IDs and descriptions for all our configurable parameters.
   const char P01[] PROGMEM = "Device Name";
   const char P02[] PROGMEM = "HostName";
   const char P03[] PROGMEM = "Access Point SSID";
@@ -45,81 +30,59 @@
   const char P12[] PROGMEM = "Config Page Password";
 
   const char P21[] PROGMEM = "Battery conversion factor";
+  const char P22[] PROGMEM = "pwrGenie Source & Send Enabled";
 
-  const char P31[] PROGMEM = "MODBUS to EMONCMS enabled: ";
-  const char P32[] PROGMEM = "DSGenset to EMONCMS enabled: ";
-  const char P33[] PROGMEM = "SPL to EMONCMS enabled: ";
+  // Update these three as a group.
+  enum pgMode_Opt
+  {
+    pgMode_Opt_Disabled,
+    pgMode_Opt_Send_vBat_Only,
+    pgMode_Opt_Receive_Source_Only,
+    pgMode_Opt_Both_Source_n_Send
+  };
+  const char * pgModeOptions[] = {"Disabled","Send vBat Only","Receive Source Only","Both Source & Send"};
+  const byte pgModeOptionsCount = 4;
+
+  //const char P31[] PROGMEM = "MODBUS to EMONCMS enabled: ";
+  //const char P32[] PROGMEM = "DSGenset to EMONCMS enabled: ";
+  //const char P33[] PROGMEM = "SPL to EMONCMS enabled: ";
 
   const char E01[] PROGMEM = "Emoncms Server";
   const char E02[] PROGMEM = "Emoncms uri";
   const char E03[] PROGMEM = "Emoncms Port";
   const char E04[] PROGMEM = "Emoncms Node";
   const char E05[] PROGMEM = "Emoncms apikey";
-  /*
-  const char E01[] PROGMEM = "Carlos Emoncms Server";
-  const char E02[] PROGMEM = "Carlos Emoncms uri";
-  const char E03[] PROGMEM = "Carlos Emoncms Port";
-  const char E04[] PROGMEM = "Carlos Emoncms Node";
-  const char E05[] PROGMEM = "Carlos Emoncms apikey";
-
-  const char E11[] PROGMEM = "DeepSea Emoncms Server";
-  const char E12[] PROGMEM = "DeepSea Emoncms uri";
-  const char E13[] PROGMEM = "DeepSea Emoncms Port";
-  const char E14[] PROGMEM = "DeepSea Emoncms Node";
-  const char E15[] PROGMEM = "DeepSea Emoncms apikey";
-
-  const char E21[] PROGMEM = "SPL Emoncms Server";
-  const char E22[] PROGMEM = "SPL Emoncms uri";
-  const char E23[] PROGMEM = "SPL Emoncms Port";
-  const char E24[] PROGMEM = "SPL Emoncms Node";
-  const char E25[] PROGMEM = "SPL Emoncms apikey";
-  */
-
+  
   ESPAsync_WMParameter custom_devicename( "P01", FPSTR(P01), my_devicename,  NAMESIZE);
   ESPAsync_WMParameter custom_hostname(   "P02", FPSTR(P02), my_hostname,    NAMESIZE);
 
   ESPAsync_WMParameter custom_APSSID(     "P03", FPSTR(P03), my_APSSID,      SSIDSIZE);
   ESPAsync_WMParameter custom_APPassword( "P04", FPSTR(P04), my_APPassword,  PWDSIZE);
-  ESPAsync_WMParameter custom_port(       "P05", FPSTR(P05), String(my_port).c_str(),            NUMBERSIZE,  (const char*)FPSTR(TYPE_NUMBER));
+  ESPAsync_WMParameter custom_port(       "P05", FPSTR(P05), String(my_port).c_str(),    NUMBERSIZE,  (const char*)FPSTR(TYPE_NUMBER));
 
   //ESPAsync_WMParameter custom_wifiSSID("wifiSSID", "wifi SSID", my_wifiSSID,TKIDSIZE);
   //ESPAsync_WMParameter custom_wifiPassword("wifiPassword", "wifi Password", my_wifiPassword, TKIDSIZE);
 
   ESPAsync_WMParameter custom_LoRa_1(     "P08", FPSTR(P08), my_LoRa_1,  APIKEYSIZE);
   ESPAsync_WMParameter custom_LoRa_2(     "P09", FPSTR(P09), my_LoRa_2,  APIKEYSIZE);
-  ESPAsync_WMParameter custom_channel(    "P10", FPSTR(P10), String(my_channel).c_str(),     NUMBERSIZE, (const char*)FPSTR(TYPE_NUMBER));
+  ESPAsync_WMParameter custom_channel(    "P10", FPSTR(P10), String(my_channel).c_str(), NUMBERSIZE, (const char*)FPSTR(TYPE_NUMBER));
 
   ESPAsync_WMParameter custom_username(   "P11", FPSTR(P11), my_username, USRNSIZE);
   ESPAsync_WMParameter custom_password(   "P12", FPSTR(P12), my_password, PWDSIZE);
 
+  // Battery Volts calibration factor.
   ESPAsync_WMParameter custom_vfact(      "P21", FPSTR(P21), String(my_vfact).c_str(), 7, (const char*)FPSTR(TYPE_NUMBER));
 
-  ESPAsync_WMParameter custom_enable_MB_Post(  "P31", FPSTR(P31), String(enable_MB_Post ).c_str(), BOOLSIZE,"",1, true);
-  ESPAsync_WMParameter custom_enable_DSG_Post( "P32", FPSTR(P32), String(enable_DSG_Post).c_str(), BOOLSIZE,"",1, true);
-  ESPAsync_WMParameter custom_enable_SPL_Post( "P33", FPSTR(P33), String(enable_SPL_Post).c_str(), BOOLSIZE,"",1, true);
-
-  //EM21_ECMS_Server,EM21_ECMS_uri,EM21_ECMS_Port,EM21_ECMS_Node,EM21_ECMS_apikey
+  ESPAsync_WMParameter custom_pgMode(     "P22", FPSTR(P22), String(my_pg_Mode).c_str(), NUMBERSIZE,"",1, WMParam_type::isSelection, pgModeOptions, pgModeOptionsCount);
+ 
+  //Emoncms Parameters
   ESPAsync_WMParameter emoncms_server("E01", FPSTR(E01), EcmsParams.server, NAMESIZE);
   ESPAsync_WMParameter emoncms_uri(   "E02", FPSTR(E02), EcmsParams.uri,    URISIZE);
   ESPAsync_WMParameter emoncms_port(  "E03", FPSTR(E03), String(EcmsParams.Port).c_str(),   7, (const char*)FPSTR(TYPE_NUMBER));
   ESPAsync_WMParameter emoncms_node(  "E04", FPSTR(E04), EcmsParams.node,   NODESIZE);
   ESPAsync_WMParameter emoncms_apikey("E05", FPSTR(E05), EcmsParams.apikey, APIKEYSIZE);
 
-  /*
-  ESPAsync_WMParameter emoncms_DSG_server("E11", FPSTR(E11), deepSeaGensetEcmsParams.server, NAMESIZE);
-  ESPAsync_WMParameter emoncms_DSG_uri(   "E12", FPSTR(E12), deepSeaGensetEcmsParams.uri,    URISIZE);
-  ESPAsync_WMParameter emoncms_DSG_port(  "E13", FPSTR(E13), String(    deepSeaGensetEcmsParams.Port).c_str(),   7, (const char*)FPSTR(TYPE_NUMBER));
-  ESPAsync_WMParameter emoncms_DSG_node(  "E14", FPSTR(E14), deepSeaGensetEcmsParams.node,   NODESIZE);
-  ESPAsync_WMParameter emoncms_DSG_apikey("E15", FPSTR(E15), deepSeaGensetEcmsParams.apikey, APIKEYSIZE);
-
-  ESPAsync_WMParameter emoncms_SPL_server("E21", FPSTR(E21), splEcmsParams.server, NAMESIZE);
-  ESPAsync_WMParameter emoncms_SPL_uri(   "E22", FPSTR(E22), splEcmsParams.uri,    URISIZE);
-  ESPAsync_WMParameter emoncms_SPL_port(  "E23", FPSTR(E23), String(    splEcmsParams.Port).c_str(),   7, (const char*)FPSTR(TYPE_NUMBER));
-  ESPAsync_WMParameter emoncms_SPL_node(  "E24", FPSTR(E24), splEcmsParams.node,   NODESIZE);
-  ESPAsync_WMParameter emoncms_SPL_apikey("E25", FPSTR(E25), splEcmsParams.apikey, APIKEYSIZE);
-  */
   ESPAsync_WMParameter custom_LineBreak("<hr>");
-
 
   //Set the values of the parameters from the global var values.
   void set_WM_Params(){
@@ -143,34 +106,13 @@
     custom_password.setValue( my_password, PWDSIZE);
 
     custom_vfact.setValue(String(my_vfact).c_str(), NUMBERSIZE);
-    custom_enable_MB_Post.setValue(String(enable_MB_Post).c_str(), BOOLSIZE);
-    custom_enable_DSG_Post.setValue(String(enable_DSG_Post).c_str(), BOOLSIZE);
-    custom_enable_SPL_Post.setValue(String(enable_SPL_Post).c_str(), BOOLSIZE);
+    custom_pgMode.setValue(String(my_pg_Mode).c_str(), NUMBERSIZE);
 
     emoncms_server.setValue(EcmsParams.server,URLSIZE);
     emoncms_uri.setValue(EcmsParams.uri, URISIZE);
     emoncms_port.setValue(String(EcmsParams.Port).c_str(),  NUMBERSIZE);
     emoncms_node.setValue(EcmsParams.node, NODESIZE);
     emoncms_apikey.setValue(EcmsParams.apikey, APIKEYSIZE);
-  /*
-    emoncms_EM21_server.setValue(mbCarloEM21EcmsParams.server,URLSIZE);
-    emoncms_EM21_uri.setValue(mbCarloEM21EcmsParams.uri, URISIZE);
-    emoncms_EM21_port.setValue(String(mbCarloEM21EcmsParams.Port).c_str(),  NUMBERSIZE);
-    emoncms_EM21_node.setValue(mbCarloEM21EcmsParams.node, NODESIZE);
-    emoncms_EM21_apikey.setValue(mbCarloEM21EcmsParams.apikey, APIKEYSIZE);
-
-    emoncms_DSG_server.setValue(deepSeaGensetEcmsParams.server,URLSIZE);
-    emoncms_DSG_uri.setValue(deepSeaGensetEcmsParams.uri, URISIZE);
-    emoncms_DSG_port.setValue(String(deepSeaGensetEcmsParams.Port).c_str(),  NUMBERSIZE);
-    emoncms_DSG_node.setValue(deepSeaGensetEcmsParams.node, NODESIZE);
-    emoncms_DSG_apikey.setValue(deepSeaGensetEcmsParams.apikey, APIKEYSIZE);
-
-    emoncms_SPL_server.setValue(splEcmsParams.server,URLSIZE);
-    emoncms_SPL_uri.setValue(splEcmsParams.uri, URISIZE);
-    emoncms_SPL_port.setValue(String(splEcmsParams.Port).c_str(),  NUMBERSIZE);
-    emoncms_SPL_node.setValue(splEcmsParams.node, NODESIZE);
-    emoncms_SPL_apikey.setValue(splEcmsParams.apikey, APIKEYSIZE);
-    */
   }
 
   //Add our custom parameters to the WiFi manager parameter menu
@@ -203,11 +145,7 @@
 
     wm.addParameter(&custom_vfact);
     wm.addParameter(&custom_LineBreak);
-    wm.addParameter(&custom_enable_MB_Post);
-    wm.addParameter(&custom_enable_DSG_Post);
-    wm.addParameter(&custom_enable_SPL_Post);
-
-    //wm.addParameter(&custom_LineBreak);
+    wm.addParameter(&custom_pgMode);
     wm.addParameter(&custom_LineBreak);
 
     wm.addParameter(&emoncms_server);
@@ -215,27 +153,6 @@
     wm.addParameter(&emoncms_port);
     wm.addParameter(&emoncms_node);
     wm.addParameter(&emoncms_apikey);
-
-    /*
-    //MODBUS Parameters
-    wm.addParameter(&emoncms_EM21_server);
-    wm.addParameter(&emoncms_EM21_uri);
-    wm.addParameter(&emoncms_EM21_port);
-    wm.addParameter(&emoncms_EM21_node);
-    wm.addParameter(&emoncms_EM21_apikey);
-
-    wm.addParameter(&emoncms_DSG_server);
-    wm.addParameter(&emoncms_DSG_uri);
-    wm.addParameter(&emoncms_DSG_port);
-    wm.addParameter(&emoncms_DSG_node);
-    wm.addParameter(&emoncms_DSG_apikey);
-
-    wm.addParameter(&emoncms_SPL_server);
-    wm.addParameter(&emoncms_SPL_uri);
-    wm.addParameter(&emoncms_SPL_port);
-    wm.addParameter(&emoncms_SPL_node);
-    wm.addParameter(&emoncms_SPL_apikey);
-    */
   }
 
   //Write the parameters from the Wifi manager into the global Vars.
@@ -262,36 +179,13 @@
     
     my_vfact = validateFloat(custom_vfact.getValue());
     //if (my_vfact < ADCDIVISOR * 0.8 || my_vfact > ADCDIVISOR * 1.25) {my_vfact = ADCDIVISOR;}
-
-    enable_MB_Post  = validateInt(custom_enable_MB_Post.getValue());
-    enable_DSG_Post = validateInt(custom_enable_DSG_Post.getValue());
-    enable_SPL_Post = validateInt(custom_enable_SPL_Post.getValue());
+    my_pg_Mode      = validateInt(custom_pgMode.getValue());
 
     validateInput(emoncms_server.getValue(), EcmsParams.server);
     validateInput(emoncms_uri.getValue(), EcmsParams.uri);
     EcmsParams.Port = validateInt(emoncms_port.getValue());
     validateInput(emoncms_node.getValue(), EcmsParams.node);     // Text. We allow for node to contain letters. I don't know if emoncms will be happy with that.
     validateInput(emoncms_apikey.getValue(), EcmsParams.apikey);
-  /*
-    // Modbus to emoncms parameters
-    validateInput(emoncms_EM21_server.getValue(), mbCarloEM21EcmsParams.server);
-    validateInput(emoncms_EM21_uri.getValue(), mbCarloEM21EcmsParams.uri);
-    mbCarloEM21EcmsParams.Port = validateInt(emoncms_EM21_port.getValue());
-    validateInput(emoncms_EM21_node.getValue(), mbCarloEM21EcmsParams.node);     // Text. We allow for node to contain letters. I don't know if emoncms will be happy with that.
-    validateInput(emoncms_EM21_apikey.getValue(), mbCarloEM21EcmsParams.apikey);
-
-    validateInput(emoncms_DSG_server.getValue(), deepSeaGensetEcmsParams.server);
-    validateInput(emoncms_DSG_uri.getValue(), deepSeaGensetEcmsParams.uri);
-    deepSeaGensetEcmsParams.Port = String(emoncms_DSG_port.getValue()).toInt();
-    validateInput(emoncms_DSG_node.getValue(), deepSeaGensetEcmsParams.node);     // Text. We allow for node to contain letters. I don't know if emoncms will be happy with that.
-    validateInput(emoncms_DSG_apikey.getValue(), deepSeaGensetEcmsParams.apikey);
-
-    validateInput(emoncms_SPL_server.getValue(), splEcmsParams.server);
-    validateInput(emoncms_SPL_uri.getValue(), splEcmsParams.uri);
-    splEcmsParams.Port = String(emoncms_SPL_port.getValue()).toInt();
-    validateInput(emoncms_SPL_node.getValue(), splEcmsParams.node);     // Text. We allow for node to contain letters. I don't know if emoncms will be happy with that.
-    validateInput(emoncms_SPL_apikey.getValue(), splEcmsParams.apikey);
-    */
   }
 
 #endif

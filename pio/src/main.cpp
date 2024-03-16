@@ -12,7 +12,7 @@
 #include "ESPAsync_WiFiManager.h"
 #include "Utils.h"                // Needs WifiManager
 
-#ifdef PWR_GENIE_MODE_EM21
+#ifdef PWR_GENIE_MODE_MODBUS
   #include "modbus.h"
 #endif
 //#else
@@ -63,7 +63,7 @@ AsyncWebServerResponse *addHeaders(AsyncWebServerResponse *response){
   return response;
 }
 
-//Handle http call from IOT device to this device and push the emoncms data over LoRa.
+//Handle http call from IOT client to this device and forward it onto the emoncms server.
 void handleEmoncms(AsyncWebServerRequest *request){
   // The magic happens here.
   CONSOLELN(F("Page Request: handleEmoncms call."));
@@ -87,26 +87,38 @@ void handleEmoncms(AsyncWebServerRequest *request){
   //Now we need to relay it on to emoncms over lora or whatever method we choose.
 }
 
+// Handle our debug page.
 void handleDebug(AsyncWebServerRequest *request){
   CONSOLELN(F("Page Request: handleDebug call."));
     
   String page = wm.buildHeader("main_Debug","Debug Info", WM_META_AUTO_DEBUG);
   page += "<fieldset><div class = 'msg'>";
-  
-  if (ecms_LastResult.isEmpty()){
-    page += "<h4>emoncms not yet called.</h4>";
+
+  // The last Emoncms data string to be posted.
+  if (strJsonData.isEmpty()) {
+    page += "<h4 style='margin-top:0px;'>Emoncms last json data:</h4><small>Is empty!</small>";
   } else {
-    page += "<h4>" + ecms_LastResult + "</h4>";
+    page += "<h4>Emoncms last json data:</h4><small>" + String(strJsonData) + "</small>";
+  }
+
+  // The last result from Emoncms: 
+  if (ecms_LastResult.isEmpty()) {
+    page += "<h4>Emoncms last result:</h4><small>Is empty!</small>";
+  } else {
+    page += "<h4>Emoncms last result:</h4><small>" + ecms_LastResult + "</small>";
   }
   #ifdef PWR_GENIE_MODE_SPL
-    page += "<h4>SPL data:</h4>"
-    page += "<small>" + LEQInfo + "</small>";
-  #endif
-  #ifdef PWR_GENIE_MODE_EM21
-    if (modbusSuccess){
-      page += "<h4>Carlo last result Ok:</h4><small>" + modbus_LastResult + "</small>";
+    if (LEQInfo.isEmpty()) {
+      page += "<h4>SPL data:</h4><small>Is empty!</small>";
     } else {
-      page += "<h4>Carlo last result failed:</h4><small>" + modbus_LastResult + "</small>";
+      page += "<h4>SPL data:</h4><small>" + LEQInfo + "</small>";
+    }
+  #endif
+  #ifdef PWR_GENIE_MODE_MODBUS
+    if (modbusSuccess) {
+      page += "<h4>MODBUS last result Ok:</h4><small>" + modbus_LastResult + "</small>";
+    } else {
+      page += "<h4>MODBUS last result failed:</h4><small>" + modbus_LastResult + "</small>";
     }
   #endif
   page += "</div></fieldset>";
@@ -114,10 +126,9 @@ void handleDebug(AsyncWebServerRequest *request){
   CONSOLELN(F("HandleDebug page sent."));
 }
 
-/*
- * This is a callback made when the wifimanager webserver is created for the purposes of
- * adding our own custom page handlers to the webserver, specific to LoRa wifi data capture.
- */
+
+// This is a callback made when the wifimanager webserver is created for the purposes of
+// adding our own custom page handlers to the webserver.
 void configMyWebHandlers(){
   CONSOLELN(F("Call to configMyWebHandlers..."));
   wm.server->on("/emoncms/*", handleEmoncms); //This requires wildcard mod to uri.h in ESP8266Webserver Lib
@@ -175,17 +186,23 @@ void setup() {
 
   CONSOLELN(F("After wm.autoConnect...!"));
 
-    // Setup everything else now the framework is up.
-    #ifdef PWR_GENIE_MODE_SPL
-      if (enable_SPL_Post){ ssreader::begin(); }
-    #endif
+  // Setup everything else now the framework is up.
+  #ifdef PWR_GENIE_MODE_SPL
+  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+    {
+      ssreader::begin();
+    }
+  #endif
 
-    #ifdef PWR_GENIE_MODE_EM21
-      if (enable_MB_Post) { initModbus(); }
-    #endif
+  // Note changes to my_pg_Mode in the config will initiate a restart.
+  #ifdef PWR_GENIE_MODE_MODBUS
+    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+    {
+      initModbus();
+    }
+  #endif
 
   }
-
 
 void console_InfoPrint(){
   CONSOLELN();
@@ -210,9 +227,10 @@ void console_InfoPrint(){
 
 void loop() {
   static unsigned long milliCounter;
-  //static unsigned long tmpmiliC;
 
-/*
+/* Testing SPL Meter code leqv2.h
+  static unsigned long tmpmiliC;
+
   // fake an SPL reading every second.
   if ((millis() - tmpmiliC) > 1000) {
     tmpmiliC += 1000;
@@ -220,46 +238,61 @@ void loop() {
         ssreader::SPL_Complete = true;
   }
 */
-  if (wm.restartMe){
+
+  // For OTA servicing, device reset and other restart needs.
+  if (wm.restartMe)
+  {
     CONSOLELN(F("Restart has been requested by WM_Manager..."));
     delay(1000);
     ESP.restart();
   }
 
+  // SPL Meter specific background service loop code.
   #ifdef PWR_GENIE_MODE_SPL
-    if (enable_SPL_Post){ ssreader::ssreaderLoop(); }
+    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+    {
+      ssreader::ssreaderLoop();
+    }
   #endif
 
-  if ((millis() - milliCounter) > LOOP_INFO_TIME * 1000) {
+  if ((millis() - milliCounter) > LOOP_INFO_TIME * 1000)
+  {
     milliCounter += LOOP_INFO_TIME * 1000;
-    psuVolts = ReadPsuVolts(my_vfact);   // psuVolts is global. Also used by wifi manager on web portal.
+    psuVolts = ReadPsuVolts(my_vfact);   // psuVolts is global. Also used by wifi manager on config portal.
     CONSOLE(F("psuVolts Read: "));
     CONSOLELN(String(psuVolts,2));
+
+    //For debugging:
     //console_InfoPrint();
     //testhostByName();
 
-    #ifdef PWR_GENIE_MODE_EM21
-      if (enable_MB_Post) {
-        CONSOLE(F("MODBUS Post Enabled, Calling doModbusWork(): "));
-        modbusSuccess = doModbusWork();
+    // Modbus as-a-source device specific code:
+    #ifdef PWR_GENIE_MODE_MODBUS
+      if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+      {
+        CONSOLE(F("MODBUS Source Enabled, Calling doModbusWork(): "));
+        modbusSuccess = doModbusWork(my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send);
       } else {
-        CONSOLELN(F("MODBUS Post DISABLED."));
+        CONSOLELN(F("MODBUS Source DISABLED in config."));
       }
     #endif
 
+
+    // SPL Meter Specific code:
     #ifdef PWR_GENIE_MODE_SPL
-    if (enable_SPL_Post){
-      //CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend()..."));
-      ssreader::DoSPLSend();
-    } else {
-      CONSOLELN(F("SPL Post DISABLED."));
-    }
+      if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send){
+        //CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend()..."));
+        ssreader::DoSPLSend(my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send);
+      } else {
+        CONSOLELN(F("SPL Source DISABLED in config."));
+      }
     #endif
 
-     if (!enable_MB_Post && !enable_DSG_Post && !enable_SPL_Post) { // Check for all options being disabled here.
-       CONSOLE(F("Emoncms sending ADCv: "));
-       emoncms::send2emoncms(EcmsParams, "");                       //Empty Params will just send the psuVariable.
-     }
+    // For posting psu Voltage when other Posting is turned off.
+    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Send_vBat_Only) {
+      CONSOLE(F("Emoncms sending ADCv: "));
+      emoncms::send2emoncms(EcmsParams, "");  // Empty Params will just send the psuVariable.
+    }
     
     #ifdef BSSL_DEBUG
       uint16_t stack_usage = stack_thunk_get_max_usage();

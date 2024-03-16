@@ -404,10 +404,14 @@ typedef struct
 
 const char WM_HTTP_WIFIFORM_LABEL_BEFORE[]  PROGMEM = "<div><label for='{i}'>{p}</label><input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}></div>";
 const char WM_HTTP_WIFIFORM_LABEL_AFTER[]   PROGMEM = "<div><input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}><label for='{i}'>{p}</label></div>";
-const char WM_HTTP_WIFIFORM_LABEL[]         PROGMEM = "<label for='{i}'>{p}</label>";
-const char WM_HTTP_WIFIFORM_PARAM[]         PROGMEM = "<input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}>";
-//const char WM_HTTP_CONFIGFORM_PARAM[]       PROGMEM = "<input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}>";
+//const char WM_HTTP_WIFIFORM_PARAM[]         PROGMEM = "<input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}>";
+
+const char WM_HTTP_CONFIGFORM_LABEL[]         PROGMEM = "<label for='{i}'>{p}</label>";
+const char WM_HTTP_CONFIGFORM_PARAM[]       PROGMEM = "<input id='{i}' name='{n}' length={l} placeholder='{p}' value='{v}' {c}>";
 const char WM_HTTP_CONFIGFORM_BOOL_PARAM[]  PROGMEM = "<input type='checkbox' id='{i}' name='{n}' length='{l}' value='1' {c}>";
+const char WM_HTTP_CONFIGFORM_SELECTION_PARAM[] PROGMEM = "<select id='{i}' name='{n}' length='{l}'>{o}</select>";
+const char WM_HTTP_CONFIGFORM_SEL_OPTIONS[] PROGMEM =     "<option value=\"{o}\"{s}>{d}</option>";
+
 const char WM_HTTP_FORM_END[]               PROGMEM = "<button class='btn' type='submit'>Save</button></form>";
 
 const char WM_HTTP_WIFISAVED[] PROGMEM = "<div class='msg'><b>Credentials Saved</b><br>Attempting to connect to the {x}/{x1} network. Wait around 10 seconds then check <a href='/'>if it's OK.</a> <p/>The {v} AP will run on the same WiFi channel of the {x}/{x1} AP. You may have to manually reconnect to the {v} AP.</div>";
@@ -424,15 +428,24 @@ const char WM_HTTP_CONFIGSAVED[] PROGMEM = "<div class='msg'><h3>Configuration S
 
 ////////////////////////////////////////////////////
 
+enum WMParam_type : byte
+{
+  isNormal,
+  isCheckbox,
+  isSelection
+};
+
+
 typedef struct
 {
-  const char *_id;
-  const __FlashStringHelper *_placeholder;
-  char       *_value;
-  int         _length;
-  int         _labelPlacement;
-  bool        _isCheckbox;
-
+  const char    *_id;
+  const         __FlashStringHelper *_placeholder;
+  char          *_value;
+  int           _length;
+  int           _labelPlacement;
+  WMParam_type  _type                         = WMParam_type::isSelection;
+  const char    **_selectionType_Options      = nullptr;
+  byte          _selectionType_Options_Count  = 0;
 }  WMParam_Data;
 
 
@@ -444,8 +457,9 @@ class ESPAsync_WMParameter
   public:
   
     ESPAsync_WMParameter(const char *custom);
-    ESPAsync_WMParameter(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length, 
-                         const char *custom = "", const int& labelPlacement = WFM_LABEL_BEFORE, const bool isCheckbox = false);
+    ESPAsync_WMParameter(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length,
+                          const char *custom = "", const int& labelPlacement = WFM_LABEL_BEFORE,
+                          const WMParam_type type = WMParam_type::isNormal, const char **selectionType_Options = nullptr, const byte _selectionType_Options_Count = 0);
                                            
     ESPAsync_WMParameter(const WMParam_Data& WMParam_data);                      
     
@@ -454,14 +468,14 @@ class ESPAsync_WMParameter
     void setWMParam_Data(const WMParam_Data& WMParam_data);
     void getWMParam_Data(WMParam_Data& WMParam_data);
 
-    const char *getID();
-    const char *getValue();
+    const char    *getID();
+    const char    *getValue();
     const __FlashStringHelper *getPlaceholder();
-    int         getValueLength();
-    int         getLabelPlacement();
-    bool        getTypeIsBoolean();
-    const char *getCustomHTML();
-    void        setValue(const char *defaultValue, int length);
+    int           getValueLength();
+    int           getLabelPlacement();
+    WMParam_type  getType();
+    const char    *getCustomHTML();
+    void          setValue(const char *defaultValue, int length);
     
   private:
   
@@ -469,8 +483,9 @@ class ESPAsync_WMParameter
     
     const char *_customHTML;
 
-    void init(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length, 
-              const char *custom, const int& labelPlacement, const bool isCheckbox);
+    void init(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length,
+              const char *custom, const int& labelPlacement, 
+              const WMParam_type type, const char **selectionType_Options, const byte _selectionType_Options_Count);
 
     friend class ESPAsync_WiFiManager;
 };

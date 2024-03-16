@@ -55,9 +55,7 @@
     jsonDoc["P14"] = my_wifiPassword1; 
     
     jsonDoc["P21"] = my_vfact;
-    jsonDoc["P31"] = enable_MB_Post;
-    jsonDoc["P32"] = enable_DSG_Post;
-    jsonDoc["P33"] = enable_SPL_Post;
+    jsonDoc["P22"] = my_pg_Mode;
 
     jsonDoc["E01"] = EcmsParams.server;
     if ((String)EcmsParams.uri="") {strcpy(EcmsParams.uri, EMONCMS_DEFAULT_URI);}
@@ -65,29 +63,6 @@
     jsonDoc["E03"] = EcmsParams.Port;
     jsonDoc["E04"] = EcmsParams.node;
     jsonDoc["E05"] = EcmsParams.apikey;
-  /*
-    //MODBUS Parameters
-    jsonDoc["E01"] = mbCarloEM21EcmsParams.server;
-    if ((String)mbCarloEM21EcmsParams.uri="") {strcpy(mbCarloEM21EcmsParams.uri, EMONCMS_DEFAULT_URI);}
-    jsonDoc["E02"] = mbCarloEM21EcmsParams.uri;
-    jsonDoc["E03"] = mbCarloEM21EcmsParams.Port;
-    jsonDoc["E04"] = mbCarloEM21EcmsParams.node;
-    jsonDoc["E05"] = mbCarloEM21EcmsParams.apikey;
-
-    jsonDoc["E11"] = deepSeaGensetEcmsParams.server;
-    if ((String)deepSeaGensetEcmsParams.uri="") {strcpy(deepSeaGensetEcmsParams.uri, EMONCMS_DEFAULT_URI);}
-    jsonDoc["E12"] = deepSeaGensetEcmsParams.uri;
-    jsonDoc["E13"] = deepSeaGensetEcmsParams.Port;
-    jsonDoc["E14"] = deepSeaGensetEcmsParams.node;
-    jsonDoc["E15"] = deepSeaGensetEcmsParams.apikey;
-
-    jsonDoc["E21"] = splEcmsParams.server;
-    if ((String)splEcmsParams.uri="") {strcpy(splEcmsParams.uri, EMONCMS_DEFAULT_URI);}
-    jsonDoc["E22"] = splEcmsParams.uri;
-    jsonDoc["E23"] = splEcmsParams.Port;
-    jsonDoc["E24"] = splEcmsParams.node;
-    jsonDoc["E25"] = splEcmsParams.apikey;
-    */
 
     CONSOLE(F("Saving config: "));
 
@@ -189,9 +164,7 @@
             if (jsonDoc.containsKey("P14")) strcpy(my_wifiPassword1, jsonDoc["P14"]); // = (const char *)jsonDoc["wifiPassword"];
 
             if (jsonDoc.containsKey("P21")) my_vfact = jsonDoc["P21"];
-            if (jsonDoc.containsKey("P31")) enable_MB_Post = jsonDoc["P31"];
-            if (jsonDoc.containsKey("P32")) enable_DSG_Post = jsonDoc["P32"];
-            if (jsonDoc.containsKey("P33")) enable_SPL_Post = jsonDoc["P33"];
+            if (jsonDoc.containsKey("P22")) my_pg_Mode = jsonDoc["P22"];
 
             if (jsonDoc.containsKey("E01")) strcpy(EcmsParams.server, jsonDoc["E01"]);
             if (jsonDoc.containsKey("E02")) strcpy(EcmsParams.uri, jsonDoc["E02"]);
@@ -199,27 +172,6 @@
             if (jsonDoc.containsKey("E04")) strcpy(EcmsParams.node, jsonDoc["E04"]);
             if (jsonDoc.containsKey("E05")) strcpy(EcmsParams.apikey, jsonDoc["E05"]);
             
-            /*
-            //MODBUS
-            if (jsonDoc.containsKey("E01")) strcpy(mbCarloEM21EcmsParams.server, jsonDoc["E01"]);
-            if (jsonDoc.containsKey("E02")) strcpy(mbCarloEM21EcmsParams.uri, jsonDoc["E02"]);
-            if (jsonDoc.containsKey("E03")) mbCarloEM21EcmsParams.Port = jsonDoc["E03"];
-            if (jsonDoc.containsKey("E04")) strcpy(mbCarloEM21EcmsParams.node, jsonDoc["E04"]);
-            if (jsonDoc.containsKey("E05")) strcpy(mbCarloEM21EcmsParams.apikey, jsonDoc["E05"]);
-            
-            if (jsonDoc.containsKey("E11")) strcpy(deepSeaGensetEcmsParams.server, jsonDoc["E11"]);
-            if (jsonDoc.containsKey("E12")) strcpy(deepSeaGensetEcmsParams.uri, jsonDoc["E12"]);
-            if (jsonDoc.containsKey("E13")) deepSeaGensetEcmsParams.Port = jsonDoc["E13"];
-            if (jsonDoc.containsKey("E14")) strcpy(deepSeaGensetEcmsParams.node, jsonDoc["E14"]);
-            if (jsonDoc.containsKey("E15")) strcpy(deepSeaGensetEcmsParams.apikey, jsonDoc["E15"]);
-
-            if (jsonDoc.containsKey("E21")) strcpy(splEcmsParams.server, jsonDoc["E21"]);
-            if (jsonDoc.containsKey("E22")) strcpy(splEcmsParams.uri, jsonDoc["E22"]);
-            if (jsonDoc.containsKey("E23")) splEcmsParams.Port = jsonDoc["E23"];
-            if (jsonDoc.containsKey("E24")) strcpy(splEcmsParams.node, jsonDoc["E24"]);
-            if (jsonDoc.containsKey("E25")) strcpy(splEcmsParams.apikey, jsonDoc["E25"]);
-            */
-
             //Check wifi connection creds are valid.
             if (String(my_wifiSSID).isEmpty()) {
               CONSOLE(F("Config missing wifiSSID, trying credentials stored in ESP: "));
