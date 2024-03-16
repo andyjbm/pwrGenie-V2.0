@@ -63,7 +63,7 @@
    #define USE_AVAILABLE_PAGES
 
    #define LOOP_INFO_TIME 10 // in Seconds
-   #define FIRMWAREVERSION "0.6.0"
+   #define FIRMWAREVERSION "0.7.0"
 
    //#define SECURE_ENABLED   // Enables SSL sending on 443 for emoncms. Breaks pages - heap corruption? Blank pages sent.
    
