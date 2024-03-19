@@ -41,7 +41,7 @@
     #define APM303_REGMAX   12          // Number of registers to be fetched
     #define APM303_DataElementCount 12  // Number of parameters these fit into.
 
-    #define READ_INTERVAL   10          // In Seconds.
+    // #define READ_INTERVAL   10          // In Seconds.
 
     #ifdef MODBUS_DEVICE_EM21
         #define MODBUS_ID       EM21_ID
@@ -50,22 +50,30 @@
         #define MODBUS_REG_PER  EM21_REG_PER
         #define MODBUS_REGMAX   EM21_REGMAX   
         #define MODBUS_DATAELEMENTCOUNT EM21_DataElementCount
-    #endif
-    #ifdef MODBUS_DEVICE_APM403
+    #elif MODBUS_DEVICE_APM403
         #define MODBUS_ID       APM403_ID
         #define MODBUS_HBASE    APM403_HBASE
         #define MODBUS_BAUD     APM403_BAUD
         #define MODBUS_REG_PER  APM403_REG_PER
         #define MODBUS_REGMAX   APM403_REGMAX   
         #define MODBUS_DATAELEMENTCOUNT APM403_DataElementCount
-    #endif
-    #ifdef MODBUS_DEVICE_APM303
+    #elif MODBUS_DEVICE_APM303
         #define MODBUS_ID       APM303_ID
         #define MODBUS_HBASE    APM303_HBASE
         #define MODBUS_BAUD     APM303_BAUD
         #define MODBUS_REG_PER  APM303_REG_PER
         #define MODBUS_REGMAX   APM303_REGMAX   
         #define MODBUS_DATAELEMENTCOUNT APM303_DataElementCount
+    #else
+        // Some default values for the compile to succeed. Use APM303 for now.
+        #define MODBUS_DEVICE_APM303
+
+        #define MODBUS_ID       1
+        #define MODBUS_HBASE    0
+        #define MODBUS_BAUD     9600
+        #define MODBUS_REG_PER  12
+        #define MODBUS_REGMAX   12   
+        #define MODBUS_DATAELEMENTCOUNT 12
     #endif
 
     #ifdef ESP8266
