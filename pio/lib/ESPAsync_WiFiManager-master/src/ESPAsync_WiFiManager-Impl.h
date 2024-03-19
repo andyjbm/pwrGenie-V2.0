@@ -2303,7 +2303,6 @@ const char favicon[] PROGMEM = {
 0xAE, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
 };
 
-
 void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
 {
   LOGDEBUG(F("Favicon request"));
@@ -2358,7 +2357,7 @@ inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerReque
   // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
   delay(1);
 #else
-  
+
   AsyncWebServerResponse *response = request->beginResponse(200, WM_HTTP_HEAD_CT, page);
   response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
 
