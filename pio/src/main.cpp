@@ -15,17 +15,14 @@
 #ifdef PWR_GENIE_MODE_MODBUS
   #include "modbus.h"
 #endif
-//#else
-//  #define pgMODBUS_H  // Stop code from being included.
-//#endif
 
 #ifdef PWR_GENIE_MODE_SPL
   #include "spl.h"
 #endif
-//#else
-//  #define SPL_H
-//  #define LEQV2_H
-//#endif
+
+#ifdef PWR_GENIE_MODE_JKBMS
+  #include "JKBMS.h"
+#endif
 
 #include "emoncms.h"
 
@@ -138,28 +135,23 @@ void configMyWebHandlers(){
 // Get everything ready.
 void setup() {
   
-  Serial.begin(115200);
+  Serial.begin(921600);
   while (!Serial){;}
 
-  delay(5000);
+  delay(3000);
 
   CONSOLELN(F("\n\n\n\nHello there, it's a new day!"));
 
   resetAPcreds();  // Load factory defaults in case LittleFS config is blank and loading config fails.
   loadConfig();    // From LittleFS file.
 
-//These are debug overrides for now to stop calls to post emoncms
-//enable_MB_Post = false;
-//enable_DSG_Post = false;
-//enable_SPL_Post = false;
-
   set_WM_Params();
   add_WM_Params();
   wm.setSaveConfigCallback(paramsChangedCallback); //   wm.setSaveParamsCallback(paramsChangedCallback);
   wm.setWebServerCallback(configMyWebHandlers);
 
-// This doesn't determine whether the portal will be closed. What it actually does is determine whether the save config handler will get called atuomatically when wifi creds change.
-//  wm.setBreakAfterConfig(false);      // This is supposed to stop the portal from being closed after a new config is saved. Not sure if it works.
+  // This doesn't determine whether the portal will be closed. What it actually does is determine whether the save config handler will get called atuomatically when wifi creds change.
+  // wm.setBreakAfterConfig(false);      // This is supposed to stop the portal from being closed after a new config is saved. Not sure if it works.
 
   if (!((String)my_hostname).isEmpty()) {wm.setRFC952_hostname(my_hostname);}
 
@@ -169,22 +161,28 @@ void setup() {
   wm.setCredentials(my_wifiSSID, my_wifiPassword, my_wifiSSID1, my_wifiPassword1);  //Set the creds for the access points we want to try to connect to.
   wm.scanModal();   //Perform an initial Scan b4 we try to connect.
   
-  //If connection fails it starts an access point **with the creds supplied in this call**.  
-  if (wm.autoConnect(my_APSSID,my_APPassword)) {  // These are the creds for starting an AP if connecting to wifi fails!
+  // If connection fails it starts an access point **with the creds supplied in this call**.  
+  if (wm.autoConnect(my_APSSID,my_APPassword)) {  // These are the creds for starting an AP if connecting to ext wifi fails!
     CONSOLELN(F("MAIN: Connected to external wifi as a client... yeey!"));
 
-    //If connecting to an external wifi as-a-client succeeds, then the portal won't be started by wm.autoconnect.
+    //If connecting to an external wifi as-a-client succeeds, then the portal webserver won't be started by wm.autoconnect...
     CONSOLELN(F("MAIN: Starting portal webserver after connecting to ext wifi."));
 
-    //wm.setupConfigPortal();   // This starts both an AP and portal webserver manually.
-    wm.startPortalWebserver();  // This starts just the webserver.
+    //wm.setupConfigPortal();   // This starts both an AP and portal webserver manually. We don't need the AP because we connected to ext wifi aok.
+    wm.startPortalWebserver();  // ...so we have to start it manually. This call starts just the webserver.
   }
   else {
     CONSOLELN(F("MAIN: Failed to connect to wifi as a client so started an AP..."));
     //If we end up here we will have a portal running on the ESP hosted AP...
+    // wm.autoConnect will start an AP and the portal webserver if connecting to ext wifi fails.
   }
 
   CONSOLELN(F("After wm.autoConnect...!"));
+
+  // =================================================
+  // Wifi or AP is up and config webserver is started.
+  // =================================================
+
 
   // Setup everything else now the framework is up.
   #ifdef PWR_GENIE_MODE_SPL
@@ -197,7 +195,11 @@ void setup() {
       initModbus();
   #endif
 
-  }
+  #ifdef PWR_GENIE_MODE_JKBMS
+    pg_jkbms::setup_bms_serial();
+  #endif
+
+}
 
 void console_InfoPrint(){
   CONSOLELN();
@@ -250,12 +252,21 @@ void loop() {
     }
   #endif
 
+  //JKBMS has its own poll loop & timing.
+  #ifdef PWR_GENIE_MODE_JKBMS
+  //  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+  //  {
+  //    pg_jkbms::bms_pollLoop();
+  //  }
+  #endif
+
+  // Main Poll Loop.
   if ((millis() - milliCounter) > LOOP_INFO_TIME * 1000)
   {
     milliCounter += LOOP_INFO_TIME * 1000;
     psuVolts = ReadPsuVolts(my_vfact);   // psuVolts is global. Also used by wifi manager on config portal.
-    CONSOLE(F("psuVolts Read: "));
-    CONSOLELN(String(psuVolts,2));
+    //CONSOLE(F("psuVolts Read: "));
+    //CONSOLELN(String(psuVolts,2));
 
     //For debugging:
     //console_InfoPrint();
@@ -271,7 +282,6 @@ void loop() {
         CONSOLELN(F("MODBUS Source DISABLED in config."));
       }
     #endif
-
 
     // SPL Meter Specific code:
     #ifdef PWR_GENIE_MODE_SPL

@@ -1,6 +1,5 @@
 #ifndef DEFS_H
    #define DEFS_H
-
    #pragma once
 
 /*
@@ -8,7 +7,6 @@
 ** DEFS for the whple Project **
 ********************************
 */
-
 
    // Ought to move these to build types....
    //#define NO_CONSOLE
@@ -19,18 +17,25 @@
     A device is only going to be used for one data source.
     Options are:
    */
-   #define TYPE_SPL     0  // SPL Meter source built into the device. Bit banging solution implementing LEQ in leqv2.h
-   #define TYPE_EM21    1  // Carlo Gavazzi EM21 MODBUS over RS485 source
-   #define TYPE_DSE     2  // Deep sea Genset Controller MODBUS over RS485 (Will define by model no when we get into it)
-   #define TYPE_APM303  3  // APM 303 Genset Controller via MODBUS over RS485
-   #define TYPE_APM403  4  // APM 403 Genset Controller via MODBUS over RS485
-   #define TYPE_JKBMS   5  // Jing Kong BMS over TTL Serial. WIP.
-
+   
+   #define TYPE_NONE    0
+   #define TYPE_SPL     1  // SPL Meter source built into the device. Bit banging solution implementing LEQ in leqv2.h
+   #define TYPE_EM21    2  // Carlo Gavazzi EM21 MODBUS over RS485 source
+   #define TYPE_DSE     3  // Deep sea Genset Controller MODBUS over RS485 (Will define by model no when we get into it)
+   #define TYPE_APM303  4  // APM 303 Genset Controller via MODBUS over RS485
+   #define TYPE_APM403  5  // APM 403 Genset Controller via MODBUS over RS485
+   #define TYPE_JKBMS   6  // Jing Kong BMS over TTL Serial. WIP.
+   
+   //#define PWR_GENIE_TYPE TYPE_NONE
+   
+   
    // Here we pick one of the above.
-   #define PWR_GENIE_TYPE TYPE_EM21
-
+   #define PWR_GENIE_TYPE TYPE_JKBMS
+   
    //Logic to set the correct code defines based on the mode that's been chosen.
-   #if PWR_GENIE_TYPE == TYPE_SPL
+   #if PWR_GENIE_TYPE == TYPE_NONE
+
+   #elif PWR_GENIE_TYPE == TYPE_SPL
       #define PWR_GENIE_MODE_SPL
 
    #elif PWR_GENIE_TYPE == TYPE_EM21 
@@ -84,7 +89,7 @@
 ******************************
 */
 
-
+   // Config Parameter defines
    #define NAMESIZE 25
    #define URLSIZE 40
    #define URISIZE 40
@@ -96,7 +101,8 @@
    #define PWDSIZE 20
    #define USRNSIZE 20
    #define SSIDSIZE 20
-   
+
+   // Console/debug defs.
    #ifdef NO_CONSOLE
       #define CONSOLE(x) \
          do             \
