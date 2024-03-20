@@ -45,15 +45,28 @@
 #define JK_FRAME_START_BYTE_1   0x57
 #define JK_FRAME_END_BYTE       0x68
 
+#ifdef JKBMS_SSerial
 void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
+#else
+void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
+#endif
 
 void initJKReplyFrameBuffer();
 void printJKReplyFrameBuffer();
 
-#define JK_BMS_RECEIVE_OK           0
-#define JK_BMS_RECEIVE_FINISHED     1
-#define JK_BMS_RECEIVE_ERROR        2
-uint8_t readJK_BMSStatusFrameByte(SoftwareSerial *aSerial);
+enum jkbms_readJKResultCode : uint8_t {
+    JK_BMS_RECEIVE_OK,
+    JK_BMS_RECEIVE_FINISHED,
+    JK_BMS_RECEIVE_ERROR,
+    JK_BMS_RECEIVE_TIMEOUT
+} ;
+
+#ifdef ESP8266
+jkbms_readJKResultCode readJK_BMSStatusFrameByte(SoftwareSerial *aSerial);
+#else
+jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial);
+#endif
+
 void fillJKComputedData();
 
 extern uint16_t sReplyFrameBufferIndex;            // Index of next byte to write to array, thus starting with 0.

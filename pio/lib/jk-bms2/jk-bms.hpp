@@ -31,7 +31,8 @@
 
 #include "HexDump.hpp"
 
-char sStringBuffer[90];
+const uint8_t sStringbufferSize = 5 * 24 + 10;  // 24 cells each need 5 chars Plus 10.      
+char sStringBuffer[sStringbufferSize];    // buffer for CSV Text
 
 JKLastReplyStruct lastJKReply;
 
@@ -141,11 +142,14 @@ bool sErrorStatusIsError = false; // True if status is error and beep should be 
  * 1.85 ms
  */
 
-void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive) {
+#ifdef JKBMS_SSerial
+    void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive) {
+#else
+    void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive) {
+#endif
     if (aDebugModeActive) {
-        Serial.println();
         Serial.println(F("Send requestFrame with TxToJKBMS"));
-        printBufferHex(JK_RequestFrame, jkSize);
+        //printBufferHex(JK_RequestFrame, jkSize);
     }
     Serial.flush();
 
@@ -158,9 +162,7 @@ void initJKReplyFrameBuffer() {
     sReplyFrameBufferIndex = 0;
 }
 
-/*
- * Prints formatted reply buffer raw content
- */
+// Prints formatted reply buffer raw content
 void printJKReplyFrameBuffer() {
     uint8_t *tBufferAddress = JKReplyFrameBuffer;
     printBufferHex(tBufferAddress, JK_BMS_FRAME_HEADER_LENGTH);
@@ -185,24 +187,22 @@ void printJKReplyFrameBuffer() {
     printBufferHex(tBufferAddress, JK_BMS_FRAME_TRAILER_LENGTH); // Trailer
 }
 
-#define JK_BMS_RECEIVE_OK           0
-#define JK_BMS_RECEIVE_FINISHED     1
-#define JK_BMS_RECEIVE_ERROR        2
 /*
  * Is assumed to be called if Serial.available() is true
- * @return JK_BMS_RECEIVE_OK, if still receiving; JK_BMS_RECEIVE_FINISHED, if complete frame was successfully read
- *          JK_BMS_RECEIVE_ERROR, if frame has errors.
+ * @return  JK_BMS_RECEIVE_OK,       if still receiving;
+ *          JK_BMS_RECEIVE_FINISHED, if complete frame was successfully read
+ *          JK_BMS_RECEIVE_ERROR,    if frame has errors.
  * Reply starts 0.18 ms to 0.45 ms after request was received
  */
-
-//uint8_t sbuffer[310];
-uint8_t readJK_BMSStatusFrameByte(SoftwareSerial *aSerial) {
-    uint8_t tReceivedByte = aSerial->read(); //(sbuffer, sizeof(sbuffer));
+#ifdef JKBMS_SSerial
+jkbms_readJKResultCode readJK_BMSStatusFrameByte(SoftwareSerial *aSerial) {
+#else
+jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial) {
+#endif
+    uint8_t tReceivedByte = aSerial->read();
     JKReplyFrameBuffer[sReplyFrameBufferIndex] = tReceivedByte;
 
-    /*
-     * Plausi check and get length of frame
-     */
+    // Plausi check and get length of frame
     if (sReplyFrameBufferIndex == 0) {
         // start byte 1
         if (tReceivedByte != JK_FRAME_START_BYTE_0) {
@@ -865,7 +865,7 @@ void computeUpTimeString() {
 }
 
 const char sCSVCaption[] PROGMEM
-        = "Cell_1;Cell_2;Cell_3;Cell_4;Cell_5;Cell_6;Cell_7;Cell_8;Cell_9;Cell_10;Cell_11;Cell_12;Cell_13;Cell_14;Cell_15;Cell_16;Voltage;Current;SOC;Balancing";
+        = "Cell_1;Cell_2;Cell_3;Cell_4;Cell_5;Cell_6;Cell_7;Cell_8;Cell_9;Cell_10;Cell_11;Cell_12;Cell_13;Cell_14;Cell_15;Cell_16;Cell_17;Cell_18;Cell_19;Cell_20;Cell_21;Cell_22;Cell_23;Cell_24;Voltage;Current;SOC;Balancing";
 
 /*
  * Print received data
@@ -1038,12 +1038,12 @@ void setCSVString() {
     uint_fast8_t tBufferIndex = 0;
 
 //    for (uint8_t i = 0; i < JKConvertedCellInfo.ActualNumberOfCellInfoEntries; ++i) {
-    if (sizeof(sStringBuffer) > (5 * 16)) {
-        for (uint8_t i = 0; i < 16; ++i) { // only 16 fits into sStringBuffer[90]
+    if (sizeof(sStringBuffer) > (5 * 24)) {
+        for (uint8_t i = 0; i < 24; ++i) { // only 16 fits into sStringBuffer[90] 
             // check for valid data, otherwise we will get a string buffer overflow
             if (JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt > 2500) {
                 tBufferIndex += sprintf_P(&sStringBuffer[tBufferIndex], PSTR("%d;"),
-                        (int16_t) (JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt - 3000)); // difference may become negative
+                        (int16_t) (JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt));
             }
         }
     }
