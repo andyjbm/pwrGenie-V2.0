@@ -981,7 +981,7 @@ wl_status_t ESPAsync_WiFiManager::waitForConnectResult()
 {
   unsigned long startedAt = millis();
 
-  WiFi.waitForConnectResult();
+  WiFi.waitForConnectResult(WIFI_CONECTION_TIMEOUT);
   wl_status_t result = WiFi.status();
 
   float waited = (millis() - startedAt);

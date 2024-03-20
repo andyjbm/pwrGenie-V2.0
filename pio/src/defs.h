@@ -67,6 +67,8 @@
    // Wifi Manger Defs
    #define USE_AVAILABLE_PAGES
 
+   #define WIFI_CONECTION_TIMEOUT 10000 // 10 Seconds
+
    #define LOOP_INFO_TIME 10 // in Seconds
    #define FIRMWAREVERSION "0.7.0"
 
