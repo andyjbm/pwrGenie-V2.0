@@ -41,7 +41,7 @@
    #elif PWR_GENIE_TYPE == TYPE_EM21 
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_EM21
-
+  
    #elif PWR_GENIE_TYPE == TYPE_DSE
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_DSE
@@ -62,15 +62,15 @@
    #endif
 
    // Used to force a wipe of the config file if things are really different.
-   #define  CONFIG_FILE_VERSION "1.00" 
+   #define  CONFIG_FILE_VERSION   "1.00" 
 
    // Wifi Manger Defs
    #define USE_AVAILABLE_PAGES
 
    #define WIFI_CONECTION_TIMEOUT 10000 // 10 Seconds
 
-   #define LOOP_INFO_TIME 10 // in Seconds
-   #define FIRMWAREVERSION "0.7.0"
+   #define LOOP_INFO_TIME         10000 // in mSec
+   #define FIRMWAREVERSION        "0.7.0"
 
    //#define SECURE_ENABLED   // Enables SSL sending on 443 for emoncms. Breaks pages - heap corruption? Blank pages sent.
    
