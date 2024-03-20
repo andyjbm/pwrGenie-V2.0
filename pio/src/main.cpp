@@ -30,6 +30,8 @@ AsyncWebServer webServer(80); //Async_webserver_HTTP_PORT);
 AsyncDNSServer dnsServer;
 ESPAsync_WiFiManager wm(&webServer, &dnsServer, "ESP_WebServer");
 
+unsigned long milliCounter;   // For the loop timer.
+
 /*
 AsyncWebServer webServer(); //Async_webserver_HTTP_PORT);
 
@@ -199,8 +201,8 @@ void setup() {
     pg_jkbms::setup_bms_serial();
   #endif
 
-  strJsonData=""; //Full of junk when debug page is called b4 1st send.
-
+  strJsonData="";                           //Full of junk when debug page is called b4 1st send.
+  milliCounter = millis() + LOOP_INFO_TIME; // Ready for the 1st loop.
 }
 
 void console_InfoPrint(){
@@ -225,7 +227,6 @@ void console_InfoPrint(){
 #endif
 
 void loop() {
-  static unsigned long milliCounter;
 
 /* Testing SPL Meter code leqv2.h
   static unsigned long tmpmiliC;
@@ -260,9 +261,9 @@ void loop() {
   }
 
   // Main Poll Loop.
-  if ((millis() - milliCounter) > LOOP_INFO_TIME * 1000)
+  if ((milliCounter + LOOP_INFO_TIME - millis()) < LOOP_INFO_TIME)
   {
-    milliCounter += LOOP_INFO_TIME * 1000;
+    milliCounter += LOOP_INFO_TIME;
     psuVolts = ReadPsuVolts(my_vfact);   // psuVolts is global. Also used by wifi manager on config portal.
    
     //CONSOLE(F("psuVolts Read: "));
