@@ -135,6 +135,7 @@ void configMyWebHandlers(){
 // Get everything ready.
 void setup() {
   
+  // Set up console serial and say hello...
   Serial.begin(921600);
   while (!Serial){;}
 
@@ -183,14 +184,13 @@ void setup() {
   // Wifi or AP is up and config webserver is started.
   // =================================================
 
-
-  // Setup everything else now the framework is up.
+   // Setup our chosen modules.
+  // Note changes to my_pg_Mode in the config do not initiate a restart.
+  // so we need to initialise them regardless of whether receiving is enabled yet.
   #ifdef PWR_GENIE_MODE_SPL
       ssreader::begin();
   #endif
 
-  // Note changes to my_pg_Mode in the config do not initiate a restart.
-  // so we need to initialise modbus regardless of whether it's enabled yet.
   #ifdef PWR_GENIE_MODE_MODBUS
       initModbus();
   #endif
@@ -198,6 +198,8 @@ void setup() {
   #ifdef PWR_GENIE_MODE_JKBMS
     pg_jkbms::setup_bms_serial();
   #endif
+
+  strJsonData=""; //Full of junk when debug page is called b4 1st send.
 
 }
 
@@ -243,28 +245,26 @@ void loop() {
     delay(1000);
     ESP.restart();
   }
-
-  // SPL Meter specific background service loop code.
-  #ifdef PWR_GENIE_MODE_SPL
-    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
-    {
+  
+  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+  {
+    #if defined(PWR_GENIE_MODE_SPL)
+      // SPL Meter specific background service loop code.
       ssreader::ssreaderLoop();
-    }
-  #endif
 
-  //JKBMS has its own poll loop & timing.
-  #ifdef PWR_GENIE_MODE_JKBMS
-  //  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
-  //  {
-  //    pg_jkbms::bms_pollLoop();
-  //  }
-  #endif
+    #elif defined(PWR_GENIE_MODE_JKBMS)
+      //JKBMS has its own poll loop & timing.
+      pg_jkbms::bms_pollLoop();
+
+    #endif
+  }
 
   // Main Poll Loop.
   if ((millis() - milliCounter) > LOOP_INFO_TIME * 1000)
   {
     milliCounter += LOOP_INFO_TIME * 1000;
     psuVolts = ReadPsuVolts(my_vfact);   // psuVolts is global. Also used by wifi manager on config portal.
+   
     //CONSOLE(F("psuVolts Read: "));
     //CONSOLELN(String(psuVolts,2));
 
