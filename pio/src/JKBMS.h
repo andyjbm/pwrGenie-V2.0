@@ -4,8 +4,6 @@
     #define JKBMS_H
 
     #define MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS     10000
-
-    // 60 gets timeouts now & again, 80 is ok.
     #define TIMEOUT_MILLIS_FOR_FRAME_REPLY                  100 // I measured 26 ms between request end and end of received 273 byte result
  
     #ifdef ESP8266
@@ -13,24 +11,19 @@
         #define jkbms_TX_PIN       D3
         //#define jkbms_TX_EN_PIN    D0
     #else
-        #define jkbms_RX_PIN       4
-        #define jkbms_TX_PIN       0
+        #define jkbms_RX_PIN    4 // GPIO_NUM_4  //4 = D2
+        #define jkbms_TX_PIN    5 // GPIO_NUM_5  //0 = D3
         //#define jkbms_TX_EN_PIN    16
     #endif
 
-
     #include "Arduino.h"
-
     #include "SoftwareSerial.h"
-
     #include "jk-bms.hpp"
 
     #include "defs.h"
     #include "Globals.h"
-
     #include "Ecms_Struct.h"
     #include "emoncms.h"
-
    
     SoftwareSerial TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN);
     bool sDebugModeActivated = false;               // Is activated on long press
@@ -60,7 +53,6 @@
         void processReceivedData();
         void printReceivedData();
     }
-
     
     // Put this in your setup() {}
     void pg_jkbms::setup_bms_serial()
@@ -174,7 +166,6 @@
         // Here we have requested frame, but serial was not available for a longer time => timeout at receiving
         // If no bytes received before (because of BMS disconnected), print it only once
         handleFrameReceiveTimeout();
-        
     }
 
     bool pg_jkbms::readJK_BMSStatusFrame() {
