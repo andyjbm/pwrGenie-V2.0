@@ -5,9 +5,7 @@
    #include <ESP.h>
    #include <string.h>
    #include <bitset>
-   #include "Globals.h"
    #include "leqv2.h"
-   #include "Ecms_Struct.h"
    #include "emoncms.h"
 
    const uint8_t splDataElementCount = 5;
@@ -52,7 +50,7 @@
    // Declarations
    namespace ssreader{
 
-      void DoSPLSend(bool postEnabled = true);
+      void DoSPLSend();
       void begin();
       IRAM_ATTR void cb_readClock();
       void ssreaderLoop();
@@ -213,7 +211,7 @@
    }
 
    // Called by foreground loop every x seconds to send data to emoncms.
-   void ssreader::DoSPLSend(bool postEnabled) {
+   void ssreader::DoSPLSend() {
       splD.leq10sec = leq::leqArray[leq10sec]->read();
       splD.leq5 = leq::leqArray[leq5]->read();
       splD.leq15 = leq::leqArray[leq15]->read();
@@ -221,6 +219,6 @@
       splD.leq5IsValid = (leq::leqArray[leq5]->isValid() ? 1 : 0);
       splD.leq15IsValid = (leq::leqArray[leq15]->isValid() ? 1 : 0);
 
-      emoncms::send2emoncms(EcmsParams, splDataNames, (float *) &splD, splDataElementCount, postEnabled);
+      emoncms::send2emoncms(EcmsParams, splDataNames, (float *) &splD, splDataElementCount);
    }
 #endif

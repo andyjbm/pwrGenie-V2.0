@@ -201,8 +201,8 @@ void setup() {
     pg_jkbms::setup_bms_serial();
   #endif
 
-  strJsonData="";                           //Full of junk when debug page is called b4 1st send.
-  milliCounter = millis() + LOOP_INFO_TIME; // Ready for the 1st loop.
+  strJsonData="";                 //Full of junk when debug page is called b4 1st send.
+  milliCounter = millis() + 1500; // Ready for the 1st loop. Wait a second 1st tho. 
 }
 
 void console_InfoPrint(){
@@ -254,9 +254,8 @@ void loop() {
       ssreader::ssreaderLoop();
 
     #elif defined(PWR_GENIE_MODE_JKBMS)
-      //JKBMS has its own poll loop & timing.
+      //JKBMS has its own poll loop for sending/receiving data. 
       pg_jkbms::bms_pollLoop();
-
     #endif
   }
 
@@ -272,32 +271,33 @@ void loop() {
     //For debugging:
     //console_InfoPrint();
     //testhostByName();
-
+  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+  {
     // Modbus as-a-source device specific code:
-    #ifdef PWR_GENIE_MODE_MODBUS
-      if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
-      {
+    #if defined(PWR_GENIE_MODE_MODBUS)
         CONSOLE(F("MODBUS Source Enabled, Calling doModbusWork(): "));
-        modbusSuccess = doModbusWork(my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send);
-      } else {
-        CONSOLELN(F("MODBUS Source DISABLED in config."));
-      }
-    #endif
+        modbusSuccess = doModbusWork();
 
     // SPL Meter Specific code:
-    #ifdef PWR_GENIE_MODE_SPL
-      if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send){
-        //CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend()..."));
-        ssreader::DoSPLSend(my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send);
-      } else {
-        CONSOLELN(F("SPL Source DISABLED in config."));
-      }
-    #endif
+    #elif defined(PWR_GENIE_MODE_SPL)
+      CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend(): "));
+      ssreader::DoSPLSend();
 
-    // For posting psu Voltage when other Posting is turned off.
+    // JKBMS request for data.
+    #elif defined(PWR_GENIE_MODE_JKBMS)
+      readJKBMS = true;
+      pg_jkbms::bms_pollLoop();
+    #endif
+    
+    } else {
+      CONSOLELN(F("Source fetching is **DISABLED** in config."));
+    }
+    
+    // For posting ESP psuVolts when other posting is turned off.
+    // The psuVolts will get posted automatically when source posting is enabled.
     if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Send_vBat_Only) {
       CONSOLE(F("Emoncms sending ADCv: "));
-      emoncms::send2emoncms(EcmsParams, "");  // Empty Params will just send the psuVariable.
+      emoncms::send2emoncms(EcmsParams, "");  // Empty Params will just send the psuVolts.
     }
     
     #ifdef BSSL_DEBUG

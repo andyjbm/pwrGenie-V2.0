@@ -4,7 +4,9 @@
   #include <Arduino.h>
   // #include "defs.h"
   // #include "Utils.h"
+  #include "Globals.h"
   #include "Ecms_Struct.h"
+
   #if defined(ARDUINO_ARCH_ESP8266)
     #include <ESP8266HTTPClient.h>
   #elif defined(ESP32)
@@ -22,23 +24,22 @@
   String strJsonData = new char[1024];  // Global. Keep our place on the heap.
 
   namespace emoncms {
-    bool send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize, bool postEnabled = true);
+    bool send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize);
     bool send2emoncms(emoncmsParams ecmsParam, const String &strJsonData);
   } // end namespace
 
-  bool emoncms::send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize, bool postEnabled){
+  bool emoncms::send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize){
     // Make a name:value pair JSON out of the two arrays names and results. Eg: "n1:v1","n2:v2",...,"n99:v99"
     strJsonData = ""; 
-    int maxIndex = arraySize; // sizeof(mbResults)/sizeof(*mbResults);
     char bufr[20];
-    for (int i=0; i < maxIndex; i++){
-      if (i!=0) strJsonData += ",";
-      memcpy_P(bufr, ecmsDataNames[i],20);
-      strJsonData += "\"" + (String)bufr + ":" + ecmsResults[i] + "\"";
+    for (int i=0; i < arraySize; i++){
+      if (i!=0) strJsonData += ","; // Comma Separate name:Value pairs
+      strcpy_P(bufr, ecmsDataNames[i]);
+      strJsonData += "\"" + (String)bufr + ":" + ecmsResults[i] + "\""; // Add name:value pair to the json
     }
     
     // Only post the data if the option is enabled in the config.
-    if (postEnabled)
+    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
     {
       return send2emoncms(ecmsParam, strJsonData);
     } 

@@ -8,6 +8,14 @@
 #ifndef GLOBALS_H
     #define GLOBALS_H
 
+    enum pgMode_Opt
+    {
+        pgMode_Opt_Disabled,
+        pgMode_Opt_Send_vBat_Only,
+        pgMode_Opt_Receive_Source_Only,
+        pgMode_Opt_Both_Source_n_Send
+    };
+
     const char DEFAULT_SSID[]           PROGMEM = "pwrGenie-cfg";
     const char DEFAULT_SSID_PASSWORD[]  PROGMEM = "pwrgenie";
     const char DEFAULT_AP_PASSWORD[]    PROGMEM = "pwrgenie";

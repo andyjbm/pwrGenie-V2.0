@@ -32,20 +32,9 @@
   const char P21[] PROGMEM = "Battery conversion factor";
   const char P22[] PROGMEM = "pwrGenie Source & Send Enabled";
 
-  // Update these three as a group.
-  enum pgMode_Opt
-  {
-    pgMode_Opt_Disabled,
-    pgMode_Opt_Send_vBat_Only,
-    pgMode_Opt_Receive_Source_Only,
-    pgMode_Opt_Both_Source_n_Send
-  };
+  // Keep in sync with enum pgmode_opt
   const char * pgModeOptions[] = {"Disabled","Send vBat Only","Receive Source Only","Both Source & Send"};
   const byte pgModeOptionsCount = 4;
-
-  //const char P31[] PROGMEM = "MODBUS to EMONCMS enabled: ";
-  //const char P32[] PROGMEM = "DSGenset to EMONCMS enabled: ";
-  //const char P33[] PROGMEM = "SPL to EMONCMS enabled: ";
 
   const char E01[] PROGMEM = "Emoncms Server";
   const char E02[] PROGMEM = "Emoncms uri";
