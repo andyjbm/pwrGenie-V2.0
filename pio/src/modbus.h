@@ -3,14 +3,9 @@
 
     #include "Arduino.h"
     #include <ModbusRTU.h>
-    
-    //#include <SoftwareSerial.h>
     #include "SoftwareSerial.h"
 
     #include "defs.h"
-    #include "Globals.h"
-
-    #include "Ecms_Struct.h"
     #include "emoncms.h"
 
     #include <stdlib.h>
@@ -301,7 +296,7 @@
     }
 
     // Main work done here.
-    bool doModbusWork(bool postEnabled = true){
+    bool doModbusWork(){
         CONSOLELN(F("###################################"));
 
         // We can only fetch MODBUS_REG_PER registers at a time :-(
@@ -353,7 +348,7 @@
         modbus_LastResult += FPSTR("</tbody></table>");
     
         CONSOLE(F("Emoncms sending mbData..."));
-        emoncms::send2emoncms(EcmsParams, mbDataNames,(float *) &cvD, mbDataElementCount, postEnabled);
+        emoncms::send2emoncms(EcmsParams, mbDataNames,(float *) &cvD, mbDataElementCount);
         return true;
     }
 
