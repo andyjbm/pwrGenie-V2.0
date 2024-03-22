@@ -148,7 +148,7 @@ bool sErrorStatusIsError = false; // True if status is error and beep should be 
     void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive) {
 #endif
     if (aDebugModeActive) {
-        Serial.println(F("Send requestFrame with TxToJKBMS"));
+        Serial.print(F("Sending JKBMS requestFrame... "));
         //printBufferHex(JK_RequestFrame, jkSize);
     }
     Serial.flush();
