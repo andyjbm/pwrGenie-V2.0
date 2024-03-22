@@ -37,25 +37,32 @@
 
    #elif PWR_GENIE_TYPE == TYPE_SPL
       #define PWR_GENIE_MODE_SPL
+      #define PWR_GENIE_TYPE_STR "SPL Meter"
 
    #elif PWR_GENIE_TYPE == TYPE_EM21 
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_EM21
-  
+      #define PWR_GENIE_TYPE_STR "EM21 Carlo Gavazzi"
+
+
    #elif PWR_GENIE_TYPE == TYPE_DSE
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_DSE
+      #define PWR_GENIE_TYPE_STR "DeepSea"
 
    #elif PWR_GENIE_TYPE == TYPE_APM303
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM303
+      #define PWR_GENIE_TYPE_STR "APM303"
 
    #elif PWR_GENIE_TYPE == TYPE_APM403
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM403
+      #define PWR_GENIE_TYPE_STR "APM403"
 
    #elif PWR_GENIE_TYPE == TYPE_JKBMS
       #define PWR_GENIE_MODE_JKBMS
+      #define PWR_GENIE_TYPE_STR "JKBMS"
 
    #else
       #error "PWR_GENIE_TYPE not set in defs.h! Please pick one!"

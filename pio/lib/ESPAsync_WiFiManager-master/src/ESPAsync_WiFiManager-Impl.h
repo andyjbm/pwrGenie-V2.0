@@ -2589,8 +2589,13 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
   str = getInfoData(F("uptime")); 
   // Hack to strip table format & replace with pretty row format.
   str.replace("</td><td>",": </b>");
-  str.replace("<td>", "<div><b>");
-  str.replace("</td>","</div>");
+  str.replace("<td>", "<div><span style='float: left;'><b>");
+
+  // Mode is the base source device the firmware is compiled as. See defs.h
+  String mode = FPSTR("</span><span style='float: right;'><b>Mode: </b>");
+  mode += FPSTR(PWR_GENIE_TYPE_STR);
+  mode += "</span></div>";
+  str.replace("</td>", mode);
   
   page += str;
 
