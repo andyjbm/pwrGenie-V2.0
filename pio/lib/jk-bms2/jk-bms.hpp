@@ -27,8 +27,7 @@
 #ifndef _JK_BMS_HPP
 #define _JK_BMS_HPP
 
-#include "JK-BMS.h"
-
+#include "jk-bms.h"
 #include "HexDump.hpp"
 
 const uint8_t sStringbufferSize = 5 * 24 + 10;  // 24 cells each need 5 chars Plus 10.      
@@ -79,7 +78,6 @@ uint8_t JKRequestStatusFrame[21] = {
 uint16_t sReplyFrameBufferIndex = 0;        // Index of next byte to write to array, except for last byte received. Starting with 0.
 uint16_t sReplyFrameLength;                 // Received length of frame
 uint8_t JKReplyFrameBuffer[350];            // The raw big endian data as received from JK BMS.
-bool sJKBMSFrameHasTimeout;                 // If true, timeout message or CAN Info page is displayed.
 
 JKComputedDataStruct JKComputedData;            // All derived converted and computed data useful for display
 JKLastPrintedDataStruct JKLastPrintedData;      // For detecting changes for printing
@@ -106,7 +104,7 @@ uint32_t sBalancingCount;            // Count of active balancing in SECONDS_BET
 /*
  * The JKFrameAllDataStruct starts behind the header + cell data header 0x79 + CellInfoSize + the variable length cell data (CellInfoSize is contained in JKReplyFrameBuffer[12])
  */
-JKReplyStruct *sJKFAllReplyPointer;
+extern JKReplyStruct *sJKFAllReplyPointer;
 
 const char lowCapacity[] PROGMEM = "Low capacity";                          // Byte 0.0,
 const char MosFetOvertemperature[] PROGMEM = "Power MosFet overtemperature"; // Byte 0.1;
