@@ -39,16 +39,15 @@
 #include "jk-bms-config.h"
 #include <Arduino.h>
 
-#include "SoftwareSerial.h"
-
 #define JK_FRAME_START_BYTE_0   0x4E
 #define JK_FRAME_START_BYTE_1   0x57
 #define JK_FRAME_END_BYTE       0x68
 
 #ifdef JKBMS_SSerial
-void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
+    #include "SoftwareSerial.h"
+    void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
 #else
-void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
+    void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
 #endif
 
 void initJKReplyFrameBuffer();
@@ -71,8 +70,7 @@ void fillJKComputedData();
 
 extern uint16_t sReplyFrameBufferIndex;            // Index of next byte to write to array, thus starting with 0.
 extern uint8_t JKReplyFrameBuffer[350];            // The raw big endian data as received from JK BMS
-extern struct JKReplyStruct *sJKFAllReplyPointer;
-extern bool sJKBMSFrameHasTimeout; // For sending CAN data
+struct JKReplyStruct *sJKFAllReplyPointer;
 extern bool sSwitchPageToShowError;
 extern bool sErrorStatusIsError;
 
