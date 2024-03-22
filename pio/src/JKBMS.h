@@ -99,7 +99,7 @@
         }
 
         if (sSendRequestFrame) {
-            LOGDEBUG(F("Sending JKBMS Request for Data..."));
+            // LOGDEBUG(F("Sending JKBMS Request for Data..."));
             sDebugModeActivated = true;
             sSendRequestFrame = false;
             send_data_request_frame();
@@ -230,7 +230,7 @@
     }
 
     void pg_jkbms::processJK_BMSStatusFrame() {
-     LOGDEBUG(F("Call to processJK_BMSStatusFrame."));  
+     // LOGDEBUG(F("Call to processJK_BMSStatusFrame."));  
         
         processReceivedData();
         printReceivedData();
@@ -294,6 +294,17 @@
         */
         sJKFAllReplyPointer = reinterpret_cast<JKReplyStruct*>(&JKReplyFrameBuffer[JK_BMS_FRAME_HEADER_LENGTH + 2
                 + JKReplyFrameBuffer[JK_BMS_FRAME_INDEX_OF_CELL_INFO_LENGTH]]);
+
+
+        // Here we sanity check to make sure the JKReplyStruct is overlaying over the frameBuffer correctly.
+        // We check by looking at the last token we are expecting and making sure it's what it's supposed to be.
+        if (sJKFAllReplyPointer->TokenProtocolVersionNumber != 0xC0) {
+            LOGDEBUG(F("WARNING! Data Frame **NOT** interpreted correctly!"));
+            Serial.print(F("TokenProtocolVersionNumber should be 0xC0, was in fact=0x"));
+            Serial.println(sJKFAllReplyPointer->TokenProtocolVersionNumber, HEX);
+        } else {
+            LOGDEBUG(F("OK! Data Frame was interpreted correctly."));
+        }
 
         fillJKConvertedCellInfo();
         fillJKComputedData();

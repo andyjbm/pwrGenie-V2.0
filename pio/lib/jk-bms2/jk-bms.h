@@ -248,6 +248,7 @@ union BMSStatusUnion {
  * CellUndervoltageDelaySeconds (0x95)
  */
 
+#pragma pack(push,1)  // We want the types to pack up to lay over our frame buffer and pretend to be what they never were. (Evil laugh...)
 #define NUMBER_OF_DEFINED_ALARM_BITS    14
 struct JKReplyStruct {
     uint8_t TokenTemperaturePowerMosFet;    // 0x80
@@ -315,7 +316,7 @@ struct JKReplyStruct {
             uint8_t ReservedStatus :4;
         } StatusBits;
     } BMSStatus;
-
+    
     uint8_t TokenBatteryOvervoltageProtection10Millivolt; // 0x8E
     uint16_t BatteryOvervoltageProtection10Millivolt;   // 1000 to 15000 BMS computed: # of cells * CellOvervoltageProtectionMillivolt
     uint8_t TokenBatteryUndervoltageProtection10Millivolt; // 0x8F
@@ -448,10 +449,10 @@ struct JKReplyStruct {
     uint8_t ProtocolVersionNumber;              // 00, 01 -> Redefine the 0x84 current data as 10 mA,
                                                 // with the highest bit being 0 for discharge and 1 for charge
 };
+#pragma pack(pop)
 
-/*
- * Contains only 4 unconverted values (not in JKComputedDataStruct) which are compared witch current ones to detect changes
- */
+// Contains only 4 unconverted values (not in JKComputedDataStruct) which are compared witch current ones to detect changes
+//#pragma pack(push,1) //No re-type casting used on this so the compiler should get it right.
 struct JKLastReplyStruct {
     uint8_t SOCPercent;                         // 0-100% 0x85
     union {                                     // 0x8B
@@ -494,7 +495,8 @@ struct JKLastReplyStruct {
             uint8_t ReservedStatus :4;
         } StatusBits;
     } BMSStatus;
-
+    //#pragma pack(pop)
+    
     uint32_t SystemWorkingMinutes;              // Minutes 0xB6
 };
 
