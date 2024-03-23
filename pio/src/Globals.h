@@ -55,10 +55,6 @@
     float my_vfact = ADCDIVISOR;
 
     float psuVolts;                     // Used by wifimanager to show on the info pages. No Touchy!
-    String ecms_LastResult = "";        // Used to transfer to debug page call
-    bool modbusSuccess = false;
-    String modbus_LastResult = "";      // Used to transfer to debug page call
-
-    emoncmsParams EcmsParams;
+    emoncmsParams ecmsParams;           // Global config Parameters passed to EMONCMS Server.
 
 #endif

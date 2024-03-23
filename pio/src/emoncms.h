@@ -20,15 +20,15 @@
 #endif
 
   extern float psuVolts;
-  extern String ecms_LastResult;
+  String ecms_LastResult = "";          // Used to transfer to debug page call
   String strJsonData = new char[1024];  // Global. Keep our place on the heap.
 
   namespace emoncms {
-    bool send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize);
-    bool send2emoncms(emoncmsParams ecmsParam, const String &strJsonData);
+    bool send2emoncms(const char * const ecmsDataNames[], float * ecmsResults, int arraySize);
+    bool send2emoncms(const String &strJsonData);
   } // end namespace
 
-  bool emoncms::send2emoncms(emoncmsParams ecmsParam, const char * const ecmsDataNames[], float * ecmsResults, int arraySize){
+  bool emoncms::send2emoncms(const char * const ecmsDataNames[], float * ecmsResults, int arraySize){
     // Make a name:value pair JSON out of the two arrays names and results. Eg: "n1:v1","n2:v2",...,"n99:v99"
     strJsonData = ""; 
     char bufr[20];
@@ -41,7 +41,7 @@
     // Only post the data if the option is enabled in the config.
     if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
     {
-      return send2emoncms(ecmsParam, strJsonData);
+      return send2emoncms(strJsonData);
     } 
     return true;
   }
@@ -51,30 +51,30 @@
     WiFiClientSecure ecms_secureClient;
 #endif
   HTTPClient ecms_http;
-  bool emoncms::send2emoncms(emoncmsParams ecmsParam, const String &strJsonData ){
+  bool emoncms::send2emoncms(const String &strJsonData ){
     // The uri looks like "/emoncms/input/post".
 
 #ifdef SECURE_ENABLED      
-    bool useHttps = false; if (ecmsParam.Port == 443) useHttps = true;
+    bool useHttps = false; if (ecmsParams.Port == 443) useHttps = true;
 
     if (useHttps){
-      CONSOLE(F("EMONCMS using https: ")); CONSOLELN((String)ecmsParam.server + ":" + String(ecmsParam.Port) + ecmsParam.uri);
+      CONSOLE(F("EMONCMS using https: ")); CONSOLELN((String)ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
       CONSOLE(F("Connecting..."));
       ecms_secureClient.setInsecure(); // unfortunately necessary, ESP8266 does not support SSL without hard coding certificates
-      if (!ecms_secureClient.connect(ecmsParam.server, 443)){
-        CONSOLE(F("secureClient.connect failed... ")); CONSOLELN(ecmsParam.server);
+      if (!ecms_secureClient.connect(ecmsParams.server, 443)){
+        CONSOLE(F("secureClient.connect failed... ")); CONSOLELN(ecmsParams.server);
         return false;
       } 
       CONSOLE(F("secureClient connected... "));
-      ecms_http.begin(ecms_secureClient, (String)ecmsParam.server, (int)ecmsParam.Port, (String)ecmsParam.uri, true);
+      ecms_http.begin(ecms_secureClient, (String)ecmsParams.server, (int)ecmsParams.Port, (String)ecmsParams.uri, true);
       CONSOLE(F("http.begin connected... "));
 
     } else {
 #endif
       // Insecure, no SSL. Need to do the POST way so we can accomodate a different port.
-      CONSOLE(F("EMONCMS using http: ")); CONSOLELN((String)ecmsParam.server + ":" + String(ecmsParam.Port) + ecmsParam.uri);
+      CONSOLE(F("EMONCMS using http: ")); CONSOLELN((String) ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
       CONSOLE(F("Connecting..."));
-      ecms_http.begin(ecms_client, (String)ecmsParam.server, (int)ecmsParam.Port, (String)ecmsParam.uri);
+      ecms_http.begin(ecms_client, (String)ecmsParams.server, (int)ecmsParams.Port, (String)ecmsParams.uri);
       CONSOLE(F("http.begin connected... "));
 #ifdef SECURE_ENABLED  
     }
@@ -91,9 +91,9 @@
     psuV += "\"psuVolts:" + String(psuVolts,2) + "\"";
     
     String msg;
-    msg =  "node="    + (String)ecmsParam.node;
+    msg =  "node="    + (String)ecmsParams.node;
     msg += "&data="   + (String)"{" + strJsonData + psuV + (String)"}";
-    msg += "&apikey=" + (String)ecmsParam.apikey;
+    msg += "&apikey=" + (String)ecmsParams.apikey;
 
     psuV.~String();
 

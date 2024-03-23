@@ -219,6 +219,6 @@
       splD.leq5IsValid = (leq::leqArray[leq5]->isValid() ? 1 : 0);
       splD.leq15IsValid = (leq::leqArray[leq15]->isValid() ? 1 : 0);
 
-      emoncms::send2emoncms(EcmsParams, splDataNames, (float *) &splD, splDataElementCount);
+      emoncms::send2emoncms(splDataNames, (float *) &splD, splDataElementCount);
    }
 #endif

@@ -57,12 +57,12 @@
     jsonDoc["P21"] = my_vfact;
     jsonDoc["P22"] = my_pg_Mode;
 
-    jsonDoc["E01"] = EcmsParams.server;
-    if ((String)EcmsParams.uri="") {strcpy(EcmsParams.uri, EMONCMS_DEFAULT_URI);}
-    jsonDoc["E02"] = EcmsParams.uri;
-    jsonDoc["E03"] = EcmsParams.Port;
-    jsonDoc["E04"] = EcmsParams.node;
-    jsonDoc["E05"] = EcmsParams.apikey;
+    jsonDoc["E01"] = ecmsParams.server;
+    if ((String)ecmsParams.uri="") {strcpy(ecmsParams.uri, EMONCMS_DEFAULT_URI);}
+    jsonDoc["E02"] = ecmsParams.uri;
+    jsonDoc["E03"] = ecmsParams.Port;
+    jsonDoc["E04"] = ecmsParams.node;
+    jsonDoc["E05"] = ecmsParams.apikey;
 
     CONSOLE(F("Saving config: "));
 
@@ -166,11 +166,11 @@
             if (jsonDoc.containsKey("P21")) my_vfact = jsonDoc["P21"];
             if (jsonDoc.containsKey("P22")) my_pg_Mode = jsonDoc["P22"];
 
-            if (jsonDoc.containsKey("E01")) strcpy(EcmsParams.server, jsonDoc["E01"]);
-            if (jsonDoc.containsKey("E02")) strcpy(EcmsParams.uri, jsonDoc["E02"]);
-            if (jsonDoc.containsKey("E03")) EcmsParams.Port = jsonDoc["E03"];
-            if (jsonDoc.containsKey("E04")) strcpy(EcmsParams.node, jsonDoc["E04"]);
-            if (jsonDoc.containsKey("E05")) strcpy(EcmsParams.apikey, jsonDoc["E05"]);
+            if (jsonDoc.containsKey("E01")) strcpy(ecmsParams.server, jsonDoc["E01"]);
+            if (jsonDoc.containsKey("E02")) strcpy(ecmsParams.uri, jsonDoc["E02"]);
+            if (jsonDoc.containsKey("E03")) ecmsParams.Port = jsonDoc["E03"];
+            if (jsonDoc.containsKey("E04")) strcpy(ecmsParams.node, jsonDoc["E04"]);
+            if (jsonDoc.containsKey("E05")) strcpy(ecmsParams.apikey, jsonDoc["E05"]);
             
             //Check wifi connection creds are valid.
             if (String(my_wifiSSID).isEmpty()) {

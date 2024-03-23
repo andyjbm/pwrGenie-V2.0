@@ -44,6 +44,9 @@
     bool sDebugModeActivated = false;               // Is activated on long press
     bool sFrameIsRequested = false;                 // If true, request was recently sent so now check for serial input
     bool frameIsReceivedOK = false;
+    bool JK_LastFrameReceivedOK = false;            // Signal for main.cpp debug webpage.
+    String JK_LastResultData = "";
+
     bool sSendRequestFrame = false;
     bool readJKBMS = false;
     uint8_t readJKRetries = 0;
@@ -151,6 +154,7 @@
                         LOGDEBUG1(F("readJK Frame FINISHED with retry Count: "), readJKRetries);
                     }
                     frameIsReceivedOK = true;
+                    JK_LastFrameReceivedOK = true; // Signal to Main.cpp debug webpage.
                     sFrameIsRequested = false; // Everything OK, do not try to receive more
                     break;
 
@@ -167,7 +171,8 @@
                         // Retries reached, time to abort.
                         LOGDEBUG1(F("readJK Frame Error or Timeout, retry Count: "), readJKRetries);
                         sFrameIsRequested = false; 
-                        //sBMSFrameProcessingComplete = true; // Give up. We're done trying.
+                        JK_LastFrameReceivedOK = false; // Signal to Main.cpp debug webpage.
+                        sBMSFrameProcessingComplete = true; // Give up. We're done trying.
                     }
             }
             #if defined(TIMING_TEST)
@@ -340,13 +345,23 @@
         //#endif
     }
 
+
+    String getPROGMEMstr(const char * const pMemPtr){
+        char bufr[20];
+        strcpy_P(bufr,pMemPtr);
+        return (String) bufr;
+    }
     void pg_jkbms::postDataSomewhereUseful()
     {
         float * jkDFloat = (float *) &jkD;    // Specifically cast as address to a float.
+        JK_LastResultData ="";
 
         // cellVoltages
         for (uint8_t i = 0; i < JKConvertedCellInfo.ActualNumberOfCellInfoEntries; ++i) {
             jkDFloat[i] = JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt;
+            // for Debug webpage:
+            if (i!=0) JK_LastResultData += "<br>";
+            JK_LastResultData += getPROGMEMstr(jkDataNames[i]) + ": " + JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt;
         }
        
         // Battery Volts, current, soc and balancer active. More to follow soon.
@@ -355,7 +370,12 @@
         jkD.e1 = sJKFAllReplyPointer->SOCPercent;
         jkD.e2 = sJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive;
 
-        emoncms::send2emoncms(EcmsParams, jkDataNames, (float *) &jkD, jkbms_DataElementCount);
+        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[20]) + ": " + jkD.V;
+        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[21]) + ": " + jkD.I;
+        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[22]) + ": " + jkD.I;
+        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[23]) + ": " + jkD.I;
+
+        emoncms::send2emoncms(jkDataNames, (float *) &jkD, jkbms_DataElementCount);
     }
 
 #endif

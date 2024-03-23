@@ -65,11 +65,11 @@
   ESPAsync_WMParameter custom_pgMode(     "P22", FPSTR(P22), String(my_pg_Mode).c_str(), NUMBERSIZE,"",1, WMParam_type::isSelection, pgModeOptions, pgModeOptionsCount);
  
   //Emoncms Parameters
-  ESPAsync_WMParameter emoncms_server("E01", FPSTR(E01), EcmsParams.server, NAMESIZE);
-  ESPAsync_WMParameter emoncms_uri(   "E02", FPSTR(E02), EcmsParams.uri,    URISIZE);
-  ESPAsync_WMParameter emoncms_port(  "E03", FPSTR(E03), String(EcmsParams.Port).c_str(),   7, (const char*)FPSTR(TYPE_NUMBER));
-  ESPAsync_WMParameter emoncms_node(  "E04", FPSTR(E04), EcmsParams.node,   NODESIZE);
-  ESPAsync_WMParameter emoncms_apikey("E05", FPSTR(E05), EcmsParams.apikey, APIKEYSIZE);
+  ESPAsync_WMParameter emoncms_server("E01", FPSTR(E01), ecmsParams.server, NAMESIZE);
+  ESPAsync_WMParameter emoncms_uri(   "E02", FPSTR(E02), ecmsParams.uri,    URISIZE);
+  ESPAsync_WMParameter emoncms_port(  "E03", FPSTR(E03), String(ecmsParams.Port).c_str(),   7, (const char*)FPSTR(TYPE_NUMBER));
+  ESPAsync_WMParameter emoncms_node(  "E04", FPSTR(E04), ecmsParams.node,   NODESIZE);
+  ESPAsync_WMParameter emoncms_apikey("E05", FPSTR(E05), ecmsParams.apikey, APIKEYSIZE);
 
   ESPAsync_WMParameter custom_LineBreak("<hr>");
 
@@ -97,11 +97,11 @@
     custom_vfact.setValue(String(my_vfact).c_str(), NUMBERSIZE);
     custom_pgMode.setValue(String(my_pg_Mode).c_str(), NUMBERSIZE);
 
-    emoncms_server.setValue(EcmsParams.server,URLSIZE);
-    emoncms_uri.setValue(EcmsParams.uri, URISIZE);
-    emoncms_port.setValue(String(EcmsParams.Port).c_str(),  NUMBERSIZE);
-    emoncms_node.setValue(EcmsParams.node, NODESIZE);
-    emoncms_apikey.setValue(EcmsParams.apikey, APIKEYSIZE);
+    emoncms_server.setValue(ecmsParams.server,URLSIZE);
+    emoncms_uri.setValue(ecmsParams.uri, URISIZE);
+    emoncms_port.setValue(String(ecmsParams.Port).c_str(),  NUMBERSIZE);
+    emoncms_node.setValue(ecmsParams.node, NODESIZE);
+    emoncms_apikey.setValue(ecmsParams.apikey, APIKEYSIZE);
   }
 
   //Add our custom parameters to the WiFi manager parameter menu
@@ -170,11 +170,11 @@
     //if (my_vfact < ADCDIVISOR * 0.8 || my_vfact > ADCDIVISOR * 1.25) {my_vfact = ADCDIVISOR;}
     my_pg_Mode      = validateInt(custom_pgMode.getValue());
 
-    validateInput(emoncms_server.getValue(), EcmsParams.server);
-    validateInput(emoncms_uri.getValue(), EcmsParams.uri);
-    EcmsParams.Port = validateInt(emoncms_port.getValue());
-    validateInput(emoncms_node.getValue(), EcmsParams.node);     // Text. We allow for node to contain letters. I don't know if emoncms will be happy with that.
-    validateInput(emoncms_apikey.getValue(), EcmsParams.apikey);
+    validateInput(emoncms_server.getValue(), ecmsParams.server);
+    validateInput(emoncms_uri.getValue(), ecmsParams.uri);
+    ecmsParams.Port = validateInt(emoncms_port.getValue());
+    validateInput(emoncms_node.getValue(), ecmsParams.node);     // Text. We allow for node to contain letters. I don't know if emoncms will be happy with that.
+    validateInput(emoncms_apikey.getValue(), ecmsParams.apikey);
   }
 
 #endif

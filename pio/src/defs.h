@@ -13,54 +13,46 @@
    //#define DEBUG false
 
    /*
-    Here we define what this Firmware is going to be.
+    Here we determine from environment flags what this Firmware is going to be.
     A device is only going to be used for one data source.
-    Options are:
-   */
+    Options are now defined in the compile environments. Pick one and compile it.
    
-   #define TYPE_NONE    0
+   Old defines for reference:
    #define TYPE_SPL     1  // SPL Meter source built into the device. Bit banging solution implementing LEQ in leqv2.h
    #define TYPE_EM21    2  // Carlo Gavazzi EM21 MODBUS over RS485 source
    #define TYPE_DSE     3  // Deep sea Genset Controller MODBUS over RS485 (Will define by model no when we get into it)
    #define TYPE_APM303  4  // APM 303 Genset Controller via MODBUS over RS485
    #define TYPE_APM403  5  // APM 403 Genset Controller via MODBUS over RS485
    #define TYPE_JKBMS   6  // Jing Kong BMS over TTL Serial. WIP.
-   
-   //#define PWR_GENIE_TYPE TYPE_NONE
-   
-   
-   // Here we pick one of the above.
-   #define PWR_GENIE_TYPE TYPE_JKBMS
-   
-   //Logic to set the correct code defines based on the mode that's been chosen.
-   #if PWR_GENIE_TYPE == TYPE_NONE
+   */
 
-   #elif PWR_GENIE_TYPE == TYPE_SPL
+   //Logic to set the correct code defines based on the mode
+   //that's been chosen by the platformio environment. 
+   #if PWR_GENIE_TYPE_SPL // == TYPE_SPL
       #define PWR_GENIE_MODE_SPL
       #define PWR_GENIE_TYPE_STR "SPL Meter"
 
-   #elif PWR_GENIE_TYPE == TYPE_EM21 
+   #elif PWR_GENIE_TYPE_EM21 
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_EM21
       #define PWR_GENIE_TYPE_STR "EM21 Carlo Gavazzi"
 
-
-   #elif PWR_GENIE_TYPE == TYPE_DSE
+   #elif PWR_GENIE_TYPE_DSE
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_DSE
       #define PWR_GENIE_TYPE_STR "DeepSea"
 
-   #elif PWR_GENIE_TYPE == TYPE_APM303
+   #elif PWR_GENIE_TYPE_APM303
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM303
       #define PWR_GENIE_TYPE_STR "APM303"
 
-   #elif PWR_GENIE_TYPE == TYPE_APM403
+   #elif PWR_GENIE_TYPE_APM403
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM403
       #define PWR_GENIE_TYPE_STR "APM403"
 
-   #elif PWR_GENIE_TYPE == TYPE_JKBMS
+   #elif PWR_GENIE_TYPE_JKBMS // == TYPE_JKBMS
       #define PWR_GENIE_MODE_JKBMS
       #define PWR_GENIE_TYPE_STR "JKBMS"
 

@@ -8,7 +8,8 @@ const char WM_HTTP_STYLE[] PROGMEM = "<style>"
 	"body,textarea,input,select{border-radius: 0.3rem;font-size: 16px}"
 
 	"div{padding:2px;font-size:1em;}"
-	".container{margin: auto;width: 90%}"
+//	".container{margin: auto;width: 90%}"
+	".container{margin: auto;width: 414px}"
 	// msg callout
 	".msg{background: #def;border-left: 5px solid #59d;padding: 0.5em}"
 	//".msg{padding:20px;margin:20px 0;border:1px solid #eee;border-left-width:5px;border-left-color:#777}
@@ -18,16 +19,17 @@ const char WM_HTTP_STYLE[] PROGMEM = "<style>"
 	//.msg.S{border-left-color: #5cb85c}.msg.S h4{color: #5cb85c}"
 
 	// panel border
-	"fieldset{border-radius:0.5rem;margin-bottom:5px;padding: 0.4em 0.5em 0.2em 0.5em}"
+	"fieldset{width:95%;border-radius:0.5rem;margin-bottom:5px;padding: 0.4em 0.5em 0.2em 0.5em}"
 
 	"textarea,input,select{box-sizing: border-box;outline: 0;border: 2px solid #ccc;padding: 5px;margin: 5px 0;width: 100%}"
 	"textarea:focus,input:focus,select:focus{border-color: #5ab}"
 	"input[type='checkbox']{float: right;width: 20px;margin: 0px}"
-	
-	//icons
-	"@media(min-width:1200px){.container{width: 30%}}"
-	"@media(min-width:768px) and (max-width:1200px){.container{width: 50%}}"
 
+	// Media?? Just makes the frame jump around as the browser width changes?	
+	//"@media(min-width:1200px){.container{width: 30%}}"
+	//"@media(min-width:768px) and (max-width:1200px){.container{width: 50%}}"
+
+	//icons
 	".btn a{text-decoration: none}"
 	".btn,h2{font-size: 1.5em}"
 	"h1{font-size: 2em}"
@@ -62,6 +64,7 @@ const char WM_HTTP_STYLE[] PROGMEM = "<style>"
 	".l{background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg==') no-repeat left center;background-size: 1em}"
 	
 	// Info Table
+	".table {width: 100%}"
 	".table td{padding:.2em;text-align:left}"
 	".table tbody>:nth-child(2n-1){background:#ddd}"
 	"</style>";
@@ -75,17 +78,18 @@ const char WM_HTTP_SCRIPT[] PROGMEM = "<script>function c(l){"
 	//	"document.getElementById('timezone').value=timezone.name();"
 		"}</script>";
 
-const char WM_HTTP_HEAD_START[]     PROGMEM = "<!DOCTYPE html>"
+const char WM_HTTP_HEAD_START[] PROGMEM = "<!DOCTYPE html>"
 	"<html lang='en'><head>"
 	//"<meta name='format-detection' content='telephone=no'><meta charset='UTF-8'>"
 	"<meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'/>"
 	"<title>{v}</title>";
 
-const char WM_HTTP_HEAD_END[] PROGMEM = "</head><body><div class='container'><div style='text-align:left;display:inline-block;min-width:260px;'>";
+//const char WM_HTTP_HEAD_END[] PROGMEM = "</head><body><div class='container'><div style='text-align:left;display:inline-block;min-width:260px;'>";
+const char WM_HTTP_HEAD_END[] PROGMEM = "</head><body><div class='container'><div style='text-align:left;display:inline-block;'>";
 
-const char WM_HTTP_200[]            PROGMEM = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-const char WM_HTTP_END[]            PROGMEM = "</div></body></html>";
-const char WM_HTTP_HELP[]			PROGMEM = "<small><p>pwrGenie uses ASYNC_WifiManager at</p><p><a href=\"https://github.com/khoih-prog/ESPAsync_WiFiManager\">https://github.com/khoih-prog/ESPAsync_WiFiManager</a></p></small>";
+const char WM_HTTP_200[]      PROGMEM = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+const char WM_HTTP_END[]      PROGMEM = "</div></body></html>";
+const char WM_HTTP_HELP[]	  PROGMEM = "<small><p>pwrGenie uses ASYNC_WifiManager at</p><p><a href=\"https://github.com/khoih-prog/ESPAsync_WiFiManager\">https://github.com/khoih-prog/ESPAsync_WiFiManager</a></p></small>";
 
 //										   "<form method='POST' action='/doUpdate' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>";
 const char WM_HTTP_UPDATE[] PROGMEM = "<br/><form method='POST' action='/doUpdate' enctype='multipart/form-data' "
@@ -98,7 +102,7 @@ const char WM_HTTP_UPDATE_FAIL[] 	PROGMEM = "<br/><div class='msg D'><strong>Upd
 const char WM_HTTP_UPDATE_SUCCESS[] PROGMEM = "<br/><div class='msg S'><strong>Update Successful.</strong><br/>Device Rebooting now...</div>";
 
 const char WM_META_AUTO_ROOT[] 		PROGMEM = "<meta http-equiv=\"refresh\" content=\"5; url=/\">";
-const char WM_META_AUTO_DEBUG[] 		PROGMEM = "<meta http-equiv=\"refresh\" content=\"10; url=/debug\">";
+const char WM_META_AUTO_DEBUG[] 	PROGMEM = "<meta http-equiv=\"refresh\" content=\"10; url=/debug\">";
 
 const char WM_HTTP_HEAD_CL[]        PROGMEM = "Content-Length";
 const char WM_HTTP_HEAD_CT[]        PROGMEM = "text/html";

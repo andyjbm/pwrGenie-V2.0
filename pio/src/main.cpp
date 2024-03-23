@@ -86,39 +86,47 @@ void handleEmoncms(AsyncWebServerRequest *request){
   //Now we need to relay it on to emoncms over lora or whatever method we choose.
 }
 
+String debugStrInfo(const __FlashStringHelper * title, String sPass, String sFail, bool resultOk = true, bool first = false)
+{
+  String str = "";
+  if (first){
+    str = FPSTR("<h4 style='margin-top:0px;'>{T}:</h4><small>{Y}</small>");
+  } else {
+    str = FPSTR("<h4>{T}: {R}:</h4><small>{Y}</small>");
+  }
+
+  str.replace(FPSTR("{T}"), title);  
+  if (resultOk) {
+    str.replace(FPSTR("{R}"), FPSTR("Ok"));
+    str.replace(FPSTR("{Y}"), sPass);
+  } else {
+    str.replace(FPSTR("{R}"), FPSTR("failed"));
+    str.replace(FPSTR("{Y}"), sFail);
+  }
+  return str;
+}
+
 // Handle our debug page.
 void handleDebug(AsyncWebServerRequest *request){
   CONSOLELN(F("Page Request: handleDebug call."));
     
-  String page = wm.buildHeader("main_Debug","Debug Info", WM_META_AUTO_DEBUG);
-  page += "<fieldset><div class = 'msg'>";
+  String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"), WM_META_AUTO_DEBUG);
+  page += FPSTR("<fieldset><div class = 'msg' style='width:414px;word-wrap: break-word;'>");
 
   // The last Emoncms data string to be posted.
-  if (strJsonData.isEmpty()) {
-    page += "<h4 style='margin-top:0px;'>Emoncms last json data:</h4><small>Is empty!</small>";
-  } else {
-    page += "<h4>Emoncms last json data:</h4><small>" + String(strJsonData) + "</small>";
-  }
-
-  // The last result from Emoncms: 
-  if (ecms_LastResult.isEmpty()) {
-    page += "<h4>Emoncms last result:</h4><small>Is empty!</small>";
-  } else {
-    page += "<h4>Emoncms last result:</h4><small>" + ecms_LastResult + "</small>";
-  }
+  page += debugStrInfo(F("Emoncms last json data"), strJsonData, FPSTR("Is Empty!"), !strJsonData.isEmpty(), true);
+  
+  // The last result from Emoncms:
+  page += debugStrInfo(F("Emoncms last result"), ecms_LastResult, FPSTR("Is Empty!"), !ecms_LastResult.isEmpty());
+ 
   #ifdef PWR_GENIE_MODE_SPL
-    if (LEQInfo.isEmpty()) {
-      page += "<h4>SPL data:</h4><small>Is empty!</small>";
-    } else {
-      page += "<h4>SPL data:</h4><small>" + LEQInfo + "</small>";
-    }
+  page += debugStrInfo(F("SPL Data"), LEQInfo, FPSTR("Is Empty!"), !LEQInfo.isEmpty());
   #endif
   #ifdef PWR_GENIE_MODE_MODBUS
-    if (modbusSuccess) {
-      page += "<h4>MODBUS last result Ok:</h4><small>" + modbus_LastResult + "</small>";
-    } else {
-      page += "<h4>MODBUS last result failed:</h4><small>" + modbus_LastResult + "</small>";
-    }
+  page += debugStrInfo(F("MODBUS last result"), modbus_LastResult, modbus_LastResult, modbusSuccess);
+  #endif
+  #ifdef PWR_GENIE_MODE_JKBMS
+  page += debugStrInfo(F("JKBMS last result"), JK_LastResultData, "", JK_LastFrameReceivedOK);
   #endif
   page += "</div></fieldset>";
   wm.HTTPSendPage(page, request);
@@ -140,8 +148,7 @@ void setup() {
   // Set up console serial and say hello...
   Serial.begin(921600);
   while (!Serial){;}
-
-  delay(3000);
+  delay(1000);
 
   CONSOLELN(F("\n\n\n\nHello there, it's a new day!"));
 
@@ -297,7 +304,7 @@ void loop() {
     // The psuVolts will get posted automatically when source posting is enabled.
     if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Send_vBat_Only) {
       CONSOLE(F("Emoncms sending ADCv: "));
-      emoncms::send2emoncms(EcmsParams, "");  // Empty Params will just send the psuVolts.
+      emoncms::send2emoncms("");  // Empty Params will just send the psuVolts.
     }
     
     #ifdef BSSL_DEBUG

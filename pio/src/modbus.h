@@ -250,7 +250,9 @@
     float * cvDFlt = (float *) &cvD;    // Specifically cast as address to a float.
 
     bool mbRequestOK = false;
-    extern String modbus_LastResult;    // For displaying on the debug page.
+
+    bool modbusSuccess = false;         // Used by debug page to determine modbus read outcome
+    String modbus_LastResult = "";      // For displaying on the debug page.
 
     bool cb(Modbus::ResultCode event, uint16_t transactionId, void* mbdata) { // Callback to monitor errors
         if (event != Modbus::EX_SUCCESS) {
@@ -348,7 +350,7 @@
         modbus_LastResult += FPSTR("</tbody></table>");
     
         CONSOLE(F("Emoncms sending mbData..."));
-        emoncms::send2emoncms(EcmsParams, mbDataNames,(float *) &cvD, mbDataElementCount);
+        emoncms::send2emoncms(mbDataNames,(float *) &cvD, mbDataElementCount);
         return true;
     }
 
