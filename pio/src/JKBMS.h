@@ -357,23 +357,43 @@
         JK_LastResultData ="";
 
         // cellVoltages
+        bool doBR = false;
         for (uint8_t i = 0; i < JKConvertedCellInfo.ActualNumberOfCellInfoEntries; ++i) {
+            // For Emoncms:
             jkDFloat[i] = JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt;
+            
             // for Debug webpage:
-            if (i!=0) JK_LastResultData += "<br>";
+            if (doBR) {JK_LastResultData += "<br>";}
+            if (i == JKConvertedCellInfo.IndexOfMinimumCellMillivolt) {JK_LastResultData += "<div style='color:#f00'><b>";}
+            if (i == JKConvertedCellInfo.IndexOfMaximumCellMillivolt) {JK_LastResultData += "<div style='color:#00f'><b>";}
+
             JK_LastResultData += getPROGMEMstr(jkDataNames[i]) + ": " + JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt;
+
+            if ((i == JKConvertedCellInfo.IndexOfMinimumCellMillivolt) ||
+                (i == JKConvertedCellInfo.IndexOfMaximumCellMillivolt))
+            {
+                JK_LastResultData += "</b></div>";
+                doBR = false;
+            } else {
+                doBR = true;
+            }
         }
        
+        jkD.AvCellV = JKConvertedCellInfo.AverageCellMillivolt;
+        jkD.CellDif = JKConvertedCellInfo.MaximumCellMillivolt - JKConvertedCellInfo.MinimumCellMillivolt;
+        jkD.BalI = 999; // Not sure if this is available.
+
         // Battery Volts, current, soc and balancer active. More to follow soon.
         jkD.V = float(JKComputedData.BatteryVoltage10Millivolt) / 100;
         jkD.I = JKComputedData.BatteryLoadCurrentFloat;
-        jkD.e1 = sJKFAllReplyPointer->SOCPercent;
-        jkD.e2 = sJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive;
+        jkD.SOC = sJKFAllReplyPointer->SOCPercent;
+        jkD.BalAct = sJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive;
+        jkD.ChAct = sJKFAllReplyPointer->BMSStatus.StatusBits.ChargeMosFetActive;
+        jkD.DisAct = sJKFAllReplyPointer->BMSStatus.StatusBits.DischargeMosFetActive;
 
-        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[20]) + ": " + jkD.V;
-        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[21]) + ": " + jkD.I;
-        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[22]) + ": " + jkD.I;
-        JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[23]) + ": " + jkD.I;
+        for (uint8_t i = 20; i < jkbms_DataElementCount; ++i){
+            JK_LastResultData += "<br>" + getPROGMEMstr(jkDataNames[i]) + ": " + ((float*)&jkD)[i];
+        }
 
         emoncms::send2emoncms(jkDataNames, (float *) &jkD, jkbms_DataElementCount);
     }
