@@ -2601,28 +2601,26 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
   page += extra;                    // Allow <meta > etc and other bespoke tags in header.
   page += FPSTR(WM_HTTP_HEAD_END);
 
-  String str  = FPSTR(HTTP_ROOT_MAIN); // Tokens {t} and {v}
+  // Title, Hostname and IP address:
+  String str = FPSTR(HTTP_PAGE_MAIN1); // Tokens {t}, {h} {ip}
   str.replace(FPSTR(T_t),pageHeading);
-
-  String infoStr = getWiFiHostname() + " | " + WiFi.localIP().toString() + " | psu=" + String(psuVolts,2) +"v"; //, " + String(my_vfact,2);
-  str.replace(FPSTR(T_v), infoStr);
+  str.replace(FPSTR(T_h), getWiFiHostname());
+  str.replace(FPSTR(T_i), WiFi.localIP().toString());
   page += str;
-
+  
   page += FPSTR(HTTP_HOMEBTN);
 
-  str = getInfoData(F("uptime")); 
-  // Hack to strip table format & replace with pretty row format.
-  str.replace("</td><td>",": </b>");
-  str.replace("<td>", "<div><span style='float: left;'><b>");
-
-  // Mode is the base source device the firmware is compiled as. See defs.h
-  String mode = FPSTR("</span><span style='float: right;'><b>Mode: </b>");
-  mode += FPSTR(PWR_GENIE_TYPE_STR);
-  mode += "</span></div>";
-  str.replace("</td>", mode);
+  str = FPSTR(HTTP_PAGE_MAIN2); // Tokens {1}, {2}, {psu} {m}
   
+  //uptime:
+  str.replace(FPSTR(T_1),(String)(millis() / 1000 / 60));
+  str.replace(FPSTR(T_2),(String)((millis() / 1000) % 60));
+  //psu volts:
+  str.replace(FPSTR(T_p), String(psuVolts,2));
+  // Mode is the base source device the firmware is compiled as. See defs.h
+  str.replace(FPSTR(T_m), FPSTR(PWR_GENIE_TYPE_STR));
   page += str;
-
+  
   return page;
 }
 

@@ -110,8 +110,9 @@ String debugStrInfo(const __FlashStringHelper * title, String sPass, String sFai
 void handleDebug(AsyncWebServerRequest *request){
   CONSOLELN(F("Page Request: handleDebug call."));
     
+  //String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"));  // Without the auto refresh for debugging the webpage HTML
   String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"), WM_META_AUTO_DEBUG);
-  page += FPSTR("<fieldset><div class = 'msg' style='width:414px;word-wrap: break-word;'>");
+  page += FPSTR("<fieldset><div class = 'msg' style='word-wrap: break-word;'>");
 
   // The last Emoncms data string to be posted.
   page += debugStrInfo(F("Emoncms last json data"), strJsonData, FPSTR("Is Empty!"), !strJsonData.isEmpty(), true);
