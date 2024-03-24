@@ -74,6 +74,7 @@ uint8_t JKRequestStatusFrame[21] = {
 
 /*
  * Size of reply is 291 bytes for 16 cells. sizeof(JKReplyStruct) is 221.
+ * Size is 303 bytes for 20 Cells.
  */
 uint16_t sReplyFrameBufferIndex = 0;        // Index of next byte to write to array, except for last byte received. Starting with 0.
 uint16_t sReplyFrameLength;                 // Received length of frame
