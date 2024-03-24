@@ -877,10 +877,34 @@ int ESPAsync_WiFiManager::reconnectWifi()
 
   int connectResult;
 
-  // Try and connect each with _ssid, _ssid1 and ESP creds in turn.
+  // Try and connect each with ESP, _ssid, _ssid1 creds in turn.
+  
+  // NOTE the difference between:
+  //  WiFi.SSID() > the currently connected SSID or "" if we are not connected.
+  //  WiFi_SSID() > the ESP stored SSID whether we are connected or not.
+
+  //// Just get the ESP to try to connect 1st:
+  //if(WiFi.reconnect() == true)
+  //{
+  //  LOGDEBUG1(F("We reconnected with prev ESP creds aok: ESP SSID is:"), WiFi.SSID());
+  //}
+
+  if (_ssid == WiFi_SSID()){  // if _ssid & ESP creds are the same then just reconnect 1st.
+    LOGINFO(F("Attempting to connect to previous ESP creds..."));
+    if ((connectResult = connectWifi()) == WL_CONNECTED) {
+        LOGINFO1(F("Yay! Connected with prev ESP creds."), WiFi.SSID());
+        return connectResult;
+      } else {
+        LOGERROR1(F("Failed to connect with prev ESP creds: "), WiFi_SSID());
+      }
+  }
+
   if (_ssid != ""){
+    // Either _ssid and ESP creds are different, or they're the same and attempting to 
+    // connect using ESP stored creds just failed.
+    // By specifying creds this will reset the ESP creds b4 attempting to connect this time.
     if ((connectResult = connectWifi(_ssid, _pass)) == WL_CONNECTED){
-      LOGINFO1(F("Connected to"), _ssid);
+      LOGINFO1(F("Connected to new SSID"), _ssid);
       return connectResult;
     } else {
       LOGERROR1(F("Failed to connect to"), _ssid);
@@ -889,6 +913,7 @@ int ESPAsync_WiFiManager::reconnectWifi()
       LOGERROR(F("Can't connect using _ssid: empty string"));
   }
 
+  // Both those failed so try the reserve creds.
   if (_ssid1 !="") {
     if ((connectResult = connectWifi(_ssid1, _pass1)) == WL_CONNECTED) {
       LOGINFO1(F("Connected to"), _ssid1);
@@ -899,14 +924,7 @@ int ESPAsync_WiFiManager::reconnectWifi()
   } else {
     LOGERROR(F("Can't connect using _ssid1 either: empty string"));
   }
-  
-  LOGINFO(F("Attempting to connect to previous ESP creds..."));
-  if ((connectResult = connectWifi()) == WL_CONNECTED) {
-      LOGINFO1(F("Yay! Connected with prev ESP creds."), WiFi.SSID());
-    } else {
-      LOGERROR1(F("Failed to connect with prev ESP creds: "), WiFi_SSID());
-    }
-
+    
   return connectResult;
 }
 
@@ -921,15 +939,21 @@ int ESPAsync_WiFiManager::connectWifi(const String& ssid, const String& pass)
     //fix for auto connect racing issue to avoid resetSettings()
     if ((WiFi.status() == WL_CONNECTED) && (ssid == WiFi_SSID()))
     { //Only bail if we are going to reconnect to the same wifi we are already connected to.
-      LOGWARN(F("Already connected. Bailing out."));
+      LOGWARN(F("Already connected to the correct SSID. Bailing out."));
       return WL_CONNECTED;
     }
 
     // We (may) have a new wifi to connect to.
     // We (may) have new IP settings to use.
-    if (ssid != "")
-      // We have specific user creds requested. 
+    // So here we assume ssid = "" to mean we are trying the ESP creds so we don't reset.
+    // *Either* we have specific user creds requested different from that on the ESP chip 
+    // *or* the ESP creds are the same but we have chosen to reset because:
+    //    The ESP creds connection attempt failed 1st time,
+    //    We have different IP settings. 
+    if (ssid != "") {
+      LOGWARN(F("Reseting Wifi Settings."));
       resetSettings();
+    }
 
 #ifdef ESP8266
     setWifiStaticIP();
@@ -946,19 +970,19 @@ int ESPAsync_WiFiManager::connectWifi(const String& ssid, const String& pass)
     if (ssid != "")
     {
       // Start Wifi with new values.
-      LOGWARN1(F("Connect to new WiFi creds using new IP parameters"),ssid);
+      LOGWARN1(F("Connect to new WiFi creds maybe using new IP parameters"),ssid);
       WiFi.begin(ssid.c_str(), pass.c_str());
     }
     else
     {
       // Start Wifi with old values.
-      LOGWARN1(F("Connect to previous ESP WiFi creds using new IP parameters"),WiFi_SSID());
+      LOGWARN1(F("Connect to previous ESP WiFi creds maybe using new IP parameters"),WiFi_SSID());
       WiFi.begin();
     }
   }
-  else if (WiFi_SSID() == "")
+  else // this is a given from the original if clause above>>> if (WiFi_SSID() == "")
   {
-    LOGWARN(F("No saved credentials to connect with!"));
+    LOGWARN(F("No new credentials given and no ESP saved credentials to connect with!"));
   }
 
   int connRes = waitForConnectResult();
