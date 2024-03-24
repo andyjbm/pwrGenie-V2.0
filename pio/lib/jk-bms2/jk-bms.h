@@ -155,21 +155,23 @@ extern uint32_t sBalancingCount;            // Count of active balancing in SECO
  * All 16 and 32 bit values are stored byte swapped, i.e. MSB is stored in lower address.
  * Must be read with swap()
  */
-struct JKFrameHeaderStruct {
-    uint16_t StartFrameToken;   // 0x4E57
-    uint16_t LengthOfFrame;     // Excluding StartFrameToken
-    uint32_t BMS_ID;            // Highest byte is default 00
-    uint8_t Function;           // 0x01 (activation), 0x02 (write), 0x03 (read), 0x05 (password), 0x06 (read all)
-    uint8_t FrameSource;        // 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC
-    uint8_t TransportType;      // 0=Request, 1=Response, 2=BMSActiveUpload
-};
+// Not Used
+//struct JKFrameHeaderStruct {
+//    uint16_t StartFrameToken;   // 0x4E57
+//    uint16_t LengthOfFrame;     // Excluding StartFrameToken
+//    uint32_t BMS_ID;            // Highest byte is default 00
+//    uint8_t Function;           // 0x01 (activation), 0x02 (write), 0x03 (read), 0x05 (password), 0x06 (read all)
+//    uint8_t FrameSource;        // 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC
+//    uint8_t TransportType;      // 0=Request, 1=Response, 2=BMSActiveUpload
+//};
 
-struct JKFrameTailStruct {
-    uint32_t RecordNumber;      // High byte is random code, low 3 bytes is record number
-    uint8_t EndToken;           // 0x68
-    uint16_t UnusedChecksum;    // 0x0000
-    uint16_t Checksum;          // Including StartFrameToken
-};
+// Not Used.
+//struct JKFrameTailStruct {
+//    uint32_t RecordNumber;      // High byte is random code, low 3 bytes is record number
+//    uint8_t EndToken;           // 0x68
+//    uint16_t UnusedChecksum;    // 0x0000
+//    uint16_t Checksum;          // Including StartFrameToken
+//};
 
 /*
  * This structure contains all converted and computed data useful for display
