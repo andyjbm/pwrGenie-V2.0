@@ -11,7 +11,6 @@ Credits to:
 
   ArminJo for JK-BMSToPylontechCAN
   https://github.com/ArminJo/JK-BMSToPylontechCAN
-
 */
 
 #include <Arduino.h>
@@ -164,7 +163,7 @@ void setup() {
   
   // Set up console serial and say hello...
   Serial.begin(921600);
-  while (!Serial){;}
+  //while (!Serial){;}
   delay(1000);
 
   CONSOLELN(F("\n\n\n\nHello there, it's a new day!"));
