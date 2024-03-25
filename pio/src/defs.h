@@ -1,3 +1,11 @@
+/*
+Copyright (c) 2024, Andy Moore
+All rights reserved.
+
+This source code is licensed under the GPL-style license found in the
+LICENSE file in the root directory of this source tree. 
+*/
+
 #ifndef DEFS_H
    #define DEFS_H
    #pragma once

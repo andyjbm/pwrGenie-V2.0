@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2024, AndiusPandius
+All rights reserved.
+
+This source code is licensed under the GPL-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Credits to: 
+  khoih-prog Khoi Hoang for ESPAsync_WiFiManager 
+  https://github.com/khoih-prog/ESPAsync_WiFiManager
+
+  ArminJo for JK-BMSToPylontechCAN
+  https://github.com/ArminJo/JK-BMSToPylontechCAN
+
+*/
+
 #include <Arduino.h>
 #include <ESP.h>
 
