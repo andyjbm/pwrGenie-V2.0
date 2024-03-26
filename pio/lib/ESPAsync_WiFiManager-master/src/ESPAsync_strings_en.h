@@ -173,6 +173,7 @@ const char HTTP_FORM_BOOL_PARAM[]  PROGMEM = "<input type='checkbox' id='{i}' na
 //const char HTTP_ROOT_MAIN[]        PROGMEM = "<h1>{t}</h1><h3 style='font-size: 1.1em'>{v}</h3>";
 const char HTTP_PAGE_MAIN1[]       PROGMEM = "<h1>{t}</h1><h3><span style='float:left'>{h}</span><span style='float:right'>{i}</span></h3>";
 const char HTTP_PAGE_MAIN2[]	   PROGMEM = "<table style='width:100%'><tr><td><b>Uptime:</b>{1} Min {2} Sec</td><td><b>PSU:</b>{p}v</td><td style='text-align:right'><b>FW:</b>{m}</td></tr></table></div>";
+const char HTTP_PAGE_MAIN3[]	   PROGMEM = "<p><small>{h}</small></p>";
 const char HTTP_FORM_POST[]        PROGMEM = "<form method='POST' action='{v}'>";
 const char HTTP_FORM_PARAM_HEAD[]  PROGMEM = "Configure Device Parameters";
 const char HTTP_FORM_WIFI_HEAD[]   PROGMEM = "Configure Device Wifi";

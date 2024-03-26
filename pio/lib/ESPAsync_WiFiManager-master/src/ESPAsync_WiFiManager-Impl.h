@@ -2370,6 +2370,12 @@ void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
 
 inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerRequest *request)
 {
+
+  //Framework Version *FIXME* Move to info page.
+  String str = FPSTR(HTTP_PAGE_MAIN3);
+  str.replace(T_h, PIO_PACKAGE_PLATFORM_NAME + (String)"@" + PIO_PLATFORM_VERSION_FULL + ", Arduino@" + PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION); 
+
+  page += str;
   page += FPSTR(WM_HTTP_HELP);
   page += FPSTR(WM_HTTP_END);
 
@@ -2607,7 +2613,7 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
   str.replace(FPSTR(T_h), getWiFiHostname());
   str.replace(FPSTR(T_i), WiFi.localIP().toString());
   page += str;
-  
+
   page += FPSTR(HTTP_HOMEBTN);
 
   str = FPSTR(HTTP_PAGE_MAIN2); // Tokens {1}, {2}, {psu} {m}
