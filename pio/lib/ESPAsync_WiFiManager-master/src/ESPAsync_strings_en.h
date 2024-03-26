@@ -19,7 +19,7 @@ const char WM_HTTP_STYLE[] PROGMEM = "<style>"
 	//.msg.S{border-left-color: #5cb85c}.msg.S h4{color: #5cb85c}"
 
 	// panel border
-	"fieldset{min-width:0;text-align:left;width:95%;border-radius:0.5rem;margin-bottom:5px;padding: 0.4em 0.5em 0.2em 0.5em}"
+	"fieldset{min-width:0;text-align:left;border-radius:0.5rem;margin-bottom:5px;padding: 0.4em 0.5em 0.2em 0.5em}"
 
 	"textarea,input,select{box-sizing: border-box;outline: 0;border: 2px solid #ccc;padding: 5px;margin: 5px 0;width: 100%}"
 	"textarea:focus,input:focus,select:focus{border-color: #5ab}"
