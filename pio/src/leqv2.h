@@ -7,6 +7,7 @@
    its own number of samples and its own valid flag.
 */
 
+#pragma once
 #ifndef LEQV2_H
    #define LEQV2_h
 

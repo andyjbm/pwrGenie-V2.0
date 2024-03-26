@@ -6,10 +6,9 @@ This source code is licensed under the GPL-style license found in the
 LICENSE file in the root directory of this source tree. 
 */
 
+#pragma once
 #ifndef DEFS_H
    #define DEFS_H
-   #pragma once
-
 /*
 ********************************
 ** DEFS for the whple Project **
@@ -36,7 +35,10 @@ LICENSE file in the root directory of this source tree.
 
    //Logic to set the correct code defines based on the mode
    //that's been chosen by the platformio environment. 
-   #if PWR_GENIE_TYPE_SPL // == TYPE_SPL
+   #if PWR_GENIE_TYPE_NONE
+      #define PWR_GENIE_TYPE_STR "No Source"
+
+   #elif PWR_GENIE_TYPE_SPL
       #define PWR_GENIE_MODE_SPL
       #define PWR_GENIE_TYPE_STR "SPL Meter"
 
@@ -60,7 +62,7 @@ LICENSE file in the root directory of this source tree.
       #define MODBUS_DEVICE_APM403
       #define PWR_GENIE_TYPE_STR "APM403"
 
-   #elif PWR_GENIE_TYPE_JKBMS // == TYPE_JKBMS
+   #elif PWR_GENIE_TYPE_JKBMS
       #define PWR_GENIE_MODE_JKBMS
       #define PWR_GENIE_TYPE_STR "JKBMS"
 

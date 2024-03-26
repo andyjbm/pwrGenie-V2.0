@@ -1,3 +1,4 @@
+#pragma once
 #if !defined(MAXIMUM_NUMBER_OF_CELLS)
     #define MAXIMUM_NUMBER_OF_CELLS     24 // Maximum number of cell info which can be converted. Must be before #include "JK-BMS.hpp".
 #endif

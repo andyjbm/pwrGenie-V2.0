@@ -1,5 +1,5 @@
-// https://github.com/ArminJo/JK-BMSToPylontechCAN
 
+#pragma once
 #ifndef JKBMS_H
     #define JKBMS_H
     #ifdef ESP8266

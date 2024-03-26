@@ -33,6 +33,7 @@
  *
  *
  */
+#pragma once
 #ifndef _JK_BMS_H
 #define _JK_BMS_H
 

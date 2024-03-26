@@ -24,6 +24,7 @@
  *
  */
 
+#pragma once
 #ifndef _JK_BMS_HPP
 #define _JK_BMS_HPP
 

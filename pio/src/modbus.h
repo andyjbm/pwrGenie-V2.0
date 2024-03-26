@@ -1,3 +1,4 @@
+#pragma once
 #ifndef pgMODBUS_H
     #define pgMODBUS_H
 

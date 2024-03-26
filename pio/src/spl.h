@@ -1,3 +1,4 @@
+#pragma once
 #ifndef SPL_H
    #define SPL_H
 

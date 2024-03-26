@@ -26,6 +26,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
  */
 
+#pragma once
 #ifndef _HEX_DUMP_HPP
 #define _HEX_DUMP_HPP
 
