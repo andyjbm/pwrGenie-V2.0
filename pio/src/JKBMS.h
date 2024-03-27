@@ -35,7 +35,7 @@
         #include "SoftwareSerial.h"
         SoftwareSerial TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN);
     #else
-        HardwareSerial TxToJKBMS(0);
+        HardwareSerial TxToJKBMS(1);
     #endif
 
     #include "JKBMS_Ecms_Struct.h"
