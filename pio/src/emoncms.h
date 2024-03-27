@@ -1,3 +1,4 @@
+#pragma once
 #ifndef pgEMONCMS_H
   #define pgEMONCMS_H
 

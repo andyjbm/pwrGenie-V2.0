@@ -1,3 +1,4 @@
+#pragma once
 #ifndef JKBMS_ECMS_STRUCT_H 
     #define JKBMS_ECMS_STRUCT_H
 

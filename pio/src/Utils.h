@@ -1,7 +1,6 @@
+#pragma once
 #ifndef LLG_UTILS_H
   #define LLG_UTILS_H
-
-  //#include "Secrets.h"
 
   #include <Arduino.h>
   #include "uriwildcard.h"              // Must come b4 wifimanager to override uri.h
