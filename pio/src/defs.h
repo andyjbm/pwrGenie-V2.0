@@ -74,7 +74,7 @@ LICENSE file in the root directory of this source tree.
    #define  CONFIG_FILE_VERSION   "1.00" 
 
    // Wifi Manger Defs
-   #define USE_AVAILABLE_PAGES
+   #define USE_AVAILABLE_PAGES         // Displays the available pages panel on the Info pages.
 
    #define WIFI_CONECTION_TIMEOUT 10000 // 10 Seconds
 
@@ -87,12 +87,15 @@ LICENSE file in the root directory of this source tree.
    #define ADCDIVISOR 191.8
    #define LOWBATT 3.3        // Not used yet I don't think.
 
-   #define CFGFILE "/config.json"
+   #define CFGFILE "/config.json"   //Name of the parameter config file in LittleFS
 
    #ifndef DEBUG
       #define DEBUG true
    #endif
 
+   //#define BearSSL_DEBUG  // This is only relevant on the ESP8266 which doesn't realistically have enough ram for all this anyway.
+
+   #define COMPILED_FRAMEWORK_VERSIONS (PIO_PACKAGE_PLATFORM_NAME + (String)FPSTR(" V") + PIO_PLATFORM_VERSION_FULL + FPSTR(", Arduino V") + PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION)
 
 /*
 ******************************

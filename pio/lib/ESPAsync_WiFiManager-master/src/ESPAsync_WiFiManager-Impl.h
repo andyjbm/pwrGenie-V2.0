@@ -244,7 +244,7 @@ ESPAsync_WiFiManager::ESPAsync_WiFiManager(AsyncWebServer * webserver, AsyncDNSS
 #endif
 
   //WiFi not yet started here, must call WiFi.mode(WIFI_STA) and modify function WiFiGenericClass::mode(wifi_mode_t m) !!!
-  WiFi.mode(WIFI_STA);
+  //WiFi.mode(WIFI_STA);  // This crashes framework v6.5.0 We shouldn't really be doing this in a class constructor? This is for setup(){}
 
   setRFC952_hostname(iHostname);
 
@@ -2337,21 +2337,14 @@ void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
       //response->printf(favicon);
       response->write(pgm_read_byte(favicon + i));
   }
-  
-  // Can't use without an overload? Also need to inhibit HTTP_HELP and HTTP_END...
-  // Here we need AsyncResponseStream and not AsyncWebServerResponse.
-  //HTTPSendPage(page, request); 
-    
+      
 #if ( USING_ESP32_S2 || USING_ESP32_C3 )
-  #warning "This might not work yet? Trying to fix S2 C3 request->send for the response object." 
-  //request->send(200, WM_HTTP_HEAD_CT, page);
   request->send(response);
 
   // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
   delay(1);
 #else
 
- //AsyncWebServerResponse *response = request->beginResponse(200, "image/ico", page);
   response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
 
 #if USING_CORS_FEATURE
@@ -2370,10 +2363,9 @@ void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
 
 inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerRequest *request)
 {
-
-  //Framework Version *FIXME* Move to info page.
+  //Framework Version *FIXME* Move to info page?
   String str = FPSTR(HTTP_PAGE_MAIN3);
-  str.replace(T_h, PIO_PACKAGE_PLATFORM_NAME + (String)"@" + PIO_PLATFORM_VERSION_FULL + ", Arduino@" + PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION); 
+  str.replace(T_h, COMPILED_FRAMEWORK_VERSIONS); 
 
   page += str;
   page += FPSTR(WM_HTTP_HELP);

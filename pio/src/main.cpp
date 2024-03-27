@@ -30,36 +30,27 @@ Credits to:
 #ifdef PWR_GENIE_MODE_MODBUS
   #include "modbus.h"
 #endif
-
 #ifdef PWR_GENIE_MODE_SPL
   #include "spl.h"
 #endif
-
 #ifdef PWR_GENIE_MODE_JKBMS
   #include "JKBMS.h"
 #endif
 
 #include "emoncms.h"
+#include "wmparams.h"
+#include "loadNsaveConfig.h"
+
+#ifdef BearSSL_DEBUG
+  #include <StackThunk.h>
+  uint16_t max_stack_usage = 0;
+#endif
 
 AsyncWebServer webServer(80); //Async_webserver_HTTP_PORT);
 AsyncDNSServer dnsServer;
 ESPAsync_WiFiManager wm(&webServer, &dnsServer, "ESP_WebServer");
 
 unsigned long milliCounter;   // For the loop timer.
-
-/*
-AsyncWebServer webServer(); //Async_webserver_HTTP_PORT);
-
-#if ( USING_ESP32_S2 || USING_ESP32_C3 )
-  ESPAsync_WiFiManager ESPAsync_wifiManager(&webServer, NULL, "AsyncConfigOnStartup");
-#else
-  AsyncDNSServer dnsServer;
-  ESPAsync_WiFiManager ESPAsync_wifiManager(&webServer, &dnsServer, "AsyncConfigOnStartup");
-#endif
-*/
-
-#include "wmparams.h"
-#include "loadNsaveConfig.h"
 
 //Callback after changes to Wifi page or Config page.
 void paramsChangedCallback() {
@@ -149,7 +140,6 @@ void handleDebug(AsyncWebServerRequest *request){
   CONSOLELN(F("HandleDebug page sent."));
 }
 
-
 // This is a callback made when the wifimanager webserver is created for the purposes of
 // adding our own custom page handlers to the webserver.
 void configMyWebHandlers(){
@@ -162,18 +152,15 @@ void configMyWebHandlers(){
 void setup() {
   
   // Set up console serial and say hello...
-  #ifdef FIX_V650_ISSUE
+  #ifdef SERIAL_115400
     Serial.begin(115400);
   #else
     Serial.begin(921600);
   #endif
-  //while (!Serial){;}
-  delay(1000);
+  delay(200);
 
-  CONSOLELN(F("\n\n\n\nHello there, it's a new day!"));
-  String str = FPSTR(HTTP_PAGE_MAIN3);
-  str.replace(T_h, PIO_PACKAGE_PLATFORM_NAME + (String)"@" + PIO_PLATFORM_VERSION_FULL + ", Arduino@" + PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION); 
-  LOGDEBUG1(F("Firmware Info: "), str);
+  CONSOLELN(F("\n\nHello there, it's a new day!"));
+  LOGDEBUG1(F("Firmware Info: "), COMPILED_FRAMEWORK_VERSIONS);
 
   resetAPcreds();  // Load factory defaults in case LittleFS config is blank and loading config fails.
   loadConfig();    // From LittleFS file.
@@ -251,11 +238,6 @@ void console_InfoPrint(){
 }
 
 //The main code loop
-#ifdef BSSL_DEBUG
-  #include <StackThunk.h>
-  uint16_t max_stack_usage = 0;
-#endif
-
 void loop() {
 
 /* Testing SPL Meter code leqv2.h
@@ -330,7 +312,7 @@ void loop() {
       emoncms::send2emoncms("");  // Empty Params will just send the psuVolts.
     }
     
-    #ifdef BSSL_DEBUG
+    #ifdef BearSSL_DEBUG
       uint16_t stack_usage = stack_thunk_get_max_usage();
       static uint16_t usage_increases = 0;
       CONSOLE("BSSL stack: "); CONSOLE(max_stack_usage); CONSOLE(", "); CONSOLELN(stack_usage);
