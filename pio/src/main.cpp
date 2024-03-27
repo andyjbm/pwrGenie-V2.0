@@ -162,11 +162,18 @@ void configMyWebHandlers(){
 void setup() {
   
   // Set up console serial and say hello...
-  Serial.begin(921600);
+  #ifdef FIX_V650_ISSUE
+    Serial.begin(115400);
+  #else
+    Serial.begin(921600);
+  #endif
   //while (!Serial){;}
   delay(1000);
 
   CONSOLELN(F("\n\n\n\nHello there, it's a new day!"));
+  String str = FPSTR(HTTP_PAGE_MAIN3);
+  str.replace(T_h, PIO_PACKAGE_PLATFORM_NAME + (String)"@" + PIO_PLATFORM_VERSION_FULL + ", Arduino@" + PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION); 
+  LOGDEBUG1(F("Firmware Info: "), str);
 
   resetAPcreds();  // Load factory defaults in case LittleFS config is blank and loading config fails.
   loadConfig();    // From LittleFS file.
