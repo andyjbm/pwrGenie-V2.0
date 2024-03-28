@@ -172,7 +172,7 @@ const char HTTP_FORM_BOOL_PARAM[]  PROGMEM = "<input type='checkbox' id='{i}' na
 
 //const char HTTP_ROOT_MAIN[]        PROGMEM = "<h1>{t}</h1><h3 style='font-size: 1.1em'>{v}</h3>";
 const char HTTP_PAGE_MAIN1[]       PROGMEM = "<h1>{t}</h1><h3><span style='float:left'>{h}</span><span style='float:right'>{i}</span></h3>";
-const char HTTP_PAGE_MAIN2[]	   PROGMEM = "<table style='width:100%'><tr><td><b>Uptime:</b>{1} Min {2} Sec</td><td><b>PSU:</b>{p}v</td><td style='text-align:right'><b>FW:</b>{m}</td></tr></table></div>";
+const char HTTP_PAGE_MAIN2[]	   PROGMEM = "<table style='width:100%'><tr><td><b>Uptime:</b>{1}h {2}m {3}s</td><td><b>PSU:</b>{p}v</td><td style='text-align:right'><b>FW:</b>{m}</td></tr></table></div>";
 const char HTTP_PAGE_MAIN3[]	   PROGMEM = "<p><small>{h}</small></p>";
 const char HTTP_FORM_POST[]        PROGMEM = "<form method='POST' action='{v}'>";
 const char HTTP_FORM_PARAM_HEAD[]  PROGMEM = "Configure Device Parameters";
@@ -206,7 +206,7 @@ const char HTTP_INFO_memsmeter[]  PROGMEM = "<td><progress value='{1}' max='{2}'
 const char HTTP_INFO_memsketch[]  PROGMEM = "<td>Memory - Sketch Size</td><td>Used / Total bytes<br/>{1} / {2}";
 const char HTTP_INFO_freeheap[]   PROGMEM = "<td>Memory - Free Heap</td><td>{1} bytes available</td>";
 const char HTTP_INFO_wifihead[]   PROGMEM = "<td>WiFi mode</td><td>{1}</td>";
-const char HTTP_INFO_uptime[]     PROGMEM = "<td>Uptime</td><td>{1} Mins {2} Secs</td>";
+const char HTTP_INFO_uptime[]     PROGMEM = "<td>Uptime</td><td>{1}h {2}m {3}s</td>";
 const char HTTP_INFO_chipid[]     PROGMEM = "<td>Chip ID</td><td>{1}</td>";
 const char HTTP_INFO_idesize[]    PROGMEM = "<td>Flash Size</td><td>{1} bytes</td>";
 const char HTTP_INFO_sdkver[]     PROGMEM = "<td>SDK Version</td><td>{1}</td>";

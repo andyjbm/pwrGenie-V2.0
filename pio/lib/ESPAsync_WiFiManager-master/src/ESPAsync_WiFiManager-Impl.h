@@ -2611,8 +2611,10 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
   str = FPSTR(HTTP_PAGE_MAIN2); // Tokens {1}, {2}, {psu} {m}
   
   //uptime:
-  str.replace(FPSTR(T_1),(String)(millis() / 1000 / 60));
-  str.replace(FPSTR(T_2),(String)((millis() / 1000) % 60));
+  uint32_t ut = millis()/1000;
+  str.replace(FPSTR(T_1),(String)(ut / 3600));
+  str.replace(FPSTR(T_2),(String)(ut / 60));
+  str.replace(FPSTR(T_3),(String)(ut % 60));
   //psu volts:
   str.replace(FPSTR(T_p), String(psuVolts,2));
   // Mode is the base source device the firmware is compiled as. See defs.h
@@ -2646,8 +2648,11 @@ String ESPAsync_WiFiManager::getInfoData(String id){
   else if(id==F("uptime")){
     // subject to rollover!
     p = FPSTR(HTTP_INFO_uptime);
-    p.replace(FPSTR(T_1),(String)(millis() / 1000 / 60));
-    p.replace(FPSTR(T_2),(String)((millis() / 1000) % 60));
+    //uptime:
+    uint32_t ut = millis()/1000;
+    p.replace(FPSTR(T_1),(String)(ut / 3600));
+    p.replace(FPSTR(T_2),(String)(ut / 60));
+    p.replace(FPSTR(T_3),(String)(ut % 60));
   }
   else if(id==F("chipid")){
     p = FPSTR(HTTP_INFO_chipid);
