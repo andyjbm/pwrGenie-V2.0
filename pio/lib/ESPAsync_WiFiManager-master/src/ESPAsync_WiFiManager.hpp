@@ -88,133 +88,6 @@
 
 ////////////////////////////////////////////////////
 
-#if ESP8266
-
-  #if (ARDUINO_ESP8266_GIT_VER == 0x210897ef)
-    #define USING_ESP8266_CORE_VERSION    30102
-    #define ESP8266_CORE_VERSION          "ESP8266 core v3.1.2"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "3.1.2"
-    #endif
-  
-  #elif (ARDUINO_ESP8266_GIT_VER == 0xcf6ff4c4)
-    #define USING_ESP8266_CORE_VERSION    30002
-    #define ESP8266_CORE_VERSION          "ESP8266 core v3.0.2"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "3.0.2"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0xcbf44fb3)
-    #define USING_ESP8266_CORE_VERSION    30001
-    #define ESP8266_CORE_VERSION          "ESP8266 core v3.0.1"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "3.0.1"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0xefb0341a)
-    #define USING_ESP8266_CORE_VERSION    30000
-    #define ESP8266_CORE_VERSION          "ESP8266 core v3.0.0"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "3.0.0"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x2843a5ac)
-    #define USING_ESP8266_CORE_VERSION    20704
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.7.4"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.7.4"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x5d3af165)
-    #define USING_ESP8266_CORE_VERSION    20703
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.7.3"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.7.3"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x39c79d9b)
-    #define USING_ESP8266_CORE_VERSION    20702
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.7.2"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3)
-      #warning USING_ESP8266_CORE_VERSION "2.7.2"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0xa5432625)
-    #define USING_ESP8266_CORE_VERSION    20701
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.7.1"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.7.1"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x3d128e5c)
-    #define USING_ESP8266_CORE_VERSION    20603
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.6.3"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.6.3"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x482516e3)
-    #define USING_ESP8266_CORE_VERSION    20602
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.6.2"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.6.2"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x482516e3)
-    #define USING_ESP8266_CORE_VERSION    20601
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.6.1"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.6.1"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x643ec203)
-    #define USING_ESP8266_CORE_VERSION    20600
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.6.0"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.6.0"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x8b899c12)
-    #define USING_ESP8266_CORE_VERSION    20502
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.5.2"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.5.2"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x00000000)
-    #define USING_ESP8266_CORE_VERSION    20402
-    #define ESP8266_CORE_VERSION          "ESP8266 core v2.4.2"
-    
-    #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3) 
-      #warning USING_ESP8266_CORE_VERSION "2.4.2"
-    #endif
-    
-  #elif (ARDUINO_ESP8266_GIT_VER == 0x643ec203)
-    #define USING_ESP8266_CORE_VERSION    0
-    #define ESP8266_CORE_VERSION          "ESP8266 core too old"
-    #warning USING_ESP8266_CORE_VERSION "0.0.0"
-  #else
-    #define USING_ESP8266_CORE_VERSION    999999
-    #define ESP8266_CORE_VERSION          "ESP8266 core unknown"
-    #warning USING_ESP8266_CORE_VERSION "x.y.z"  
-  #endif
-#endif
-
-////////////////////////////////////////////////////
-
 #include "ESPAsync_WiFiManager_Debug.h"
 
 ////////////////////////////////////////////////////
@@ -616,6 +489,8 @@ class ESPAsync_WiFiManager
 // Andy Added START
 	
 	  String buildHeader(String pageTitle, String pageHeading, String extra = ""); //, bool c_refresh = false);
+    
+    String getUptimeAsString(const __FlashStringHelper * html_uptime);
     
     uint32_t getChipID();
     #ifdef ESP32

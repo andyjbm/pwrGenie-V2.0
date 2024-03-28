@@ -1051,8 +1051,7 @@ const char* ESPAsync_WiFiManager::getStatus(const int& status)
     case WL_CONNECT_FAILED:
       return "WL_CONNECT_FAILED";
 
-#if ( ESP8266 && (USING_ESP8266_CORE_VERSION >= 30000) )
-
+#if ESP8266
     case WL_WRONG_PASSWORD:
       return "WL_WRONG_PASSWORD";
 #endif
@@ -2601,27 +2600,30 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
 
   // Title, Hostname and IP address:
   String str = FPSTR(HTTP_PAGE_MAIN1); // Tokens {t}, {h} {ip}
-  str.replace(FPSTR(T_t),pageHeading);
-  str.replace(FPSTR(T_h), getWiFiHostname());
-  str.replace(FPSTR(T_i), WiFi.localIP().toString());
+  str.replace(T_t,pageHeading);
+  str.replace(T_h, getWiFiHostname());
+  str.replace(T_i, WiFi.localIP().toString());
   page += str;
 
   page += FPSTR(HTTP_HOMEBTN);
 
-  str = FPSTR(HTTP_PAGE_MAIN2); // Tokens {1}, {2}, {psu} {m}
-  
-  //uptime:
-  uint32_t ut = millis()/1000;
-  str.replace(FPSTR(T_1),(String)(ut / 3600));
-  str.replace(FPSTR(T_2),(String)(ut / 60));
-  str.replace(FPSTR(T_3),(String)(ut % 60));
+  str = getUptimeAsString(FPSTR(HTTP_PAGE_MAIN2));
   //psu volts:
   str.replace(FPSTR(T_p), String(psuVolts,2));
-  // Mode is the base source device the firmware is compiled as. See defs.h
+  // Type is the base source device the firmware is compiled as. See defs.h
   str.replace(FPSTR(T_m), FPSTR(PWR_GENIE_TYPE_STR));
   page += str;
   
   return page;
+}
+
+String ESPAsync_WiFiManager::getUptimeAsString(const __FlashStringHelper * html_uptime){
+  String str = FPSTR(html_uptime); // Tokens {1}, {2}, {psu} {m}
+  uint32_t ut = millis()/1000;
+  str.replace(T_1,(String)(ut / 3600));
+  str.replace(T_2,(String)((ut / 60) % 60));
+  str.replace(T_3,(String)(ut % 60));
+  return str;
 }
 
 String ESPAsync_WiFiManager::getWiFiHostname(){
@@ -2646,13 +2648,7 @@ String ESPAsync_WiFiManager::getInfoData(String id){
     p.replace(FPSTR(T_1),getModeString(WiFi.getMode()));
   }
   else if(id==F("uptime")){
-    // subject to rollover!
-    p = FPSTR(HTTP_INFO_uptime);
-    //uptime:
-    uint32_t ut = millis()/1000;
-    p.replace(FPSTR(T_1),(String)(ut / 3600));
-    p.replace(FPSTR(T_2),(String)(ut / 60));
-    p.replace(FPSTR(T_3),(String)(ut % 60));
+    p = getUptimeAsString(FPSTR(HTTP_INFO_uptime));
   }
   else if(id==F("chipid")){
     p = FPSTR(HTTP_INFO_chipid);
