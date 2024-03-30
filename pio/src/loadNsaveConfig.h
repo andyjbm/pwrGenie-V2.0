@@ -127,8 +127,9 @@
           CONSOLELN(F("Config file failed to open!"));
           resetCreds = true;
         } else {
-          CONSOLE(F("opened config file, reading, "));
+          CONSOLE(F("opened config file, reading, size is: "));
           size_t size = configFile.size();
+          CONSOLE(size); CONSOLE(F(", "));
           DynamicJsonDocument jsonDoc(size *3);
           DeserializationError deserializeError = deserializeJson(jsonDoc, configFile);
           configFile.close();
