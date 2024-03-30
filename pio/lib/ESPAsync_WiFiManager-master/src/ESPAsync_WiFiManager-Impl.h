@@ -461,8 +461,7 @@ void ESPAsync_WiFiManager::startPortalWebserver(){
   server->on("/wifi",     std::bind(&ESPAsync_WiFiManager::handleWifi,        this, std::placeholders::_1));
   server->on("/wifisave", std::bind(&ESPAsync_WiFiManager::handleWifiSave,    this, std::placeholders::_1));
   server->on("/close",    std::bind(&ESPAsync_WiFiManager::handleServerClose, this, std::placeholders::_1));
-  server->on("/i1",       std::bind(&ESPAsync_WiFiManager::handleInfo1,       this, std::placeholders::_1));
-  server->on("/i2",       std::bind(&ESPAsync_WiFiManager::handleInfo2,       this, std::placeholders::_1));
+  server->on("/i",        std::bind(&ESPAsync_WiFiManager::handleInfo,       this, std::placeholders::_1));
   server->on("/cfg",      std::bind(&ESPAsync_WiFiManager::handleConfig,      this, std::placeholders::_1));
   server->on("/cfgsave",  std::bind(&ESPAsync_WiFiManager::handleConfigSave,  this, std::placeholders::_1));
   server->on("/restart",  std::bind(&ESPAsync_WiFiManager::handleRestart,     this, std::placeholders::_1));
@@ -875,7 +874,7 @@ int ESPAsync_WiFiManager::reconnectWifi()
 {
   LOGINFO(F("reconnectWifi Starting..."));
 
-  int connectResult;
+  int connectResult = WL_CONNECT_FAILED;
 
   // Try and connect each with ESP, _ssid, _ssid1 creds in turn.
   
@@ -889,7 +888,7 @@ int ESPAsync_WiFiManager::reconnectWifi()
   //  LOGDEBUG1(F("We reconnected with prev ESP creds aok: ESP SSID is:"), WiFi.SSID());
   //}
 
-  if (_ssid == WiFi_SSID()){  // if _ssid & ESP creds are the same then just reconnect 1st.
+  if (_ssid == WiFi_SSID() || (_ssid == "" && WiFi_SSID() != "")){  // if _ssid & ESP creds are the same or _ssid not specified then just reconnect 1st.
     LOGINFO(F("Attempting to connect to previous ESP creds..."));
     if ((connectResult = connectWifi()) == WL_CONNECTED) {
         LOGINFO1(F("Yay! Connected with prev ESP creds."), WiFi.SSID());
@@ -1534,107 +1533,8 @@ void ESPAsync_WiFiManager::handleServerClose(AsyncWebServerRequest *request)
   LOGDEBUG(F("Sent server close page"));
 }
 
-// /i1 handler
-void ESPAsync_WiFiManager::handleInfo1(AsyncWebServerRequest *request)
-{
-  LOGDEBUG(F("Entering handleInfo1"));
-
-  // Disable _configPortalTimeout when someone accessing Portal to give some time to config
-  _configPortalTimeout = 0;
-
-  String page = buildHeader(FPSTR(S_titleinfo1),FPSTR(HTTP_FORM_INFO_HEAD));
-  
-  //page += F("<dl>");
-  reportStatus(page);
-  
-  //if (connect)
-  //{
-  //  page += F("<dt>Trying to connect</dt><dd>");
-  //  page += wifiStatus;
-  //  page += F("</dd>");
-  //}
-  page += FPSTR(WM_FLDSET_START);
-  page += F("<h3>Device Data</h3>");
-  page += F("<table class=\"table\">");
-  page += F("<thead><tr><th>Name</th><th>Value</th></tr></thead><tbody><tr><td>Chip ID</td><td>");
-  page += String(ESP_getChipId(), HEX);
-  page += F("</td></tr>");
-
-#ifdef   ESP32
-  page += F("<tr><td>Chip OUI</td><td>");
-  page += F("0x");
-  page += String(getChipOUI(), HEX);
-  page += F("</td></tr>");
-
-  page += F("<tr><td>Chip Model</td><td>");
-  page += ESP.getChipModel();
-  page += F(" Rev");
-  page += ESP.getChipRevision();
-  page += F("</td></tr>");
-#endif
-
-  page += F("<tr><td>Flash Chip ID</td><td>");
-
-#ifdef ESP8266
-  page += String(ESP.getFlashChipId(), HEX);
-#else   //ESP32
-  // TODO
-  page += F("TODO");
-#endif
-
-  page += F("</td></tr>");
-
-  page += F("<tr><td>IDE Flash Size</td><td>");
-  page += ESP.getFlashChipSize();
-  page += F(" bytes</td></tr>");
-
-  page += F("<tr><td>Real Flash Size</td><td>");
-
-#ifdef ESP8266
-  page += ESP.getFlashChipRealSize();
-#else   //ESP32
-  // TODO
-  page += F("TODO");
-#endif
-
-  page += F(" bytes</td></tr>");
-
-  page += F("<tr><td>Access Point IP</td><td>");
-  page += WiFi.softAPIP().toString();
-  page += F("</td></tr>");
-
-  page += F("<tr><td>Access Point MAC</td><td>");
-  page += WiFi.softAPmacAddress();
-  page += F("</td></tr>");
-
-  page += F("<tr><td>SSID</td><td>");
-  page += WiFi_SSID();
-  page += F("</td></tr>");
-
-  page += F("<tr><td>Station IP</td><td>");
-  page += WiFi.localIP().toString();
-  page += F("</td></tr>");
-
-  page += F("<tr><td>Station MAC</td><td>");
-  page += WiFi.macAddress();
-  page += F("</td></tr>");
-  page += F("</tbody></table>");
-
-  page += FPSTR(WM_FLDSET_END);
-
-#ifdef USE_AVAILABLE_PAGES
-  page += FPSTR(WM_FLDSET_START);
-  page += FPSTR(WM_HTTP_AVAILABLE_PAGES);
-  page += FPSTR(WM_FLDSET_END);
-#endif
-
-  HTTPSendPage(page, request);
-  LOGDEBUG(F("Info1 page sent."));//, page);
-  //delay(3000);
-}
-
-// /i2 handler
-void ESPAsync_WiFiManager::handleInfo2(AsyncWebServerRequest *request)
+// /info handler
+void ESPAsync_WiFiManager::handleInfo(AsyncWebServerRequest *request)
 {
   LOGDEBUG(F("Entering handleInfo2"));
   
@@ -1684,14 +1584,16 @@ void ESPAsync_WiFiManager::handleInfo2(AsyncWebServerRequest *request)
 
   #elif defined(ESP32)
     // add esp_chip_info ?
-    infos = 27;
+    infos = 29;
     String infoids[] = {
       F("esphead"),
       F("uptime"),
       F("chipid"),
-      F("chiprev"),
+      F("chipOUI"),   //New
+      F("chipmodel"), //Changed chiprev to chipModel
+      F("fchipid"),   //New
       F("idesize"),
-      F("flashsize"),      
+      F("flashsize"),
       F("cpufreq"),
       F("freeheap"),
       F("memsketch"),
@@ -1726,15 +1628,6 @@ void ESPAsync_WiFiManager::handleInfo2(AsyncWebServerRequest *request)
     if(infoids[i] != NULL) 
     {
       String data = getInfoData(infoids[i]);
-
-      //LOGDEBUG1(infoids[i],data);
-      // This is/was a hack to change the HTML Tags...
-      //data.replace(FPSTR("<dt>"), FPSTR("<td>"));
-      //data.replace(FPSTR("</dt>"), FPSTR("</td>"));
-      //data.replace(FPSTR("<dd>"), FPSTR("<td>"));
-      //data.replace(FPSTR("</dd>"), FPSTR("</td>"));
-      //data.replace(FPSTR("<br/>"),FPSTR("<td>"));  // For progress bar.
-
       page += F("<tr>");
       page += data;
       page += F("</tr>");
@@ -1751,18 +1644,24 @@ void ESPAsync_WiFiManager::handleInfo2(AsyncWebServerRequest *request)
   page += F("</tr><tr>");
   page += getInfoData("aboutarduinover");
   page += F("</tr><tr>");
-  page += getInfoData("aboutidfver");
+  page += getInfoData("aboutsdkver");
   page += F("</tr><tr>");
   page += getInfoData("aboutdate");
   page += F("</tr></tbody></table>");
   page += FPSTR(WM_FLDSET_END);
+
+  #ifdef USE_AVAILABLE_PAGES
+    page += FPSTR(WM_FLDSET_START);
+    page += FPSTR(WM_HTTP_AVAILABLE_PAGES);
+    page += FPSTR(WM_FLDSET_END);
+  #endif
 
   //page += WM_HTTP_PORTAL_OPTIONS[8];
   //page += WM_HTTP_PORTAL_OPTIONS[9];
 
   HTTPSendPage(page, request);
   
-  LOGDEBUG(F("Sent info2 page: ")); //, page);
+  LOGDEBUG(F("Sent info page: ")); //, page);
 }
 
 // /cfg handler
@@ -2337,13 +2236,6 @@ void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
       response->write(pgm_read_byte(favicon + i));
   }
       
-#if ( USING_ESP32_S2 || USING_ESP32_C3 )
-  request->send(response);
-
-  // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
-  delay(1);
-#else
-
   response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
 
 #if USING_CORS_FEATURE
@@ -2355,7 +2247,11 @@ void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
   response->addHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
 
   request->send(response);
-  
+
+#if ( USING_ESP32_S2 || USING_ESP32_C3 )
+  // This was fixed in webserver. Was it fixed in ASync_Webserver?
+  // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
+  delay(1);
 #endif    // ( USING_ESP32_S2 || USING_ESP32_C3 )
      
 }
@@ -2372,13 +2268,6 @@ inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerReque
 
   LOGINFO(F("Entering HTTP Send: "));  //, page);
 
-#if ( USING_ESP32_S2 || USING_ESP32_C3 )
-  request->send(200, WM_HTTP_HEAD_CT, page);
-
-  // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
-  delay(1);
-#else
-
   AsyncWebServerResponse *response = request->beginResponse(200, WM_HTTP_HEAD_CT, page);
   response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
 
@@ -2392,6 +2281,10 @@ inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerReque
 
   request->send(response);
 
+#if ( USING_ESP32_S2 || USING_ESP32_C3 )
+  // This was fixed in webserver. Was it fixed in ASync_Webserver?
+  // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
+  delay(1);
 #endif    // ( USING_ESP32_S2 || USING_ESP32_C3 )
   LOGINFO(F("HTTP Send complete: ")); //, page);
 }
@@ -2588,7 +2481,7 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
     ptitle += " ";
     ptitle += pageTitle;
   }
-  page.replace(FPSTR(T_v), ptitle);
+  page.replace(T_v, ptitle);
 
   page += FPSTR(WM_HTTP_SCRIPT);
   //page += FPSTR(WM_HTTP_SCRIPT_NTP);  // Timezone
@@ -2609,9 +2502,9 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
 
   str = getUptimeAsString(FPSTR(HTTP_PAGE_MAIN2));
   //psu volts:
-  str.replace(FPSTR(T_p), String(psuVolts,2));
+  str.replace(T_p, String(psuVolts,2));
   // Type is the base source device the firmware is compiled as. See defs.h
-  str.replace(FPSTR(T_m), FPSTR(PWR_GENIE_TYPE_STR));
+  str.replace(T_m, FPSTR(PWR_GENIE_TYPE_STR));
   page += str;
   
   return page;
@@ -2640,86 +2533,97 @@ String ESPAsync_WiFiManager::getInfoData(String id){
   if(id==F("esphead")){
     p = FPSTR(HTTP_INFO_esphead);
     #ifdef ESP32
-      p.replace(FPSTR(T_1), (String)ESP.getChipModel());
+      p.replace(T_1, (String)ESP.getChipModel());
     #endif
   }  
   else if(id==F("wifihead")){
     p = FPSTR(HTTP_INFO_wifihead);
-    p.replace(FPSTR(T_1),getModeString(WiFi.getMode()));
+    p.replace(T_1,getModeString(WiFi.getMode()));
   }
   else if(id==F("uptime")){
     p = getUptimeAsString(FPSTR(HTTP_INFO_uptime));
   }
   else if(id==F("chipid")){
     p = FPSTR(HTTP_INFO_chipid);
-    p.replace(FPSTR(T_1),String(ESP_getChipId(),HEX));
+    p.replace(T_1,String(ESP_getChipId(),HEX));
   }
-  #ifdef ESP32
-  else if(id==F("chiprev")){
-      p = FPSTR(HTTP_INFO_chiprev);
-      String rev = (String)ESP.getChipRevision();
-      #ifdef _SOC_EFUSE_REG_H_
-        String revb = (String)(REG_READ(EFUSE_BLK0_RDATA3_REG) >> (EFUSE_RD_CHIP_VER_RESERVE_S)&&EFUSE_RD_CHIP_VER_RESERVE_V);
-        p.replace(FPSTR(T_1),rev+"<br/>"+revb);
-      #else
-        p.replace(FPSTR(T_1),rev);
-      #endif
-  }
-  #elif defined ESP8266
-  else if(id==F("fchipid")){
-      p = FPSTR(HTTP_INFO_fchipid);
-      p.replace(FPSTR(T_1),(String)ESP.getFlashChipId());
-  }
-  #else
-    #error "Unknown Architecture - Not ESP32 or 8266!"
+  #ifndef ESP8266
+    // Not available on ESP8266
+    else if (id==F("chipOUI")){
+      p = FPSTR(HTTP_INFO_chipOUI);
+      p.replace(T_1,String(getChipOUI(),HEX));
+    }
   #endif
+  else if(id==F("chipmodel")){
+    p = FPSTR(HTTP_INFO_chipmodel);
+      #ifdef ESP32
+        p.replace(T_1,ESP.getChipModel());
+        String rev = (String)ESP.getChipRevision();
+        #ifdef _SOC_EFUSE_REG_H_
+          String revb = (String)(REG_READ(EFUSE_BLK0_RDATA3_REG) >> (EFUSE_RD_CHIP_VER_RESERVE_S)&&EFUSE_RD_CHIP_VER_RESERVE_V);
+          p.replace(T_2,rev+"<br/>"+revb);
+        #else
+          p.replace(T_2,rev);
+        #endif
+    #elif defined ESP8266
+      p.replace(T_1,F("TODO"));
+    #endif
+  }
+  else if(id==F("fchipid")){
+    p = FPSTR(HTTP_INFO_fchipid);
+    #ifdef ESP32
+      p.replace(T_1,F("TODO"));
+    #else  
+      p.replace(T_1,(String)ESP.getFlashChipId());
+    #endif
+  }
   else if(id==F("idesize")){
     p = FPSTR(HTTP_INFO_idesize);
-    p.replace(FPSTR(T_1),(String)ESP.getFlashChipSize());
+    p.replace(T_1,(String)ESP.getFlashChipSize());
   }
   else if(id==F("flashsize")){
     #ifdef ESP8266
       p = FPSTR(HTTP_INFO_flashsize);
-      p.replace(FPSTR(T_1),(String)ESP.getFlashChipRealSize());
+      p.replace(T_1,(String)ESP.getFlashChipRealSize());
     #elif defined ESP32
       p = FPSTR(HTTP_INFO_psrsize);
-      p.replace(FPSTR(T_1),(String)ESP.getPsramSize());      
+      p.replace(T_1,(String)ESP.getPsramSize());      
     #endif
   }
   else if(id==F("corever")){
     #ifdef ESP8266
       p = FPSTR(HTTP_INFO_corever);
-      p.replace(FPSTR(T_1),(String)ESP.getCoreVersion());
+      p.replace(T_1,(String)ESP.getCoreVersion());
     #endif      
   }
   #ifdef ESP8266
   else if(id==F("bootver")){
       p = FPSTR(HTTP_INFO_bootver);
-      p.replace(FPSTR(T_1),(String)system_get_boot_version());
+      p.replace(T_1,(String)system_get_boot_version());
   }
   #endif  
   else if(id==F("cpufreq")){
     p = FPSTR(HTTP_INFO_cpufreq);
-    p.replace(FPSTR(T_1),(String)ESP.getCpuFreqMHz());
+    p.replace(T_1,(String)ESP.getCpuFreqMHz());
   }
   else if(id==F("freeheap")){
     p = FPSTR(HTTP_INFO_freeheap);
-    p.replace(FPSTR(T_1),(String)ESP.getFreeHeap());
+    p.replace(T_1,(String)ESP.getFreeHeap());
   }
   else if(id==F("memsketch")){
     p = FPSTR(HTTP_INFO_memsketch);
-    p.replace(FPSTR(T_1),(String)(ESP.getSketchSize()));
-    p.replace(FPSTR(T_2),(String)(ESP.getSketchSize()+ESP.getFreeSketchSpace()));
+    p.replace(T_1,(String)(ESP.getSketchSize()));
+    p.replace(T_2,(String)(ESP.getSketchSize()+ESP.getFreeSketchSpace()));
   }
   else if(id==F("memsmeter")){
     p = FPSTR(HTTP_INFO_memsmeter);
-    p.replace(FPSTR(T_1),(String)(ESP.getSketchSize()));
-    p.replace(FPSTR(T_2),(String)(ESP.getSketchSize()+ESP.getFreeSketchSpace()));
+    p.replace(T_1,(String)(ESP.getSketchSize()));
+    p.replace(T_2,(String)(ESP.getSketchSize()+ESP.getFreeSketchSpace()));
   }
   else if(id==F("lastreset")){
     #ifdef ESP8266
       p = FPSTR(HTTP_INFO_lastreset);
-      p.replace(FPSTR(T_1),(String)ESP.getResetReason());
+      p.replace(T_1,(String)ESP.getResetReason());
     #elif defined(ESP32) && defined(_ROM_RTC_H_)
       // requires #include <rom/rtc.h>
       p = FPSTR(HTTP_INFO_lastreset);
@@ -2751,29 +2655,29 @@ String ESPAsync_WiFiManager::getInfoData(String id){
   }
   else if(id==F("apip")){
     p = FPSTR(HTTP_INFO_apip);
-    p.replace(FPSTR(T_1),WiFi.softAPIP().toString());
+    p.replace(T_1,WiFi.softAPIP().toString());
   }
   else if(id==F("apmac")){
     p = FPSTR(HTTP_INFO_apmac);
-    p.replace(FPSTR(T_1),(String)WiFi.softAPmacAddress());
+    p.replace(T_1,(String)WiFi.softAPmacAddress());
   }
   #ifdef ESP32
   else if(id==F("aphost")){
       p = FPSTR(HTTP_INFO_aphost);
-      p.replace(FPSTR(T_1),WiFi.softAPgetHostname());
+      p.replace(T_1,WiFi.softAPgetHostname());
   }
   #endif
   #ifndef WM_NOSOFTAPSSID
   #ifdef ESP8266
   else if(id==F("apssid")){
     p = FPSTR(HTTP_INFO_apssid);
-    p.replace(FPSTR(T_1),htmlEntities(WiFi.softAPSSID()));
+    p.replace(T_1,htmlEntities(WiFi.softAPSSID()));
   }
   #endif
   #endif
   else if(id==F("apbssid")){
     p = FPSTR(HTTP_INFO_apbssid);
-    p.replace(FPSTR(T_1),(String)WiFi.BSSIDstr());
+    p.replace(T_1,(String)WiFi.BSSIDstr());
   }
   // softAPgetHostname // esp32
   // softAPSubnetCIDR
@@ -2782,84 +2686,83 @@ String ESPAsync_WiFiManager::getInfoData(String id){
 
   else if(id==F("stassid")){
     p = FPSTR(HTTP_INFO_stassid);
-    p.replace(FPSTR(T_1),htmlEntities((String)WiFi_SSID()));
+    p.replace(T_1,htmlEntities((String)WiFi_SSID()));
   }
   else if(id==F("staip")){
     p = FPSTR(HTTP_INFO_staip);
-    p.replace(FPSTR(T_1),WiFi.localIP().toString());
+    p.replace(T_1,WiFi.localIP().toString());
   }
   else if(id==F("stagw")){
     p = FPSTR(HTTP_INFO_stagw);
-    p.replace(FPSTR(T_1),WiFi.gatewayIP().toString());
+    p.replace(T_1,WiFi.gatewayIP().toString());
   }
   else if(id==F("stasub")){
     p = FPSTR(HTTP_INFO_stasub);
-    p.replace(FPSTR(T_1),WiFi.subnetMask().toString());
+    p.replace(T_1,WiFi.subnetMask().toString());
   }
   else if(id==F("dnss")){
     p = FPSTR(HTTP_INFO_dnss);
-    p.replace(FPSTR(T_1),WiFi.dnsIP().toString());
+    p.replace(T_1,WiFi.dnsIP().toString());
   }
   else if(id==F("host")){
     p = FPSTR(HTTP_INFO_host);
     #ifdef ESP32
-      p.replace(FPSTR(T_1),WiFi.getHostname());
+      p.replace(T_1,WiFi.getHostname());
     #else
-    p.replace(FPSTR(T_1),WiFi.hostname());
+    p.replace(T_1,WiFi.hostname());
     #endif
   }
   else if(id==F("stamac")){
     p = FPSTR(HTTP_INFO_stamac);
-    p.replace(FPSTR(T_1),WiFi.macAddress());
+    p.replace(T_1,WiFi.macAddress());
   }
   else if(id==F("conx")){
     p = FPSTR(HTTP_INFO_conx);
-    p.replace(FPSTR(T_1),WiFi.isConnected() ? FPSTR(S_y) : FPSTR(S_n));
+    p.replace(T_1,WiFi.isConnected() ? FPSTR(S_y) : FPSTR(S_n));
   }
   #ifdef ESP8266
   else if(id==F("autoconx")){
     p = FPSTR(HTTP_INFO_autoconx);
-    p.replace(FPSTR(T_1),WiFi.getAutoConnect() ? FPSTR(S_enable) : FPSTR(S_disable));
+    p.replace(T_1,WiFi.getAutoConnect() ? FPSTR(S_enable) : FPSTR(S_disable));
   }
   #endif
   #ifdef ESP32
   else if(id==F("temp")){
     // temperature is not calibrated, varying large offsets are present, use for relative temp changes only
     p = FPSTR(HTTP_INFO_temp);
-    p.replace(FPSTR(T_1),(String)temperatureRead());
-    p.replace(FPSTR(T_2),(String)((temperatureRead()+32)*1.8));
-    // p.replace(FPSTR(T_3),(String)hallRead());
-    p.replace(FPSTR(T_3),"NA");
+    p.replace(T_1,(String)temperatureRead());
+    p.replace(T_2,(String)((temperatureRead()+32)*1.8));
+    // p.replace(T_3,(String)hallRead());
+    p.replace(T_3,"NA");
   }
   #endif
   else if(id==F("aboutver")){
     p = FPSTR(HTTP_INFO_aboutver);
-    p.replace(FPSTR(T_1),F(ESP_ASYNC_WIFIMANAGER_VERSION));
+    p.replace(T_1,F(ESP_ASYNC_WIFIMANAGER_VERSION));
   }
   else if(id==F("aboutarduinover")){
-    #ifdef VER_ARDUINO_STR
+    #ifdef PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION
     p = FPSTR(HTTP_INFO_aboutarduino);
-    p.replace(FPSTR(T_1),String(VER_ARDUINO_STR));
+    p.replace(T_1,String(PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION));
     #endif
   }
   // else if(id==F("aboutidfver")){
   //   #ifdef VER_IDF_STR
   //   p = FPSTR(HTTP_INFO_aboutidf);
-  //   p.replace(FPSTR(T_1),String(VER_IDF_STR));
+  //   p.replace(T_1,(String)esp_get_idf_version());
   //   #endif
   // }
   else if(id==F("aboutsdkver")){
     p = FPSTR(HTTP_INFO_sdkver);
     #ifdef ESP32
-      p.replace(FPSTR(T_1),(String)esp_get_idf_version());
-      // p.replace(FPSTR(T_1),(String)system_get_sdk_version()); // deprecated
+      p.replace(T_1,F(PIO_PLATFORM_VERSION_FULL));
     #else
-    p.replace(FPSTR(T_1),(String)system_get_sdk_version());
+    p.replace(T_1,(String)system_get_sdk_version());
     #endif
   }
   else if(id==F("aboutdate")){
     p = FPSTR(HTTP_INFO_aboutdate);
-    p.replace(FPSTR(T_1),String(__DATE__) + " " + String(__TIME__));
+    p.replace(T_1,String(__DATE__) + " " + String(__TIME__));
   }
   return p;
 }

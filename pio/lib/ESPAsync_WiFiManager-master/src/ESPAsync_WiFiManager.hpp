@@ -806,8 +806,7 @@ class ESPAsync_WiFiManager
     void          handleWifi(AsyncWebServerRequest *request);
     void          handleWifiSave(AsyncWebServerRequest *request);
     void          handleServerClose(AsyncWebServerRequest *request);
-    void          handleInfo1(AsyncWebServerRequest *request);
-    void          handleInfo2(AsyncWebServerRequest *request);
+    void          handleInfo(AsyncWebServerRequest *request);
     void          handleConfig(AsyncWebServerRequest *request);
     void          handleConfigSave(AsyncWebServerRequest *request);
     //void          handleState(AsyncWebServerRequest *request);

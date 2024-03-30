@@ -6,9 +6,10 @@
 const char WM_HTTP_STYLE[] PROGMEM = "<style>"
 	".c,body{text-align:center;font-family:sans-serif}"
 	"body,textarea,input,select{border-radius: 0.3rem;font-size: 16px}"
-
 	"div{padding:2px;font-size:1em;}"
 	".container{margin:auto;width:95%}"
+	"p{margin-top:10px;margin-bottom:5px}" // Footer credits and version info. WM_HTTP_HELP, HTTP_PAGE_MAIN3
+
 	// msg callout
 	".msg{background: #def;border-left: 5px solid #59d;padding: 0.5em}"
 	//".msg{padding:20px;margin:20px 0;border:1px solid #eee;border-left-width:5px;border-left-color:#777}
@@ -128,8 +129,7 @@ const char WM_HTTP_CORS_ALLOW_ALL[]  = "*";
   "<tr><td><a href='/cfgsave'>/cfgsave</a></td><td>Save Device functions Configuration.</td></tr>"
   "<tr><td><a href='/debug'>/debug</a></td><td>Show device function last data values.</td></tr>"
   "<tr><td><a href='/close'>/close</a></td><td>Close the Config Portal.</td></tr>"
-  "<tr><td><a href='/i1'>/i1</a></td><td>Info V1 page.</td></tr>"
-  "<tr><td><a href='/i2'>/i2</a></td><td>Info V2 page.</td></tr>"
+  "<tr><td><a href='/i'>/i</a></td><td>Info page.</td></tr>"
   "<tr><td><a href='/restart'>/restart</a></td><td>Reboot the device.</td></tr>"
   "<tr><td><a href='/erase'>/erase</a></td><td>Restore the firmware to default config values.</td></tr>"
   "<tr><td><a href='/update'>/update</a></td><td>Upload a new firmware OTA.</td></tr>"
@@ -146,8 +146,7 @@ const char WM_FLDSET_END[]    PROGMEM = "</fieldset>";
 const char WM_HTTP_PORTAL_OPTIONS[] PROGMEM = "<br/>"
 	"<form action='/cfg'  method='get'><button class='btn'>Configure Device</button></form><br/>\n"		// Config Device
 	"<form action='/wifi' method='get'><button class='btn'>Configure WiFi</button></form><br/>\n"		// Config Wifi
-	"<form action='/i1'   method='get'><button class='btn'>Info V1</button></form><br/>\n"				// Info1
-	"<form action='/i2'   method='get'><button class='btn'>Info V2</button></form><br/>\n"				// Info2
+	"<form action='/i'    method='get'><button class='btn'>Info Page</button></form><br/>\n"				// Info2
 	//"<form action='/close' method='get'><button class='btn'>Exit Portal</button></form><br/>\n"		// close portal
 	"<hr><br/>\n"
 	"<form action='/debug'   method='get'><button class='btn'>Debug</button></form><br/>\n"				// debug
@@ -185,21 +184,18 @@ const char HTTP_FORM_END[]         PROGMEM = "<br/><br/><button type='submit'>Sa
 // @todo remove html elements from progmem, repetatve strings
 #ifdef ESP32
 	const char HTTP_INFO_esphead[]    PROGMEM = "<h3>esp32</h3><hr><dl>";
-	const char HTTP_INFO_chiprev[]    PROGMEM = "<td>Chip Rev</td><td>{1}</td>";
   	//const char HTTP_INFO_lastreset[]  PROGMEM = "<td>Last reset reason</td><td>CPU0: {1}<br/>CPU1: {2}</td>";
   	const char HTTP_INFO_aphost[]     PROGMEM = "<td>Access Point Hostname</td><td>{1}</td>";
     const char HTTP_INFO_psrsize[]    PROGMEM = "<td>PSRAM Size</td><td>{1} bytes</td>";
 	const char HTTP_INFO_temp[]       PROGMEM = "<td>Temperature</td><td>{1} C&deg; / {2} F&deg;</td></tr><tr><td>Hall</td><td>{3}</td>";
 #else
 	const char HTTP_INFO_esphead[]    PROGMEM = "<h3>esp8266</h3><hr>";
-	const char HTTP_INFO_fchipid[]    PROGMEM = "<td>Flash Chip ID</td><td>{1}</td>";
 	const char HTTP_INFO_corever[]    PROGMEM = "<td>Core Version</td><td>{1}</td>";
 	const char HTTP_INFO_bootver[]    PROGMEM = "<td>Boot Version</td><td>{1}</td>";
 	const char HTTP_INFO_lastreset[]  PROGMEM = "<td>Last reset reason</td><td>{1}</td>";
 	const char HTTP_INFO_flashsize[]  PROGMEM = "<td>Real Flash Size</td><td>{1} bytes</td>";
 	const char HTTP_INFO_apssid[]     PROGMEM = "<td>Access Point SSID</td><td>{1}</td>";
 	const char HTTP_INFO_autoconx[]   PROGMEM = "<td>Autoconnect</td><td>{1}</td>";
-
 #endif
 
 const char HTTP_INFO_memsmeter[]  PROGMEM = "<td><progress value='{1}' max='{2}'></progress></td>";
@@ -208,6 +204,9 @@ const char HTTP_INFO_freeheap[]   PROGMEM = "<td>Memory - Free Heap</td><td>{1} 
 const char HTTP_INFO_wifihead[]   PROGMEM = "<td>WiFi mode</td><td>{1}</td>";
 const char HTTP_INFO_uptime[]     PROGMEM = "<td>Uptime</td><td>{1}h {2}m {3}s</td>";
 const char HTTP_INFO_chipid[]     PROGMEM = "<td>Chip ID</td><td>{1}</td>";
+const char HTTP_INFO_chipOUI[]	  PROGMEM = "<td>Chip OUI</td><td>{1}</td>";
+const char HTTP_INFO_chipmodel[]  PROGMEM = "<td>Chip Model</td><td>{1} Rev {2}</td>";
+const char HTTP_INFO_fchipid[]    PROGMEM = "<td>Flash Chip ID</td><td>{1}</td>";
 const char HTTP_INFO_idesize[]    PROGMEM = "<td>Flash Size</td><td>{1} bytes</td>";
 const char HTTP_INFO_sdkver[]     PROGMEM = "<td>SDK Version</td><td>{1}</td>";
 const char HTTP_INFO_cpufreq[]    PROGMEM = "<td>CPU Frequency</td><td>{1}MHz</td>";
@@ -224,8 +223,8 @@ const char HTTP_INFO_stamac[]     PROGMEM = "<td>Station MAC</td><td>{1}</td>";
 const char HTTP_INFO_conx[]       PROGMEM = "<td>Connected</td><td>{1}</td>";
 
 const char HTTP_INFO_aboutver[]     PROGMEM = "<td>WiFiManager</td><td>{1}</td>";
-//const char HTTP_INFO_aboutarduino[] PROGMEM = "<td>Arduino</td><td>{1}</td>";
-//const char HTTP_INFO_aboutsdk[]     PROGMEM = "<td>ESP-SDK/IDF</td><td>{1}</td>";
+const char HTTP_INFO_aboutarduino[] PROGMEM = "<td>Arduino</td><td>{1}</td>";
+const char HTTP_INFO_aboutsdk[]     PROGMEM = "<td>ESP-SDK/IDF</td><td>{1}</td>";
 const char HTTP_INFO_aboutdate[]    PROGMEM = "<td>Build Date</td><td>{1}</td>";
 
 
