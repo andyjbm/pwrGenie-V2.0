@@ -10,9 +10,17 @@ For now there's some pretty pics in the pics folder and some example firmwares i
 
 Important Notes so far:
     Espressif Framework V6.5.0 now working aok.
+
+    board d1-mini-esp32 added to environment.
     
     ESP8266 is now on the latest espressif8266 framework v4.2.1. It compiles and appears to run ok although I have not tested for any length of time yet.
     It does NOT work with JKBMS type. There is just not enough RAM available without optimizing. I am not sure how achieveable this will be as yet.
+
+    A note about ESP-s2-mini:
+    This board has given me nothing but trouble. I've finally got it working but to a point where it reboots every couple of hours. I've added a d1-mini-ESP32 and so far this has been far more reliable.
+    It could be my s2-mini is a clone or a dud or it could be the nature of the s2.
+    
+    For now I'm going to continue to develop on the d1-mini-ESP32 but also try and optimize space to get JKBMS to fit on an ESP8266.
     
 Fixed:
     ESP32-s2-mini, ESP32doit-devkit-v1 now work on V6.5.0! Issue with calling wifi.mode in ASync_WifiManager constructor. Not a good place to do that.
