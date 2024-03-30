@@ -6,7 +6,6 @@
         #error JKBMS Not working on this CPU. It breaks the Config Page. Not enough Memory yet.
     #endif
 
-
     #define MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS     10000
     #define TIMEOUT_MILLIS_FOR_FRAME_REPLY                  100 // I measured 26 ms between request end and end of received 273 byte result
     #define READJK_TIMEOUT_RETRY_COUNT                      5   // Number of times to retry a read if it times out.
@@ -20,10 +19,19 @@
         #define jkbms_RX_PIN       D2
         #define jkbms_TX_PIN       D3
         //#define jkbms_TX_EN_PIN    D0
-    #else
+    #elif USING_ESP32_S2 
         #define jkbms_RX_PIN    4 // GPIO_NUM_4  //4 = D2
         #define jkbms_TX_PIN    5 // GPIO_NUM_5  //0 = D3
         //#define jkbms_TX_EN_PIN    16
+    #elif USING_ESP32_D1_MINI
+        #define jkbms_RX_PIN    4 // GPIO_NUM_4  
+        #define jkbms_TX_PIN    16 // GPIO_NUM_16
+    #elif USING_ESP32_DOIT_DEVKIT_V1
+        #error "You haven't decided on pins for BMS serial RS485 on this board yet. Please pick some and place the defs here in JKBMS.h"
+        #define jkbms_RX_PIN    ?
+        #define jkbms_TX_PIN    ?
+    #elif
+        #error "Board not recongnised. Add the board def and pick some pins for RS485 serial in JKBMS.h"
     #endif
 
     #include "Arduino.h"
