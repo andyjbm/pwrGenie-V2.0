@@ -9,12 +9,11 @@ You are welcome to use at your own risk etc.
 For now there's some pretty pics in the pics folder and some example firmwares in the releases folder.
 
 Important Notes so far:
-    Espressif Framework V6.5.0 now working aok!
+    Espressif Framework V6.5.0 now working aok.
     
-    WIP: Getting ESP8266 onto latest frameworks.
-    I compiled ESP8266 with espressif8266 v3.30102.0. I have not tested the latest V4.2.1 at time of writing.
-    This is NOT yet hard referenced in platformio.ini yet but if you are not seeing anything try V3.3.0
-
+    ESP8266 is now on the latest espressif8266 framework v4.2.1. It compiles and appears to run ok although I have not tested for any length of time yet.
+    It does NOT work with JKBMS type. There is just not enough RAM available without optimizing. I am not sure how achieveable this will be as yet.
+    
 Fixed:
     ESP32-s2-mini, ESP32doit-devkit-v1 now work on V6.5.0! Issue with calling wifi.mode in ASync_WifiManager constructor. Not a good place to do that.
 
