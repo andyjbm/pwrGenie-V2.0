@@ -79,7 +79,7 @@ LICENSE file in the root directory of this source tree.
    #define WIFI_CONECTION_TIMEOUT 10000 // 10 Seconds
 
    #define LOOP_INFO_TIME         10000 // in mSec
-   #define FIRMWAREVERSION        "0.7.0"
+   #define PWRGENIE_FW_VERSION    "0.7.0"
 
    //#define SECURE_ENABLED   // Enables SSL sending on 443 for emoncms. Breaks pages - heap corruption? Blank pages sent.
    
@@ -94,8 +94,14 @@ LICENSE file in the root directory of this source tree.
    #endif
 
    //#define BearSSL_DEBUG  // This is only relevant on the ESP8266 which doesn't realistically have enough ram for all this anyway.
+   
+   #ifdef ESP8266 
+      #define PIO_PACKAGE_FRAMEWORK_ARDUINO_DECODED_VERSION PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF8266_DECODED_VERSION
+   #elif ESP32
+      #define PIO_PACKAGE_FRAMEWORK_ARDUINO_DECODED_VERSION PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION
+   #endif
 
-   #define COMPILED_FRAMEWORK_VERSIONS (PIO_PACKAGE_PLATFORM_NAME + (String)FPSTR(" V") + PIO_PLATFORM_VERSION_FULL + FPSTR(", Arduino V") + PIO_PACKAGE_FRAMEWORK_ARDUINOESPRESSIF32_DECODED_VERSION)
+   #define COMPILED_FRAMEWORK_VERSIONS ((String)FPSTR("pwrGenie V") + FPSTR(PWRGENIE_FW_VERSION) + " " + FPSTR(PIO_PACKAGE_PLATFORM_NAME) + " V" + FPSTR(PIO_PLATFORM_VERSION_FULL) + FPSTR(" Arduino V") + FPSTR(PIO_PACKAGE_FRAMEWORK_ARDUINO_DECODED_VERSION))
 
 /*
 ******************************
