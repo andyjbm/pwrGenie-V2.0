@@ -143,7 +143,7 @@ void handleDebug(AsyncWebServerRequest *request){
 // This is a callback made when the wifimanager webserver is created for the purposes of
 // adding our own custom page handlers to the webserver.
 void configMyWebHandlers(){
-  CONSOLELN(F("Call to configMyWebHandlers..."));
+  CONSOLELN(F("MAIN: Call to configMyWebHandlers..."));
   wm.server->on("/emoncms/*", handleEmoncms); //This requires wildcard mod to uri.h in ESP8266Webserver Lib
   wm.server->on("/debug", handleDebug); 
 }
@@ -159,8 +159,8 @@ void setup() {
   #endif
   delay(200);
 
-  CONSOLELN(F("\n\nHello there, it's a new day!"));
-  LOGDEBUG1(F("Firmware Info: "), COMPILED_FRAMEWORK_VERSIONS);
+  CONSOLELN(F("\n\nMAIN: Hello there, it's a new day!"));
+  LOGDEBUG1(F("MAIN: Firmware Info: "), COMPILED_FRAMEWORK_VERSIONS);
 
   resetAPcreds();  // Load factory defaults in case LittleFS config is blank and loading config fails.
   loadConfig();    // From LittleFS file.
@@ -175,7 +175,7 @@ void setup() {
 
   if (!((String)my_hostname).isEmpty()) {wm.setRFC952_hostname(my_hostname);}
 
-  CONSOLELN(F("\nb4 wm.autoConnect..."));
+  CONSOLELN(F("\nMAIN: b4 wm.autoConnect..."));
   wm.setDebugOutput(true);
 
   wm.setCredentials(my_wifiSSID, my_wifiPassword, my_wifiSSID1, my_wifiPassword1);  //Set the creds for the access points we want to try to connect to.
@@ -197,7 +197,7 @@ void setup() {
     // wm.autoConnect will start an AP and the portal webserver if connecting to ext wifi fails.
   }
 
-  CONSOLELN(F("After wm.autoConnect...!"));
+  CONSOLELN(F("MAIN: After wm.autoConnect...!"));
 
   // =================================================
   // Wifi or AP is up and config webserver is started.
