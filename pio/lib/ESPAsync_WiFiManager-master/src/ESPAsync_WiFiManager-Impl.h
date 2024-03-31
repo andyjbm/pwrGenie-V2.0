@@ -1536,7 +1536,7 @@ void ESPAsync_WiFiManager::handleServerClose(AsyncWebServerRequest *request)
 // /info handler
 void ESPAsync_WiFiManager::handleInfo(AsyncWebServerRequest *request)
 {
-  LOGDEBUG(F("Entering handleInfo2"));
+  LOGDEBUG(F("Entering handleInfo"));
   
   // Disable _configPortalTimeout when someone accessing Portal to give some time to config
   _configPortalTimeout = 0;
