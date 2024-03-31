@@ -79,8 +79,7 @@ const char WM_HTTP_SCRIPT[] PROGMEM = "<script>function c(l){"
 	//	"document.getElementById('timezone').value=timezone.name();"
 		"}</script>";
 
-const char WM_HTTP_HEAD_START[] PROGMEM = "<!DOCTYPE html>"
-	"<html lang='en'><head>"
+const char WM_HTTP_HEAD_START[] PROGMEM = "<!DOCTYPE html><html lang='en'><head>"
 	//"<meta name='format-detection' content='telephone=no'><meta charset='UTF-8'>"
 	"<meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'/>"
 	"<title>{v}</title>";
@@ -146,7 +145,7 @@ const char WM_FLDSET_END[]    PROGMEM = "</fieldset>";
 const char WM_HTTP_PORTAL_OPTIONS[] PROGMEM = "<br/>"
 	"<form action='/cfg'  method='get'><button class='btn'>Configure Device</button></form><br/>\n"		// Config Device
 	"<form action='/wifi' method='get'><button class='btn'>Configure WiFi</button></form><br/>\n"		// Config Wifi
-	"<form action='/i'    method='get'><button class='btn'>Info Page</button></form><br/>\n"				// Info2
+	"<form action='/i'    method='get'><button class='btn'>Info Page</button></form><br/>\n"			// Info
 	//"<form action='/close' method='get'><button class='btn'>Exit Portal</button></form><br/>\n"		// close portal
 	"<hr><br/>\n"
 	"<form action='/debug'   method='get'><button class='btn'>Debug</button></form><br/>\n"				// debug
@@ -162,7 +161,7 @@ const char WM_HTTP_PORTAL_OPTIONS[] PROGMEM = "<br/>"
 
 
 const char WM_HTTP_ITEM[] PROGMEM = "<div><a href='#p' onclick='c(this)'>{v}</a>&nbsp;<span class='q {i}'>{r}%</span></div>";
-const char JSON_ITEM[] PROGMEM    = "{\"SSID\":\"{v}\", \"Encryption\":{i}, \"Quality\":\"{r}\"}";
+//const char JSON_ITEM[] PROGMEM    = "{\"SSID\":\"{v}\", \"Encryption\":{i}, \"Quality\":\"{r}\"}";
 
 const char HTTP_HOMEBTN[]          PROGMEM = "<br>&nbsp;<form action='/' method='get'><button>Home</button></form>";
 const char HTTP_FORM_LABEL[]       PROGMEM = "<label for='{i}'>{t}</label>";
@@ -170,7 +169,7 @@ const char HTTP_FORM_PARAM[]       PROGMEM = "<br/><input id='{i}' name='{n}' ma
 const char HTTP_FORM_BOOL_PARAM[]  PROGMEM = "<input type='checkbox' id='{i}' name='{n}' length='{l}' value='1' {c}><br/>";
 
 //const char HTTP_ROOT_MAIN[]        PROGMEM = "<h1>{t}</h1><h3 style='font-size: 1.1em'>{v}</h3>";
-const char HTTP_PAGE_MAIN1[]       PROGMEM = "<h1>{t}</h1><h3><span style='float:left'>{h}</span><span style='float:right'>{i}</span></h3>";
+const char HTTP_PAGE_MAIN1[]       PROGMEM = "<small style='float:right'>{fh}</small><h1>{t}</h1><h3><span style='float:left'>{h}</span><span style='float:right'>{i}</span></h3>";
 const char HTTP_PAGE_MAIN2[]	   PROGMEM = "<table style='width:100%'><tr><td><b>Uptime:</b>{1}h {2}m {3}s</td><td><b>PSU:</b>{p}v</td><td style='text-align:right'><b>FW:</b>{m}</td></tr></table></div>";
 const char HTTP_PAGE_MAIN3[]	   PROGMEM = "<p><small>{h}</small></p>";
 const char HTTP_FORM_POST[]        PROGMEM = "<form method='POST' action='{v}'>";

@@ -2267,6 +2267,9 @@ inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerReque
   page += FPSTR(WM_HTTP_END);
 
   LOGINFO(F("Entering HTTP Send: "));  //, page);
+  // Free heap b4 calling response. We need >12k free for webserver to be able to work.
+  str = F("Free heap: ") + (String)ESP.getFreeHeap();
+  page.replace("{fh}", str);
 
   AsyncWebServerResponse *response = request->beginResponse(200, WM_HTTP_HEAD_CT, page);
   response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
