@@ -2,27 +2,13 @@
 #pragma once
 #ifndef JKBMS_H
     #define JKBMS_H
-    #ifdef ESP8266
-        #error JKBMS Not working on this CPU. It breaks the Config Page. Not enough Memory yet.
-    #endif
-
-    #define MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS     10000
-    #define TIMEOUT_MILLIS_FOR_FRAME_REPLY                  100 // I measured 26 ms between request end and end of received 273 byte result
-    #define READJK_TIMEOUT_RETRY_COUNT                      5   // Number of times to retry a read if it times out.
-
-    // Use Software Serial for ESP8266
-    //#ifdef ESP8266
-    //    #define JKBMS_SSerial
-    //#endif 
 
     #ifdef ESP8266
         #define jkbms_RX_PIN       D2
         #define jkbms_TX_PIN       D3
-        //#define jkbms_TX_EN_PIN    D0
     #elif USING_ESP32_S2 
         #define jkbms_RX_PIN    4 // GPIO_NUM_4  //4 = D2
         #define jkbms_TX_PIN    5 // GPIO_NUM_5  //0 = D3
-        //#define jkbms_TX_EN_PIN    16
     #elif USING_ESP32_D1_MINI
         #define jkbms_RX_PIN    4 // GPIO_NUM_4  
         #define jkbms_TX_PIN    16 // GPIO_NUM_16
@@ -38,7 +24,6 @@
     #include "emoncms.h"
    
     // Use Software serial for ESP8266 & Hardware for ESP32
-    // A moot point until we are able to free up enouogh RAM to get it to work on an ESP8266
     #ifdef JKBMS_SSerial
         #include "SoftwareSerial.h"
         SoftwareSerial TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN);
@@ -89,7 +74,11 @@
     void pg_jkbms::setup_bms_serial()
     {
         #ifdef JKBMS_SSerial
-           TxToJKBMS.begin(115200,EspSoftwareSerial::Config::SWSERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN,false, 320);
+            //310 is the size of the byte buffer. A JKBMS reply frame is 301 bytes. SoftwareSerial default is 64 bytes.
+            //1550 is the size of the isr bit buffer. Ths works out at 5*buffer = 310*5=1550.
+            //This is because the baud rate is so high and it takes so long to read bytes out of the buffer.
+            // Without these speecified, SoftwareSerial would choose a collosal isr buffer and use up approx 10kB ESP8266 RAM!
+           TxToJKBMS.begin(115200, EspSoftwareSerial::Config::SWSERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN, false, 310,1550);
         #else            
             TxToJKBMS.begin(115200, SERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN);
         #endif

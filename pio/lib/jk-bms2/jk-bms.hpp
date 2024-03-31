@@ -31,112 +31,9 @@
 #include "jk-bms.h"
 #include "HexDump.hpp"
 
-const uint8_t sStringbufferSize = 5 * 24 + 10;  // 24 cells each need 5 chars Plus 10.      
-char sStringBuffer[sStringbufferSize];    // buffer for CSV Text
-
 JKLastReplyStruct lastJKReply;
 
-#if defined(DEBUG)
-#define LOCAL_DEBUG
-#else
-//#define LOCAL_DEBUG // This enables debug output only for this file - only for development
-#endif
-
-// see JK Communication protocol.pdf http://www.jk-bms.com/Upload/2022-05-19/1621104621.pdf
-uint8_t JKRequestStatusFrame[21] = {
-    JK_FRAME_START_BYTE_0, JK_FRAME_START_BYTE_1 /*4E 57 = StartOfFrame*/,
-    0x00, 0x13 /*0x13 | 19 = LengthOfFrame*/,
-    0x00, 0x00, 0x00, 0x00/*BMS ID, highest byte is default 00*/,
-    0x06/*Function 1=Activate, 3=ReadIdentifier, 6=ReadAllData*/,
-    0x03/*Frame source 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC*/,
-    0x00 /*TransportType 0=Request, 1=Response, 2=BMSActiveUpload*/,
-    0x00/*0=ReadAllData or commandToken*/,
-    0x00, 0x00, 0x00, 0x00/*RecordNumber High byte is random code, low 3 bytes is record number*/,
-    JK_FRAME_END_BYTE/*0x68 = EndIdentifier*/,
-    0x00, 0x00, 0x01, 0x29 /*Checksum, high 2 bytes for checksum not yet enabled -> 0, low 2 Byte for checksum*/
-};
-
-// uint8_t JKRequestVBattFrame[21] = {
-//     0x4E, 0x57 /*4E 57 = StartOfFrame*/,
-//     0x00, 0x13 /*0x13 | 19 = LengthOfFrame*/,
-//     0x00, 0x00, 0x00, 0x00/*BMS ID, highest byte is default 00*/,
-//     0x03/*Function 1=Activate, 3=ReadIdentifier, 6=ReadAllData*/,
-//     0x03/*Frame source 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC*/,
-//     0x00 /*TransportType 0=Request, 1=Response, 2=BMSActiveUpload*/,
-//     0x83/*0=ReadAllData or commandToken*/,
-//     0x00, 0x00, 0x00, 0x00/*RecordNumber High byte is random code, low 3 bytes is record number*/,
-//     JK_FRAME_END_BYTE/*0x68 = EndIdentifier*/,
-//     0x00, 0x00, 0x01, 0xa9 /*Checksum, high 2 bytes for checksum not yet enabled -> 0, low 2 Byte for checksum*/
-// };
-
-//uint8_t JKrequestStatusFrameOld[] = { 0xDD, 0xA5, 0x03, 0x00, 0xFF, 0xFD, 0x77 };
-
-
-
-/*
- * Size of reply is 291 bytes for 16 cells. sizeof(JKReplyStruct) is 221.
- * Size is 303 bytes for 20 Cells.
- */
-uint16_t sReplyFrameBufferIndex = 0;        // Index of next byte to write to array, except for last byte received. Starting with 0.
-uint16_t sReplyFrameLength;                 // Received length of frame
-uint8_t JKReplyFrameBuffer[350];            // The raw big endian data as received from JK BMS.
-
-JKComputedDataStruct JKComputedData;            // All derived converted and computed data useful for display
-JKLastPrintedDataStruct JKLastPrintedData;      // For detecting changes for printing
-
-char sUpTimeString[12];                         // "9999D23H12M" is 11 bytes long
-char sBalancingTimeString[11] = { ' ', ' ', '0', 'D', '0', '0', 'H', '0', '0', 'M', '\0' };    // "999D23H12M" is 10 bytes long
-bool sUpTimeStringMinuteHasChanged;
-bool sUpTimeStringTenthOfMinuteHasChanged;
-char sLastUpTimeTenthOfMinuteCharacter;     // For detecting changes in string and setting sUpTimeStringTenthOfMinuteHasChanged
-
-JKConvertedCellInfoStruct JKConvertedCellInfo;  // The converted little endian cell voltage data
-#if !defined(NO_CELL_STATISTICS)
-/*
- * Arrays of counters, which count the times, a cell has minimal or maximal voltage
- * To identify runaway cells
- */
-uint16_t CellMinimumArray[MAXIMUM_NUMBER_OF_CELLS];
-uint16_t CellMaximumArray[MAXIMUM_NUMBER_OF_CELLS];
-uint8_t CellMinimumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
-uint8_t CellMaximumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
-uint32_t sBalancingCount;            // Count of active balancing in SECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS (2 seconds) units
-#endif //NO_CELL_STATISTICS
-
-/*
- * The JKFrameAllDataStruct starts behind the header + cell data header 0x79 + CellInfoSize + the variable length cell data (CellInfoSize is contained in JKReplyFrameBuffer[12])
- */
-extern JKReplyStruct *sJKFAllReplyPointer;
-
-const char lowCapacity[] PROGMEM = "Low capacity";                          // Byte 0.0,
-const char MosFetOvertemperature[] PROGMEM = "Power MosFet overtemperature"; // Byte 0.1;
-const char chargingOvervoltage[] PROGMEM = "Battery is full";               // Byte 0.2,  // Charging overvoltage
-const char dischargingUndervoltage[] PROGMEM = "Discharging undervoltage";  // Byte 0.3,
-const char Sensor2Overtemperature[] PROGMEM = "Sensor1_2 overtemperature";  // Byte 0.4,
-const char chargingOvercurrent[] PROGMEM = "Charging overcurrent";          // Byte 0.5,
-const char dischargingOvercurrent[] PROGMEM = "Discharging overcurrent";    // Byte 0.6,
-const char CellVoltageDifference[] PROGMEM = "Cell voltage difference";     // Byte 0.7,
-const char Sensor1Overtemperature[] PROGMEM = "Sensor2 overtemperature";    // Byte 1.0,
-const char Sensor2LowLemperature[] PROGMEM = "Sensor1_2 low temperature";   // Byte 1.1,
-const char CellOvervoltage[] PROGMEM = "Cell overvoltage";                  // Byte 1.2,
-const char CellUndervoltage[] PROGMEM = "Cell undervoltage";                // Byte 1.3,
-const char _309AProtection[] PROGMEM = "309_A protection";                  // Byte 1.4,
-const char _309BProtection[] PROGMEM = "309_B protection";                  // Byte 1.5,
-
-const char *const JK_BMSErrorStringsArray[NUMBER_OF_DEFINED_ALARM_BITS] PROGMEM = { lowCapacity, MosFetOvertemperature,
-        chargingOvervoltage, dischargingUndervoltage, Sensor2Overtemperature, chargingOvercurrent, dischargingOvercurrent,
-        CellVoltageDifference, Sensor1Overtemperature, Sensor2LowLemperature, CellOvervoltage, CellUndervoltage, _309AProtection,
-        _309BProtection };
-const char *sCurrentErrorString;     // Pointer to the error string of the highest error bit, NULL otherwise
-const char *sErrorStringForLCD;      // Pointer to the error string for display on LCD. Is reset at page switch.
-bool sSwitchPageToShowError = false; // True -> display overview page. Is set by handleAndPrintAlarmInfo(), if error flags changed, and reset on switching to overview page.
-bool sErrorStatusIsError = false; // True if status is error and beep should be started. False e.g. for "warning" like "Battery full".
-
-/*
- * Helper macro for getting a macro definition as string
- */
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
+#define JKBMS_DEBUG
 
 /*
  * 1.85 ms
@@ -410,17 +307,17 @@ void fillJKConvertedCellInfo() {
      */
     for (uint8_t i = 0; i < tNumberOfCellInfo; ++i) {
         if (JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt == tMinimumMillivolt) {
-            JKConvertedCellInfo.CellInfoStructArray[i].VoltageIsMinMaxOrBetween = VOLTAGE_IS_MINIMUM;
+            JKConvertedCellInfo.CellInfoStructArray[i].VoltageIsMinMaxOrBetween = cellV::IS_MINIMUM;
             if (sJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive) {
                 CellMinimumArray[i]++; // count for statistics
             }
         } else if (JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt == tMaximumMillivolt) {
-            JKConvertedCellInfo.CellInfoStructArray[i].VoltageIsMinMaxOrBetween = VOLTAGE_IS_MAXIMUM;
+            JKConvertedCellInfo.CellInfoStructArray[i].VoltageIsMinMaxOrBetween = cellV::IS_MAXIMUM;
             if (sJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive) {
                 CellMaximumArray[i]++;
             }
         } else {
-            JKConvertedCellInfo.CellInfoStructArray[i].VoltageIsMinMaxOrBetween = VOLTAGE_IS_BETWEEN_MINIMUM_AND_MAXIMUM;
+            JKConvertedCellInfo.CellInfoStructArray[i].VoltageIsMinMaxOrBetween = cellV::IS_BETWEEN_MINIMUM_AND_MAXIMUM;
         }
     }
 #endif
@@ -498,7 +395,7 @@ void fillJKConvertedCellInfo() {
     }
 #endif // NO_CELL_STATISTICS
 
-#if defined(LOCAL_DEBUG)
+#if defined(JKBMS_DEBUG)
     Serial.print(tNumberOfCellInfo);
     Serial.println(F(" cell voltages processed"));
 #endif
@@ -945,7 +842,7 @@ void printJKDynamicInfo() {
      * Temperatures
      * Print only if temperature changed more than 1 degree
      */
-#if defined(LOCAL_DEBUG)
+#if defined(JKBMS_DEBUG)
     Serial.print(F("TokenTemperaturePowerMosFet=0x"));
     Serial.println(sJKFAllReplyPointer->TokenTemperaturePowerMosFet, HEX);
 #endif
@@ -1070,7 +967,4 @@ void printMonitoringInfo() {
 }
 #endif // !defined(DISABLE_MONITORING)
 
-#if defined(LOCAL_DEBUG)
-#undef LOCAL_DEBUG
-#endif
 #endif // _JK_BMS_HPP

@@ -22,73 +22,67 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/gpl.html>.
  *
  */
-
-/*
- * The protocol at the display connector RS485 is 2400 baud 294 bytes in 1.2 seconds with a pause of 0.5 s.
- * It starts with A5 5A 5D 82 10 00 0F 7C-7E
- * at 0x16 there are 10 words 0F 7C-7F
- * At 0x32 there are 46 bytes 0x00 for error flags, (tested with sensor over temperature resulting in a 01 at 0x57)
- * At 0x60 there are 24 Values A5 5A 05 82 2 (0 0 to 1 7) 3 for 24 cell values
- * of 16 bit each (for the status display page) followed by the END token A5 5A 03 80 01 00
- *
- *
- */
 #pragma once
 #ifndef _JK_BMS_H
 #define _JK_BMS_H
 
-#include "jk-bms-config.h"
 #include <Arduino.h>
+
+#define MAXIMUM_NUMBER_OF_CELLS                         24      // Maximum number of cell info which can be converted. Must be before #include "JK-BMS.hpp".
+#define MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS     10000
+#define TIMEOUT_MILLIS_FOR_FRAME_REPLY                  100     // I measured 26 ms between request end and end of received 273 byte result
+#define READJK_TIMEOUT_RETRY_COUNT                      5       // Number of times to retry a read if it times out.
 
 #define JK_FRAME_START_BYTE_0   0x4E
 #define JK_FRAME_START_BYTE_1   0x57
 #define JK_FRAME_END_BYTE       0x68
 
-#ifdef JKBMS_SSerial
-    #include "SoftwareSerial.h"
-    void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
-#else
-    void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
-#endif
+#define JK_BMS_FRAME_HEADER_LENGTH              11
+#define JK_BMS_FRAME_TRAILER_LENGTH             9
+#define JK_BMS_FRAME_CELL_INFO_LENGTH           2                                // 1 byte +1 for token 0x79
+#define JK_BMS_FRAME_INDEX_OF_CELL_INFO_LENGTH  (JK_BMS_FRAME_HEADER_LENGTH + 1) // +1 for token 0x79
+#define MINIMAL_JK_BMS_FRAME_LENGTH             19
 
-void initJKReplyFrameBuffer();
-void printJKReplyFrameBuffer();
+#define NUMBER_OF_DEFINED_ALARM_BITS    14
+
+// Helper macro for getting a macro definition as string
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+// see JK Communication protocol.pdf http://www.jk-bms.com/Upload/2022-05-19/1621104621.pdf
+uint8_t JKRequestStatusFrame[21] = {
+    JK_FRAME_START_BYTE_0, JK_FRAME_START_BYTE_1 /*4E 57 = StartOfFrame*/,
+    0x00, 0x13 /*0x13 | 19 = LengthOfFrame*/,
+    0x00, 0x00, 0x00, 0x00/*BMS ID, highest byte is default 00*/,
+    0x06/*Function 1=Activate, 3=ReadIdentifier, 6=ReadAllData*/,
+    0x03/*Frame source 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC*/,
+    0x00 /*TransportType 0=Request, 1=Response, 2=BMSActiveUpload*/,
+    0x00/*0=ReadAllData or commandToken*/,
+    0x00, 0x00, 0x00, 0x00/*RecordNumber High byte is random code, low 3 bytes is record number*/,
+    JK_FRAME_END_BYTE/*0x68 = EndIdentifier*/,
+    0x00, 0x00, 0x01, 0x29 /*Checksum, high 2 bytes for checksum not yet enabled -> 0, low 2 Byte for checksum*/
+};
 
 enum jkbms_readJKResultCode : uint8_t {
     JK_BMS_RECEIVE_OK,
     JK_BMS_RECEIVE_FINISHED,
     JK_BMS_RECEIVE_ERROR,
     JK_BMS_RECEIVE_TIMEOUT
-} ;
+};
 
-#ifdef ESP8266
-jkbms_readJKResultCode readJK_BMSStatusFrameByte(SoftwareSerial *aSerial);
+#ifdef JKBMS_SSerial
+    #include "SoftwareSerial.h"
+    void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
+    jkbms_readJKResultCode readJK_BMSStatusFrameByte(SoftwareSerial *aSerial);
 #else
-jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial);
+    void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
+    jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial);
 #endif
 
+void fillJKConvertedCellInfo();
 void fillJKComputedData();
-
-extern uint16_t sReplyFrameBufferIndex;            // Index of next byte to write to array, thus starting with 0.
-extern uint8_t JKReplyFrameBuffer[350];            // The raw big endian data as received from JK BMS
-struct JKReplyStruct *sJKFAllReplyPointer;
-extern bool sSwitchPageToShowError;
-extern bool sErrorStatusIsError;
-
-extern char sUpTimeString[12]; // "1000D23H12M" is 11 bytes long
-extern bool sUpTimeStringMinuteHasChanged;
-
-#if !defined(USE_NO_LCD)
-extern const char *sErrorStringForLCD;
-#endif
-
-int16_t getJKTemperature(uint16_t aJKRAWTemperature);
-int16_t getCurrent(uint16_t aJKRAWCurrent);
-
-uint8_t swap(uint8_t aByte);
-uint16_t swap(uint16_t aWordToSwapBytes);
-uint32_t swap(uint32_t aLongToSwapBytes);
-
+void initJKReplyFrameBuffer();
+void printJKReplyFrameBuffer();
 void myPrintln(const __FlashStringHelper *aPGMString, uint8_t a8BitValue);
 void myPrint(const __FlashStringHelper *aPGMString, uint8_t a8BitValue);
 void myPrintln(const __FlashStringHelper *aPGMString, uint16_t a16BitValue);
@@ -106,13 +100,68 @@ void printJKStaticInfo();
 void printJKDynamicInfo();
 void handleAndPrintAlarmInfo();
 #if !defined(DISABLE_MONITORING)
-void printMonitoringInfo();
+    void printMonitoringInfo();
 #endif
+
+
+ //Size of reply is 291 bytes for 16 cells. sizeof(JKReplyStruct) is 221.
+ //Size is 303 bytes for 20 Cells.
+struct JKReplyStruct *sJKFAllReplyPointer;
+uint16_t sReplyFrameBufferIndex = 0;            // Index of next byte to write to array, thus starting with 0.
+uint8_t JKReplyFrameBuffer[350];            // The raw big endian data as received from JK BMS
+uint16_t sReplyFrameLength;                 // Received length of frame
+const uint8_t sStringbufferSize = MAXIMUM_NUMBER_OF_CELLS * 5 + 10;  // 24 cells each need 5 chars Plus 10.      
+char sStringBuffer[sStringbufferSize];    // buffer for CSV Text
+
+const char lowCapacity[] PROGMEM = "Low capacity";                          // Byte 0.0,
+const char MosFetOvertemperature[] PROGMEM = "Power MosFet overtemperature"; // Byte 0.1;
+const char chargingOvervoltage[] PROGMEM = "Battery is full";               // Byte 0.2,  // Charging overvoltage
+const char dischargingUndervoltage[] PROGMEM = "Discharging undervoltage";  // Byte 0.3,
+const char Sensor2Overtemperature[] PROGMEM = "Sensor1_2 overtemperature";  // Byte 0.4,
+const char chargingOvercurrent[] PROGMEM = "Charging overcurrent";          // Byte 0.5,
+const char dischargingOvercurrent[] PROGMEM = "Discharging overcurrent";    // Byte 0.6,
+const char CellVoltageDifference[] PROGMEM = "Cell voltage difference";     // Byte 0.7,
+const char Sensor1Overtemperature[] PROGMEM = "Sensor2 overtemperature";    // Byte 1.0,
+const char Sensor2LowLemperature[] PROGMEM = "Sensor1_2 low temperature";   // Byte 1.1,
+const char CellOvervoltage[] PROGMEM = "Cell overvoltage";                  // Byte 1.2,
+const char CellUndervoltage[] PROGMEM = "Cell undervoltage";                // Byte 1.3,
+const char _309AProtection[] PROGMEM = "309_A protection";                  // Byte 1.4,
+const char _309BProtection[] PROGMEM = "309_B protection";                  // Byte 1.5,
+
+const char *const JK_BMSErrorStringsArray[NUMBER_OF_DEFINED_ALARM_BITS] PROGMEM = { lowCapacity, MosFetOvertemperature,
+        chargingOvervoltage, dischargingUndervoltage, Sensor2Overtemperature, chargingOvercurrent, dischargingOvercurrent,
+        CellVoltageDifference, Sensor1Overtemperature, Sensor2LowLemperature, CellOvervoltage, CellUndervoltage, _309AProtection,
+        _309BProtection };
+const char *sCurrentErrorString;     // Pointer to the error string of the highest error bit, NULL otherwise
+bool sSwitchPageToShowError = false; // True -> display overview page. Is set by handleAndPrintAlarmInfo(), if error flags changed, and reset on switching to overview page.
+bool sErrorStatusIsError = false;    // True if status is error and beep should be started. False e.g. for "warning" like "Battery full".
+#if !defined(USE_NO_LCD)
+    const char *sErrorStringForLCD;  // Pointer to the error string for display on LCD. Is reset at page switch.
+#endif
+
+char sUpTimeString[12]; // "1000D23H12M" is 11 bytes long
+char sBalancingTimeString[11] = { ' ', ' ', '0', 'D', '0', '0', 'H', '0', '0', 'M', '\0' };    // "999D23H12M" is 10 bytes long
+bool sUpTimeStringMinuteHasChanged = false;
+bool sUpTimeStringTenthOfMinuteHasChanged = false;
+char sLastUpTimeTenthOfMinuteCharacter;     // For detecting changes in string and setting sUpTimeStringTenthOfMinuteHasChanged
+
+int16_t getJKTemperature(uint16_t aJKRAWTemperature);
+int16_t getCurrent(uint16_t aJKRAWCurrent);
+
+uint8_t swap(uint8_t aByte);
+uint16_t swap(uint16_t aWordToSwapBytes);
+uint32_t swap(uint32_t aLongToSwapBytes);
+
+enum cellV : uint8_t {
+    IS_BETWEEN_MINIMUM_AND_MAXIMUM,
+    IS_MINIMUM,
+    IS_MAXIMUM
+};
 
 struct JKCellInfoStruct {
     uint16_t CellMillivolt;
 #if !defined(USE_NO_LCD)
-    uint8_t VoltageIsMinMaxOrBetween; // One of VOLTAGE_IS_MINIMUM, VOLTAGE_IS_MAXIMUM or VOLTAGE_IS_BETWEEN_MINIMUM_AND_MAXIMUM
+    cellV VoltageIsMinMaxOrBetween; // One of VOLTAGE_IS_MINIMUM, VOLTAGE_IS_MAXIMUM or VOLTAGE_IS_BETWEEN_MINIMUM_AND_MAXIMUM
 #endif
 };
 
@@ -126,31 +175,22 @@ struct JKConvertedCellInfoStruct {
     uint16_t DeltaCellMillivolt;    // Difference between MinimumVoltagCell and MaximumVoltagCell
     uint16_t AverageCellMillivolt;
 };
-extern struct JKConvertedCellInfoStruct JKConvertedCellInfo;  // The converted little endian cell voltage data
-void fillJKConvertedCellInfo();
-
-#define VOLTAGE_IS_BETWEEN_MINIMUM_AND_MAXIMUM  0
-#define VOLTAGE_IS_MINIMUM                      1
-#define VOLTAGE_IS_MAXIMUM                      2
+//extern
+struct JKConvertedCellInfoStruct JKConvertedCellInfo;  // The converted little endian cell voltage data
 
 #if !defined(NO_CELL_STATISTICS)
-/*
+ /*
  * Arrays of counters, which count the times, a cell has minimal or maximal voltage
  * To identify runaway cells
  */
-extern uint16_t CellMinimumArray[MAXIMUM_NUMBER_OF_CELLS];
-extern uint16_t CellMaximumArray[MAXIMUM_NUMBER_OF_CELLS];
-extern uint8_t CellMinimumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
-extern uint8_t CellMaximumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
+ uint16_t CellMinimumArray[MAXIMUM_NUMBER_OF_CELLS];
+ uint16_t CellMaximumArray[MAXIMUM_NUMBER_OF_CELLS];
+ uint8_t CellMinimumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
+ uint8_t CellMaximumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
 #define MINIMUM_BALANCING_COUNT_FOR_DISPLAY         60 //  120 seconds / 2 minutes of balancing
-extern uint32_t sBalancingCount;            // Count of active balancing in SECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS (2 seconds) units
+ uint32_t sBalancingCount;            // Count of active balancing in SECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS (2 seconds) units
 #endif // NO_CELL_STATISTICS
 
-#define JK_BMS_FRAME_HEADER_LENGTH              11
-#define JK_BMS_FRAME_TRAILER_LENGTH             9
-#define JK_BMS_FRAME_CELL_INFO_LENGTH           2 // 1 byte +1 for token 0x79
-#define JK_BMS_FRAME_INDEX_OF_CELL_INFO_LENGTH  (JK_BMS_FRAME_HEADER_LENGTH + 1) // +1 for token 0x79
-#define MINIMAL_JK_BMS_FRAME_LENGTH             19
 
 /*
  * All 16 and 32 bit values are stored byte swapped, i.e. MSB is stored in lower address.
@@ -196,7 +236,8 @@ struct JKComputedDataStruct {
     int16_t BatteryLoadPower;           // Watt Computed value, Charging is positive discharging is negative
     bool BMSIsStarting;                 // True if SOC and Cycles are both 0, for around 16 seconds during JK-BMS startup.
 };
-extern struct JKComputedDataStruct JKComputedData;        // All derived converted and computed data useful for display
+
+struct JKComputedDataStruct JKComputedData;        // All derived converted and computed data useful for display
 
 struct JKLastPrintedDataStruct {
     int16_t TemperaturePowerMosFet;     // Degree Celsius
@@ -206,7 +247,8 @@ struct JKLastPrintedDataStruct {
     float BatteryVoltageFloat;          // Volt
     int16_t BatteryLoadPower;           // Watt Computed value, Charging is positive discharging is negative
 };
-extern struct JKLastPrintedDataStruct JKLastPrintedData;
+
+struct JKLastPrintedDataStruct JKLastPrintedData;
 
 /*
  * Only for documentation
@@ -250,7 +292,6 @@ union BMSStatusUnion {
  */
 
 #pragma pack(push,1)  // We want the types to pack up to lay over our frame buffer and pretend to be what they never were. (Evil laugh...)
-#define NUMBER_OF_DEFINED_ALARM_BITS    14
 struct JKReplyStruct {
     uint8_t TokenTemperaturePowerMosFet;    // 0x80
     uint16_t TemperaturePowerMosFet;        // 99 = 99 degree Celsius, 100 = 100, 101 = -1, 140 = -40
@@ -295,10 +336,9 @@ struct JKReplyStruct {
             bool ChargeOvervoltageAlarm :1;         // 0x0004 This happens quite often, if battery charging is approaching 100 %
             bool DischargeUndervoltageAlarm :1;
             bool Sensor1Or2OvertemperatureAlarm :1; // 0x0010 - Affects the charging/discharging MosFet state, not the enable flags
-            /*
-             * Set with delay of (Dis)ChargeOvercurrentDelaySeconds / "OCP Delay(S)" seconds initially or on retry.
-             * Retry is done after "OCPR Time(S)"
-             */
+            
+            // Set with delay of (Dis)ChargeOvercurrentDelaySeconds / "OCP Delay(S)" seconds initially or on retry.
+            // Retry is done after "OCPR Time(S)"
             bool ChargeOvercurrentAlarm :1; // 0x0020 - Set with delay of ChargeOvercurrentDelaySeconds seconds initially or on retry
             bool DischargeOvercurrentAlarm :1; // 0x0040 - Set with delay of DischargeOvercurrentDelaySeconds seconds initially or on retry
             bool CellVoltageDifferenceAlarm :1;     // 0x0080
@@ -450,7 +490,7 @@ struct JKReplyStruct {
     uint8_t ProtocolVersionNumber;              // 00, 01 -> Redefine the 0x84 current data as 10 mA,
                                                 // with the highest bit being 0 for discharge and 1 for charge
 };
-#pragma pack(pop)
+//#pragma pack(pop)
 
 // Contains only 4 unconverted values (not in JKComputedDataStruct) which are compared witch current ones to detect changes
 //#pragma pack(push,1) //No re-type casting used on this so the compiler should get it right.
@@ -475,10 +515,9 @@ struct JKLastReplyStruct {
             bool ChargeOvervoltageAlarm :1;         // 0x0004 This happens quite often, if battery charging is approaching 100 %
             bool DischargeUndervoltageAlarm :1;
             bool Sensor1Or2OvertemperatureAlarm :1; // 0x0010 - Affects the charging/discharging MosFet state, not the enable flags
-            /*
-             * Set with delay of (Dis)ChargeOvercurrentDelaySeconds / "OCP Delay(S)" seconds initially or on retry.
-             * Retry is done after "OCPR Time(S)"
-             */
+            
+            // Set with delay of (Dis)ChargeOvercurrentDelaySeconds / "OCP Delay(S)" seconds initially or on retry.
+            // Retry is done after "OCPR Time(S)"
             bool ChargeOvercurrentAlarm :1; // 0x0020 - Set with delay of ChargeOvercurrentDelaySeconds seconds initially or on retry
             bool DischargeOvercurrentAlarm :1; // 0x0040 - Set with delay of DischargeOvercurrentDelaySeconds seconds initially or on retry
             bool CellVoltageDifferenceAlarm :1;     // 0x0080
@@ -496,8 +535,8 @@ struct JKLastReplyStruct {
             uint8_t ReservedStatus :4;
         } StatusBits;
     } BMSStatus;
-    //#pragma pack(pop)
-    
+    #pragma pack(pop)
+
     uint32_t SystemWorkingMinutes;              // Minutes 0xB6
 };
 
