@@ -133,6 +133,7 @@ void handleDebug(AsyncWebServerRequest *request){
   page += debugStrInfo(F("MODBUS last result"), modbus_LastResult, modbus_LastResult, modbusSuccess);
   #endif
   #ifdef PWR_GENIE_MODE_JKBMS
+  page += debugStrInfo(F("JKBMS lifetime timeouts"), (String)sTimeoutFrameCounterLifetime, "");
   page += debugStrInfo(F("JKBMS last result"), JK_LastResultData, "", JK_LastFrameReceivedOK);
   #endif
   page += "</div></fieldset>";
