@@ -54,7 +54,7 @@ unsigned long milliCounter;   // For the loop timer.
 
 //Callback after changes to Wifi page or Config page.
 void paramsChangedCallback() {
-  CONSOLE(F("\nparamsChanged Callback: "));
+  CONSOLELN(F("paramsChanged Callback: "));
   CONSOLELN(F("Get Params from WM: "));
   retrieve_WM_Params();
   
@@ -160,7 +160,7 @@ void setup() {
   delay(200);
 
   CONSOLELN(F("\n\nMAIN: Hello there, it's a new day!"));
-  LOGDEBUG1(F("MAIN: Firmware Info: "), COMPILED_FRAMEWORK_VERSIONS);
+  CONSOLELN(F("MAIN: Firmware Info:"), COMPILED_FRAMEWORK_VERSIONS);
 
   resetAPcreds();  // Load factory defaults in case LittleFS config is blank and loading config fails.
   loadConfig();    // From LittleFS file.
@@ -223,17 +223,13 @@ void setup() {
 }
 
 void console_InfoPrint(){
-  CONSOLELN();
-  CONSOLE(F("Loop Start: "));
+  CONSOLELN(F("\n[PG]: Loop Start: "));
 
-  CONSOLE(F("Connected to SSID: ")); CONSOLE(WiFi.SSID());
-  CONSOLE(F(" Obtained IP: ")); CONSOLELN(WiFi.localIP());
+  CONSOLELN(F("Connected to SSID:"), WiFi.SSID(), F(" Obtained IP:"), WiFi.localIP());
 
-  CONSOLE(F("ConfigPortal SSID: ")); CONSOLE(wm.getConfigPortalSSID());
-  CONSOLE(F(" ConfigPortal IP: ")); CONSOLELN(WiFi.softAPIP());
+  CONSOLELN(F("ConfigPortal SSID:"), wm.getConfigPortalSSID(), F(" ConfigPortal IP: "), WiFi.softAPIP())
 
-  CONSOLE(F("PSU Volts=")); CONSOLE(String(psuVolts,2));
-  CONSOLE(F(", Free heap: ")); CONSOLELN((String)ESP.getFreeHeap());
+  CONSOLELN(F("PSU Volts="), String(psuVolts,2), F("| Free heap:"), (String)ESP.getFreeHeap());
   CONSOLELN();
 }
 

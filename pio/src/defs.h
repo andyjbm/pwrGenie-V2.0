@@ -9,6 +9,9 @@ LICENSE file in the root directory of this source tree.
 #pragma once
 #ifndef DEFS_H
    #define DEFS_H
+
+   #include "console.h"
+
 /*
 ********************************
 ** DEFS for the whple Project **
@@ -122,24 +125,4 @@ LICENSE file in the root directory of this source tree.
    #define USRNSIZE 20
    #define SSIDSIZE 20
 
-   // Console/debug defs.
-   #ifdef NO_CONSOLE
-      #define CONSOLE(x) \
-         do             \
-         {              \
-         } while (0)
-      #define CONSOLELN CONSOLE
-      #define CONSOLEF CONSOLE
-   #else
-      #define CONSOLE(...)               \
-         do                             \
-         {                              \
-            Serial.print(__VA_ARGS__); \
-         } while (0)
-      #define CONSOLELN(...)               \
-         do                               \
-         {                                \
-            Serial.println(__VA_ARGS__); \
-         } while (0)
-   #endif
 #endif
