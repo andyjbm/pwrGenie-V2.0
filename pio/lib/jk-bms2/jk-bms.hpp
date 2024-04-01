@@ -45,10 +45,9 @@ JKLastReplyStruct lastJKReply;
     void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive) {
 #endif
     if (aDebugModeActive) {
-        CONSOLE(F("Sending JKBMS requestFrame... "));
+        CONSOLELN(F("Sending JKBMS requestFrame."));
         //printBufferHex(JK_RequestFrame, jkSize);
     }
-    //Serial.flush();
 
     for (uint8_t i = 0; i < jkSize; ++i) {
         aSerial->write(JK_RequestFrame[i]);
@@ -456,7 +455,7 @@ void printJKCellInfo() {
         CONSOLE(F("mV, "));
 
 #if defined(LOCAL_TRACE)
-        CONSOLE(F(" |));
+        CONSOLE(F(" |"));
         printWordPaddedHex(JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt);
 #endif
         

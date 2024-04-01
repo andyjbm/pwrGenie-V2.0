@@ -114,10 +114,12 @@ const char CellUndervoltage[] PROGMEM = "Cell undervoltage";                // B
 const char _309AProtection[] PROGMEM = "309_A protection";                  // Byte 1.4,
 const char _309BProtection[] PROGMEM = "309_B protection";                  // Byte 1.5,
 
-const char *const JK_BMSErrorStringsArray[NUMBER_OF_DEFINED_ALARM_BITS] PROGMEM = { lowCapacity, MosFetOvertemperature,
-        chargingOvervoltage, dischargingUndervoltage, Sensor2Overtemperature, chargingOvercurrent, dischargingOvercurrent,
-        CellVoltageDifference, Sensor1Overtemperature, Sensor2LowLemperature, CellOvervoltage, CellUndervoltage, _309AProtection,
-        _309BProtection };
+const char *const JK_BMSErrorStringsArray[NUMBER_OF_DEFINED_ALARM_BITS] PROGMEM = {
+        lowCapacity, MosFetOvertemperature, chargingOvervoltage, dischargingUndervoltage,
+        Sensor2Overtemperature, chargingOvercurrent, dischargingOvercurrent, CellVoltageDifference,
+        Sensor1Overtemperature, Sensor2LowLemperature, CellOvervoltage, CellUndervoltage,
+        _309AProtection, _309BProtection
+        };
 const char *sCurrentErrorString;     // Pointer to the error string of the highest error bit, NULL otherwise
 bool sSwitchPageToShowError = false; // True -> display overview page. Is set by handleAndPrintAlarmInfo(), if error flags changed, and reset on switching to overview page.
 bool sErrorStatusIsError = false;    // True if status is error and beep should be started. False e.g. for "warning" like "Battery full".
@@ -161,44 +163,42 @@ struct JKConvertedCellInfoStruct {
     uint16_t DeltaCellMillivolt;    // Difference between MinimumVoltagCell and MaximumVoltagCell
     uint16_t AverageCellMillivolt;
 };
-//extern
+
 struct JKConvertedCellInfoStruct JKConvertedCellInfo;  // The converted little endian cell voltage data
 
 #if !defined(NO_CELL_STATISTICS)
- /*
- * Arrays of counters, which count the times, a cell has minimal or maximal voltage
- * To identify runaway cells
- */
- uint16_t CellMinimumArray[MAXIMUM_NUMBER_OF_CELLS];
- uint16_t CellMaximumArray[MAXIMUM_NUMBER_OF_CELLS];
- uint8_t CellMinimumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
- uint8_t CellMaximumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
-#define MINIMUM_BALANCING_COUNT_FOR_DISPLAY         60 //  120 seconds / 2 minutes of balancing
- uint32_t sBalancingCount;            // Count of active balancing in SECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS (2 seconds) units
+    //Arrays of counters, which count the times, a cell has minimal or maximal voltage
+    // To identify runaway cells
+    uint16_t CellMinimumArray[MAXIMUM_NUMBER_OF_CELLS];
+    uint16_t CellMaximumArray[MAXIMUM_NUMBER_OF_CELLS];
+    uint8_t CellMinimumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
+    uint8_t CellMaximumPercentageArray[MAXIMUM_NUMBER_OF_CELLS];
+    #define MINIMUM_BALANCING_COUNT_FOR_DISPLAY         60 //  120 seconds / 2 minutes of balancing
+    uint32_t sBalancingCount;            // Count of active balancing in SECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS (2 seconds) units
 #endif // NO_CELL_STATISTICS
-
 
 /*
  * All 16 and 32 bit values are stored byte swapped, i.e. MSB is stored in lower address.
  * Must be read with swap()
- */
+ 
 // Not Used
-//struct JKFrameHeaderStruct {
-//    uint16_t StartFrameToken;   // 0x4E57
-//    uint16_t LengthOfFrame;     // Excluding StartFrameToken
-//    uint32_t BMS_ID;            // Highest byte is default 00
-//    uint8_t Function;           // 0x01 (activation), 0x02 (write), 0x03 (read), 0x05 (password), 0x06 (read all)
-//    uint8_t FrameSource;        // 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC
-//    uint8_t TransportType;      // 0=Request, 1=Response, 2=BMSActiveUpload
-//};
+struct JKFrameHeaderStruct {
+   uint16_t StartFrameToken;   // 0x4E57
+   uint16_t LengthOfFrame;     // Excluding StartFrameToken
+   uint32_t BMS_ID;            // Highest byte is default 00
+   uint8_t Function;           // 0x01 (activation), 0x02 (write), 0x03 (read), 0x05 (password), 0x06 (read all)
+   uint8_t FrameSource;        // 0=BMS, 1=Bluetooth, 2=GPRS, 3=PC
+   uint8_t TransportType;      // 0=Request, 1=Response, 2=BMSActiveUpload
+};
 
-// Not Used.
-//struct JKFrameTailStruct {
-//    uint32_t RecordNumber;      // High byte is random code, low 3 bytes is record number
-//    uint8_t EndToken;           // 0x68
-//    uint16_t UnusedChecksum;    // 0x0000
-//    uint16_t Checksum;          // Including StartFrameToken
-//};
+//Not Used.
+struct JKFrameTailStruct {
+   uint32_t RecordNumber;      // High byte is random code, low 3 bytes is record number
+   uint8_t EndToken;           // 0x68
+   uint16_t UnusedChecksum;    // 0x0000
+   uint16_t Checksum;          // Including StartFrameToken
+};
+*/
 
 /*
  * This structure contains all converted and computed data useful for display
@@ -238,7 +238,6 @@ struct JKLastPrintedDataStruct JKLastPrintedData;
 
 /*
  * Only for documentation
- */
 union BMSStatusUnion {
     uint16_t StatusAsWord;
     struct {
@@ -250,6 +249,7 @@ union BMSStatusUnion {
         uint8_t ReservedStatus :4;
     } StatusBits;
 };
+*/
 
 /*
  * Structure representing the semantic of the JK reply, except cell voltage info.

@@ -103,7 +103,6 @@
             sDebugModeActivated = true;
             sSendRequestFrame = false;
 
-            // LOGDEBUG(F("Sending JKBMS Request for Data..."));
             send_data_request_frame();
 
             sMillisOfLastReceivedByte = millis(); // initialize reply timeout
@@ -147,7 +146,7 @@
             {
                 case JK_BMS_RECEIVE_FINISHED :  // Frame read complete. Correct number of bytes and CRC ok.
                     if (readJKRetries > 0){
-                        LOGDEBUG1(F("readJK Frame FINISHED with retry Count: "), readJKRetries);
+                        CONSOLELN(F("readJK Frame FINISHED with retry Count:"), readJKRetries);
                     }
                     frameIsReceivedOK = true;
                     JK_LastFrameReceivedOK = true; // Signal to Main.cpp debug webpage.
@@ -193,16 +192,14 @@
             TxToJKBMS.read();
         }
         
+        initJKReplyFrameBuffer();
         #if defined(TIMING_TEST)
             digitalWriteFast(TIMING_TEST_PIN, HIGH);
         #endif
         requestJK_BMSStatusFrame(&TxToJKBMS, JKRequestStatusFrame, sizeof(JKRequestStatusFrame), sDebugModeActivated); // 1.85 ms
-//        requestJK_BMSStatusFrame(&TxToJKBMS, JKRequestVBattFrame, sizeof(JKRequestVBattFrame), sDebugModeActivated); // 1.85 ms
         #if defined(TIMING_TEST)
             digitalWriteFast(TIMING_TEST_PIN, LOW);
         #endif
-        
-        initJKReplyFrameBuffer();
     }
 
     jkbms_readJKResultCode pg_jkbms::readJK_BMSStatusFrame()
@@ -223,7 +220,7 @@
                 } else if (tReceiveResultCode == JK_BMS_RECEIVE_ERROR)
                 { 
                     // Error here
-                    CONSOLELN(F("Receive error="), tReceiveResultCode, F("at index"), sReplyFrameBufferIndex);
+                    CONSOLELN(F("Receive error"), tReceiveResultCode, F("at index"), sReplyFrameBufferIndex);
                 }
                 return tReceiveResultCode; // FINISHED, OK or ERROR.
             }
@@ -252,9 +249,9 @@
 
             // No byte received here -BMS may be off or disconnected
             // Do it only once if we receive only 0 bytes
-            LOGDEBUG1(F("Receive timeout at ReplyFrameBufferIndex: "), sReplyFrameBufferIndex);
+            CONSOLELN(F("Receive timeout at ReplyFrameBufferIndex:"), sReplyFrameBufferIndex);
             if (sReplyFrameBufferIndex > 3) {
-                LOGDEBUG1(F("Packet length bytes sReplyFrameLength: "), sReplyFrameLength);
+                CONSOLELN(F("Packet length bytes sReplyFrameLength:"), sReplyFrameLength);
                 //printJKReplyFrameBuffer();
             }
             // #if defined(USE_SERIAL_2004_LCD)
@@ -280,8 +277,8 @@
         if (sTimeoutFrameCounterLifetime == 0) {
             sTimeoutFrameCounterLifetime--; // This is to avoid overflow. We have an unsigned integer here
         }
-        LOGDEBUG1(F("sTimeoutFrameCounter: "),sTimeoutFrameCounter);
-        LOGDEBUG1(F("Lifetime Timeouts:    "),sTimeoutFrameCounterLifetime);
+        CONSOLELN(F("sTimeoutFrameCounter:"),sTimeoutFrameCounter);
+        CONSOLELN(F("Lifetime Timeouts:   "),sTimeoutFrameCounterLifetime);
 
         // #if defined(USE_SERIAL_2004_LCD)
         //     printTimeoutMessageOnLCD();
@@ -338,12 +335,12 @@
         //#endif
     }
 
-
     String getPROGMEMstr(const char * const pMemPtr){
         char bufr[20];
         strcpy_P(bufr,pMemPtr);
         return (String) bufr;
     }
+
     void pg_jkbms::postDataSomewhereUseful()
     {
         float * jkDFloat = (float *) &jkD;    // Specifically cast as address to a float.
