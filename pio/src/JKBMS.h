@@ -117,10 +117,9 @@
             if (sDebugModeActivated) {
                 //Do it once at every debug start
                 if (sReplyFrameBufferIndex == 0) {
-                    Serial.println(F("sReplyFrameBufferIndex is 0"));
+                    CONSOLELN(F("sReplyFrameBufferIndex is 0"));
                 } else {
-                    Serial.print(sReplyFrameBufferIndex + 1);
-                    Serial.println(F(" bytes received"));
+                    CONSOLELN(sReplyFrameBufferIndex + 1, F("bytes received"));
                     //printJKReplyFrameBuffer();
                 }
             }
@@ -224,10 +223,7 @@
                 } else if (tReceiveResultCode == JK_BMS_RECEIVE_ERROR)
                 { 
                     // Error here
-                    Serial.print(F("Receive error="));
-                    Serial.print(tReceiveResultCode);
-                    Serial.print(F(" at index"));
-                    Serial.println(sReplyFrameBufferIndex);
+                    CONSOLELN(F("Receive error="), tReceiveResultCode, F("at index"), sReplyFrameBufferIndex);
                 }
                 return tReceiveResultCode; // FINISHED, OK or ERROR.
             }
@@ -304,11 +300,11 @@
         // Here we sanity check to make sure the JKReplyStruct is overlaying over the frameBuffer correctly.
         // We check by looking at the last token we are expecting and making sure it's what it's supposed to be.
         if (sJKFAllReplyPointer->TokenProtocolVersionNumber != 0xC0) {
-            LOGDEBUG(F("WARNING! Data Frame **NOT** interpreted correctly!"));
-            Serial.print(F("TokenProtocolVersionNumber should be 0xC0, was in fact=0x"));
-            Serial.println(sJKFAllReplyPointer->TokenProtocolVersionNumber, HEX);
+            CONSOLELN(F("WARNING! Data Frame **NOT** interpreted correctly! TokenProtocolVersionNumber should be 0xC0, was in fact:"))
+            printBytePaddedHex(sJKFAllReplyPointer->TokenProtocolVersionNumber);
+            CONSOLELN()
         } else {
-            LOGDEBUG(F("OK! Data Frame was interpreted correctly."));
+            CONSOLELN(F("OK! Data Frame was interpreted correctly."));
         }
 
         fillJKConvertedCellInfo();

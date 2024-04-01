@@ -45,10 +45,10 @@ JKLastReplyStruct lastJKReply;
     void requestJK_BMSStatusFrame(HardwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive) {
 #endif
     if (aDebugModeActive) {
-        Serial.print(F("Sending JKBMS requestFrame... "));
+        CONSOLE(F("Sending JKBMS requestFrame... "));
         //printBufferHex(JK_RequestFrame, jkSize);
     }
-    Serial.flush();
+    //Serial.flush();
 
     for (uint8_t i = 0; i < jkSize; ++i) {
         aSerial->write(JK_RequestFrame[i]);
@@ -70,7 +70,7 @@ void printJKReplyFrameBuffer() {
     tBufferAddress += JK_BMS_FRAME_CELL_INFO_LENGTH;
     uint8_t tCellInfoLength = JKReplyFrameBuffer[JK_BMS_FRAME_INDEX_OF_CELL_INFO_LENGTH];
     printBufferHex(tBufferAddress, tCellInfoLength); // Cell info
-    Serial.println();
+    CONSOLELN();
 
     tBufferAddress += tCellInfoLength;
     int16_t tRemainingDataLength = ((int16_t) sReplyFrameBufferIndex + 1)
@@ -103,7 +103,7 @@ jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial) {
     if (sReplyFrameBufferIndex == 0) {
         // start byte 1
         if (tReceivedByte != JK_FRAME_START_BYTE_0) {
-            Serial.println(F("Error start frame token != 0x4E"));
+            CONSOLELN(F("Error start frame token != 0x4E"));
             return JK_BMS_RECEIVE_ERROR;
         }
     } else if (sReplyFrameBufferIndex == 1) {
@@ -119,14 +119,10 @@ jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial) {
     } else if (sReplyFrameLength > MINIMAL_JK_BMS_FRAME_LENGTH && sReplyFrameBufferIndex == sReplyFrameLength - 3) {
         // Check end token 0x68
         if (tReceivedByte != JK_FRAME_END_BYTE) {
-            Serial.print(F("Error end frame token 0x"));
-            Serial.print(tReceivedByte, HEX);
-            Serial.print(F(" at index"));
-            Serial.print(sReplyFrameBufferIndex);
-            Serial.print(F(" is != 0x68. sReplyFrameLength= "));
-            Serial.print(sReplyFrameLength);
-            Serial.print(F(" | 0x"));
-            Serial.println(sReplyFrameLength, HEX);
+            CONSOLE(F("Error end frame token"));   printBytePaddedHex(tReceivedByte);
+            CONSOLE(F(" at index"));               printBytePaddedHex(sReplyFrameBufferIndex);
+            CONSOLE(F(" is != 0x68. sReplyFrameLength="), sReplyFrameLength, F("|")); printBytePaddedHex(sReplyFrameLength);
+            CONSOLELN();
             return JK_BMS_RECEIVE_ERROR;
         }
 
@@ -140,11 +136,9 @@ jkbms_readJKResultCode readJK_BMSStatusFrameByte(HardwareSerial *aSerial) {
         }
         uint16_t tReceivedChecksum = (JKReplyFrameBuffer[sReplyFrameLength] << 8) + tReceivedByte;
         if (tComputedChecksum != tReceivedChecksum) {
-            Serial.print(F("Checksum error, computed checksum=0x"));
-            Serial.print(tComputedChecksum, HEX);
-            Serial.print(F(", received checksum=0x"));
-            Serial.println(tReceivedChecksum, HEX);
-
+            CONSOLE(F("Checksum error, computed checksum="));  printBytePaddedHex(tComputedChecksum);
+            CONSOLE(F(", received checksum="));                printBytePaddedHex(tReceivedChecksum);
+            CONSOLELN();
             return JK_BMS_RECEIVE_ERROR;
         } else {
             return JK_BMS_RECEIVE_FINISHED;
@@ -195,66 +189,6 @@ uint32_t swap(uint32_t aLongToSwapBytes) {
             | (aLongToSwapBytes >> 24));
 }
 
-void myPrintln(const __FlashStringHelper *aPGMString, uint8_t a8BitValue) {
-    Serial.print(aPGMString);
-    Serial.println(a8BitValue);
-}
-
-void myPrint(const __FlashStringHelper *aPGMString, uint8_t a8BitValue) {
-    Serial.print(aPGMString);
-    Serial.print(a8BitValue);
-}
-
-void myPrintln(const __FlashStringHelper *aPGMString, uint16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.println(a16BitValue);
-}
-
-void myPrint(const __FlashStringHelper *aPGMString, uint16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.print(a16BitValue);
-}
-
-void myPrint100MillivoltFloat(const __FlashStringHelper *aPGMString, uint16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.print(a16BitValue / 100.0, 2);
-}
-
-void myPrintln(const __FlashStringHelper *aPGMString, int16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.println(a16BitValue);
-}
-
-void myPrint(const __FlashStringHelper *aPGMString, int16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.print(a16BitValue);
-}
-
-void myPrintlnSwap(const __FlashStringHelper *aPGMString, uint16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.println(swap(a16BitValue));
-}
-
-void myPrintlnSwap(const __FlashStringHelper *aPGMString, int16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.println((int16_t) swap((uint16_t) a16BitValue));
-}
-
-void myPrintSwap(const __FlashStringHelper *aPGMString, int16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.print((int16_t) swap((uint16_t) a16BitValue));
-}
-
-void myPrintIntAsFloatSwap(const __FlashStringHelper *aPGMString, int16_t a16BitValue) {
-    Serial.print(aPGMString);
-    Serial.print((float) swap((uint16_t) a16BitValue), 2);
-}
-
-void myPrintlnSwap(const __FlashStringHelper *aPGMString, uint32_t a32BitValue) {
-    Serial.print(aPGMString);
-    Serial.println(swap(a32BitValue));
-}
-
 /*
  * Convert the big endian cell voltage data from JKReplyFrameBuffer to little endian data in JKConvertedCellInfo
  * and compute minimum, maximum, delta, and average
@@ -266,9 +200,7 @@ void fillJKConvertedCellInfo() {
     uint8_t tNumberOfCellInfo = (*tJKCellInfoReplyPointer++) / 3;
     JKConvertedCellInfo.ActualNumberOfCellInfoEntries = tNumberOfCellInfo;
     if (tNumberOfCellInfo > MAXIMUM_NUMBER_OF_CELLS) {
-        Serial.print(F("Error: Program compiled with \"MAXIMUM_NUMBER_OF_CELLS=" STR(MAXIMUM_NUMBER_OF_CELLS) "\", but "));
-        Serial.print(tNumberOfCellInfo);
-        Serial.println(F(" cell info were sent"));
+        CONSOLELN(F("Error: Program compiled with \"MAXIMUM_NUMBER_OF_CELLS=" STR(MAXIMUM_NUMBER_OF_CELLS) "\", but"), tNumberOfCellInfo, F("cell info was sent."));
         return;
     }
 
@@ -353,7 +285,7 @@ void fillJKConvertedCellInfo() {
         /*
          * Do scaling by dividing all values by 2 resulting in an Exponential Moving Average filter for values
          */
-        Serial.println(F("Do scaling of minimum counts"));
+        CONSOLELN(F("Do scaling of minimum counts"));
         for (uint8_t i = 0; i < tNumberOfCellInfo; ++i) {
             CellMinimumArray[i] = CellMinimumArray[i] / 2;
         }
@@ -388,7 +320,7 @@ void fillJKConvertedCellInfo() {
         /*
          * Do scaling by dividing all values by 2 resulting in an Exponential Moving Average filter for values
          */
-        Serial.println(F("Do scaling of maximum counts"));
+        CONSOLELN(F("Do scaling of maximum counts"));
         for (uint8_t i = 0; i < tNumberOfCellInfo; ++i) {
             CellMaximumArray[i] = CellMaximumArray[i] / 2;
         }
@@ -396,17 +328,12 @@ void fillJKConvertedCellInfo() {
 #endif // NO_CELL_STATISTICS
 
 #if defined(JKBMS_DEBUG)
-    Serial.print(tNumberOfCellInfo);
-    Serial.println(F(" cell voltages processed"));
+    CONSOLELN(tNumberOfCellInfo, F("cell voltages processed."));
 #endif
 
 // // During JK-BMS startup all cell voltages are sent as zero for around 6 seconds
 //     if (tNumberOfNonNullCellInfo < tNumberOfCellInfo && !JKComputedData.BMSIsStarting) {
-//         Serial.print(F("Problem: "));
-//         Serial.print(tNumberOfCellInfo);
-//         Serial.print(F(" cells configured in BMS, but only "));
-//         Serial.print(tNumberOfNonNullCellInfo);
-//         Serial.println(F(" cells seems to be connected"));
+//         CONSOLELN(F("Problem:"), tNumberOfCellInfo, F(" cells configured in BMS, but only"), tNumberOfNonNullCellInfo, F(" cells seems to be connected"))
 //     }
 
 }
@@ -423,27 +350,26 @@ void printJKCellStatisticsInfo() {
      */
     char tStringBuffer[18]; // "12=12 % |  4042, "
 
-    Serial.println(F("Cell Minimum percentages"));
+    CONSOLELN(F("Cell Minimum percentages"));
     for (uint8_t i = 0; i < tNumberOfCellInfo; ++i) {
         if (i != 0 && (i % 8) == 0) {
-            Serial.println();
+            CONSOLELN();
         }
         sprintf_P(tStringBuffer, PSTR("%2u=%2u %% |%5u, "), i + 1, CellMinimumPercentageArray[i], CellMinimumArray[i]);
-        Serial.print(tStringBuffer);
+       CONSOLE(tStringBuffer);
     }
-    Serial.println();
+    CONSOLELN();
 
-    Serial.println(F("Cell Maximum percentages"));
+    CONSOLELN(F("Cell Maximum percentages"));
     for (uint8_t i = 0; i < tNumberOfCellInfo; ++i) {
         if (i != 0 && (i % 8) == 0) {
-            Serial.println();
+            CONSOLELN();
         }
         sprintf_P(tStringBuffer, PSTR("%2u=%2u %% |%5u, "), i + 1, CellMaximumPercentageArray[i], CellMaximumArray[i]);
-        Serial.print(tStringBuffer);
+        CONSOLE(tStringBuffer);
     }
-    Serial.println();
-
-    Serial.println();
+    CONSOLELN();
+    CONSOLELN();
 }
 
 #endif // NO_CELL_STATISTICS
@@ -487,15 +413,6 @@ void fillJKComputedData() {
     JKComputedData.BatteryLoadCurrentFloat = JKComputedData.Battery10MilliAmpere;
     JKComputedData.BatteryLoadCurrentFloat /= 100;
 
-//    Serial.print("Battery10MilliAmpere=0x");
-//    Serial.print(sJKFAllReplyPointer->Battery10MilliAmpere, HEX);
-//    Serial.print(" Battery10MilliAmpere swapped=0x");
-//    Serial.println(swap(sJKFAllReplyPointer->Battery10MilliAmpere), HEX);
-//    Serial.print(" Battery10MilliAmpere=");
-//    Serial.print(JKComputedData.Battery10MilliAmpere);
-//    Serial.print(" BatteryLoadCurrent=");
-//    Serial.println(JKComputedData.BatteryLoadCurrentFloat);
-
     JKComputedData.BatteryLoadPower = JKComputedData.BatteryVoltageFloat * JKComputedData.BatteryLoadCurrentFloat;
 
 #if !defined(NO_CELL_STATISTICS)
@@ -511,48 +428,42 @@ void fillJKComputedData() {
 }
 
 void printJKCellInfoOverview() {
-    myPrint(F(" Minimum at "), JKConvertedCellInfo.IndexOfMinimumCellMillivolt);
-    myPrint(F(" ="), JKConvertedCellInfo.MinimumCellMillivolt);
-    myPrint(F(" mV, Maximum at "), JKConvertedCellInfo.IndexOfMaximumCellMillivolt);
-    myPrint(F(" ="), JKConvertedCellInfo.MaximumCellMillivolt);
-    myPrint(F("mV, Delta="), JKConvertedCellInfo.DeltaCellMillivolt);
-    myPrint(F(" mV, Average="), JKConvertedCellInfo.AverageCellMillivolt);
-    Serial.println(F(" mV"));
+    CONSOLE(F(" Minimum at"), JKConvertedCellInfo.IndexOfMinimumCellMillivolt);
+    CONSOLE(F(":"), JKConvertedCellInfo.MinimumCellMillivolt);
+    CONSOLE(F("mV, Maximum at"), JKConvertedCellInfo.IndexOfMaximumCellMillivolt);
+    CONSOLE(F(":"), JKConvertedCellInfo.MaximumCellMillivolt);
+    CONSOLE(F("mV, Delta:"), JKConvertedCellInfo.DeltaCellMillivolt);
+    CONSOLE(F("mV, Average:"), JKConvertedCellInfo.AverageCellMillivolt);
+    CONSOLELN(F("mV"));
 }
 /*
  * Print formatted cell info on Serial
  */
 void printJKCellInfo() {
     uint8_t tNumberOfCellInfo = JKConvertedCellInfo.ActualNumberOfCellInfoEntries;
-    Serial.print(JKConvertedCellInfo.ActualNumberOfCellInfoEntries);
-    Serial.print(F(" Cells,"));
+    CONSOLE(tNumberOfCellInfo, F(" Cells,"));
 
     // Print summary
     printJKCellInfoOverview();
 
-    /*
-     * Individual cell voltages
-     */
+    // Individual cell voltages
     for (uint8_t i = 0; i < tNumberOfCellInfo; ++i) {
-        if (i != 0 && (i % 8) == 0) {
-            Serial.println();
-        }
+        if (i != 0 && (i % 8) == 0) {CONSOLELN();}  // Newline every 8 cells
+        if (i < 9) {CONSOLE(' ');}                  // Pad the index with leading space.
 
-        Serial.print(i + 1);
-        Serial.print('=');
-        Serial.print(JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt);
+        CONSOLE(i+1);
+        CONSOLE(':', JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt);
+        CONSOLE(F("mV, "));
+
 #if defined(LOCAL_TRACE)
-        Serial.print(F("|0x"));
-        Serial.print(JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt, HEX);
+        CONSOLE(F(" |));
+        printWordPaddedHex(JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt);
 #endif
-        Serial.print(F(" mV, "));
-        if (i < 8) {
-            Serial.print(' ');
-        }
+        
     }
-    Serial.println();
+    CONSOLELN();
 
-    Serial.println();
+    CONSOLELN();
 }
 
 void printVoltageProtectionInfo() {
@@ -560,27 +471,25 @@ void printVoltageProtectionInfo() {
     /*
      * Voltage protection
      */
-    Serial.print(F("Battery Overvoltage Protection[V]="));
-    Serial.print(JKComputedData.BatteryFullVoltage10Millivolt / 100.0, 2);
-    Serial.print(F(", Undervoltage="));
-    Serial.println(JKComputedData.BatteryEmptyVoltage10Millivolt / 100.0, 2);
+    CONSOLE(F("Battery Overvoltage Protection[V]="), String(JKComputedData.BatteryFullVoltage10Millivolt / 100.0, 2))
+    CONSOLELN(F(", Undervoltage="), String(JKComputedData.BatteryEmptyVoltage10Millivolt / 100.0, 2))
 
-    myPrintSwap(F("Cell Overvoltage Protection[mV]="), tJKFAllReplyPointer->CellOvervoltageProtectionMillivolt);
-    myPrintSwap(F(", Recovery="), tJKFAllReplyPointer->CellOvervoltageRecoveryMillivolt);
-    myPrintlnSwap(F(", Delay[s]="), tJKFAllReplyPointer->CellOvervoltageDelaySeconds);
+    CONSOLE(F("Cell Overvoltage Protection[mV]="),  swap(tJKFAllReplyPointer->CellOvervoltageProtectionMillivolt));
+    CONSOLE(F(", Recovery="),                       swap(tJKFAllReplyPointer->CellOvervoltageRecoveryMillivolt));
+    CONSOLELN(F(", Delay[s]="),                     swap(tJKFAllReplyPointer->CellOvervoltageDelaySeconds));
 
-    myPrintSwap(F("Cell Undervoltage Protection[mV]="), tJKFAllReplyPointer->CellUndervoltageProtectionMillivolt);
-    myPrintSwap(F(", Recovery="), tJKFAllReplyPointer->CellUndervoltageRecoveryMillivolt);
-    myPrintlnSwap(F(", Delay[s]="), tJKFAllReplyPointer->CellUndervoltageDelaySeconds);
+    CONSOLE(F("Cell Undervoltage Protection[mV]="), swap(tJKFAllReplyPointer->CellUndervoltageProtectionMillivolt));
+    CONSOLE(F(", Recovery="),                       swap(tJKFAllReplyPointer->CellUndervoltageRecoveryMillivolt));
+    CONSOLELN(F(", Delay[s]="),                     swap(tJKFAllReplyPointer->CellUndervoltageDelaySeconds));
 
-    myPrintlnSwap(F("Cell Voltage Difference Protection[mV]="), tJKFAllReplyPointer->VoltageDifferenceProtectionMillivolt);
+    CONSOLELN(F("Cell Voltage Difference Protection[mV]="), swap(tJKFAllReplyPointer->VoltageDifferenceProtectionMillivolt));
 
-    myPrintSwap(F("Discharging Overcurrent Protection[A]="), tJKFAllReplyPointer->DischargeOvercurrentProtectionAmpere);
-    myPrintlnSwap(F(", Delay[s]="), tJKFAllReplyPointer->DischargeOvercurrentDelaySeconds);
+    CONSOLE(F("Discharging Overcurrent Protection[A]="),    swap( tJKFAllReplyPointer->DischargeOvercurrentProtectionAmpere));
+    CONSOLELN(F(", Delay[s]="),                             swap(tJKFAllReplyPointer->DischargeOvercurrentDelaySeconds));
 
-    myPrintSwap(F("Charging Overcurrent Protection[A]="), tJKFAllReplyPointer->ChargeOvercurrentProtectionAmpere);
-    myPrintlnSwap(F(", Delay[s]="), tJKFAllReplyPointer->ChargeOvercurrentDelaySeconds);
-    Serial.println();
+    CONSOLE(F("Charging Overcurrent Protection[A]="),       swap(tJKFAllReplyPointer->ChargeOvercurrentProtectionAmpere));
+    CONSOLELN(F(", Delay[s]="),                             swap(tJKFAllReplyPointer->ChargeOvercurrentDelaySeconds));
+    CONSOLELN();
 }
 
 void printTemperatureProtectionInfo() {
@@ -588,84 +497,74 @@ void printTemperatureProtectionInfo() {
     /*
      * Temperature protection
      */
-    myPrintSwap(F("Power MosFet Temperature Protection="), tJKFAllReplyPointer->PowerMosFetTemperatureProtection);
-    myPrintlnSwap(F(", Recovery="), tJKFAllReplyPointer->PowerMosFetRecoveryTemperature);
+    CONSOLE(F("Power MosFet Temperature Protection="), swap(tJKFAllReplyPointer->PowerMosFetTemperatureProtection))
+    CONSOLELN(F(", Recovery="), swap(tJKFAllReplyPointer->PowerMosFetRecoveryTemperature))
 
-    myPrintSwap(F("Sensor1 Temperature Protection="), tJKFAllReplyPointer->Sensor1TemperatureProtection);
-    myPrintlnSwap(F(", Recovery="), tJKFAllReplyPointer->Sensor1RecoveryTemperature);
+    CONSOLE(F("Sensor1 Temperature Protection="), swap(tJKFAllReplyPointer->Sensor1TemperatureProtection))
+    CONSOLELN(F(", Recovery="), swap(tJKFAllReplyPointer->Sensor1RecoveryTemperature))
 
-    myPrintlnSwap(F("Sensor1 to Sensor2 Temperature Difference Protection="),
-            tJKFAllReplyPointer->BatteryDifferenceTemperatureProtection);
+    CONSOLELN(F("Sensor1 to Sensor2 Temperature Difference Protection="),
+            swap(tJKFAllReplyPointer->BatteryDifferenceTemperatureProtection))
 
-    myPrintSwap(F("Charge Overtemperature Protection="), tJKFAllReplyPointer->ChargeOvertemperatureProtection);
-    myPrintlnSwap(F(", Discharge="), tJKFAllReplyPointer->DischargeOvertemperatureProtection);
+    CONSOLE(F("Charge Overtemperature Protection="), swap(tJKFAllReplyPointer->ChargeOvertemperatureProtection))
+    CONSOLELN(F(", Discharge="), swap(tJKFAllReplyPointer->DischargeOvertemperatureProtection))
 
-    myPrintSwap(F("Charge Undertemperature Protection="), tJKFAllReplyPointer->ChargeUndertemperatureProtection);
-    myPrintlnSwap(F(", Recovery="), tJKFAllReplyPointer->ChargeRecoveryUndertemperature);
+    CONSOLE(F("Charge Undertemperature Protection="), swap(tJKFAllReplyPointer->ChargeUndertemperatureProtection))
+    CONSOLELN(F(", Recovery="), swap(tJKFAllReplyPointer->ChargeRecoveryUndertemperature))
 
-    myPrintSwap(F("Discharge Undertemperature Protection="), tJKFAllReplyPointer->DischargeUndertemperatureProtection);
-    myPrintlnSwap(F(", Recovery="), tJKFAllReplyPointer->DischargeRecoveryUndertemperature);
-    Serial.println();
+    CONSOLE(F("Discharge Undertemperature Protection="), swap(tJKFAllReplyPointer->DischargeUndertemperatureProtection))
+    CONSOLELN(F(", Recovery="), swap(tJKFAllReplyPointer->DischargeRecoveryUndertemperature))
+    CONSOLELN();
 }
 
 void printBatteryInfo() {
     JKReplyStruct *tJKFAllReplyPointer = sJKFAllReplyPointer;
+        
+    // Set 'end of string' tokens for the preceding char arrays. (See the struct)    
+    tJKFAllReplyPointer->TokenSystemWorkingMinutes  = '\0';
+    tJKFAllReplyPointer->TokenProtocolVersionNumber = '\0';
+    tJKFAllReplyPointer->TokenManufacturerDate      = '\0';
 
-    Serial.print(F("Manufacturer Date="));
-    tJKFAllReplyPointer->TokenSystemWorkingMinutes = '\0'; // Set end of string token
-    Serial.println(tJKFAllReplyPointer->ManufacturerDate);
-
-    Serial.print(F("Manufacturer Id=")); // First 8 characters of the manufacturer id entered in the app field "User Private Data"
-    tJKFAllReplyPointer->TokenProtocolVersionNumber = '\0'; // Set end of string token
-    Serial.println(tJKFAllReplyPointer->ManufacturerId);
-
-    Serial.print(F("Device ID String=")); // First 8 characters of ManufacturerId
-    tJKFAllReplyPointer->TokenManufacturerDate = '\0'; // Set end of string token
-    Serial.println(tJKFAllReplyPointer->DeviceIdString);
-
-    myPrintln(F("Device Address="), tJKFAllReplyPointer->BoardAddress);
-
-    myPrint(F("Total Battery Capacity[Ah]="), JKComputedData.TotalCapacityAmpereHour); // 0xAA
-    myPrintln(F(", Low Capacity Alarm Percent="), tJKFAllReplyPointer->LowCapacityAlarmPercent); // 0xB1
-
-    myPrintlnSwap(F("Charging Cycles="), tJKFAllReplyPointer->Cycles);
-    myPrintlnSwap(F("Total Charging Cycle Capacity="), tJKFAllReplyPointer->TotalBatteryCycleCapacity);
-    myPrintSwap(F("# Battery Cells="), tJKFAllReplyPointer->NumberOfBatteryCells); // 0x8A Total number of battery strings
-    myPrintln(F(", Cell Count="), tJKFAllReplyPointer->BatteryCellCount); // 0xA9 Battery string count settings
-    Serial.println();
+    CONSOLELN(F("Manufacturer Date="), tJKFAllReplyPointer->ManufacturerDate);
+    CONSOLELN(F("Manufacturer Id="),   tJKFAllReplyPointer->ManufacturerId);      // First 8 characters of the manufacturer id entered in the app field "User Private Data"
+    CONSOLELN(F("Device ID String="),  tJKFAllReplyPointer->DeviceIdString);      // First 8 characters of ManufacturerId
+    CONSOLELN(F("Device Address="),    tJKFAllReplyPointer->BoardAddress);
+    CONSOLE(F("Total Battery Capacity[Ah]="),     JKComputedData.TotalCapacityAmpereHour);          // 0xAA
+    CONSOLELN(F(", Low Capacity Alarm Percent="), tJKFAllReplyPointer->LowCapacityAlarmPercent);    // 0xB1
+    CONSOLELN(F("Charging Cycles="),                swap(tJKFAllReplyPointer->Cycles));
+    CONSOLELN(F("Total Charging Cycle Capacity="),  swap(tJKFAllReplyPointer->TotalBatteryCycleCapacity));
+    CONSOLE(F("# Battery Cells="),                  swap(tJKFAllReplyPointer->NumberOfBatteryCells));   // 0x8A Total number of battery strings
+    CONSOLELN(F(", Cell Count="),                   tJKFAllReplyPointer->BatteryCellCount);             // 0xA9 Battery string count settings
+    CONSOLELN();
 }
 
 void printBMSInfo() {
     JKReplyStruct *tJKFAllReplyPointer = sJKFAllReplyPointer;
 
-    myPrintln(F("Protocol Version Number="), tJKFAllReplyPointer->ProtocolVersionNumber);
-
-    Serial.print(F("Software Version Number="));
-    tJKFAllReplyPointer->TokenStartCurrentCalibration = '\0'; // set end of string token
-    Serial.println(tJKFAllReplyPointer->SoftwareVersionNumber);
-
-    Serial.print(F("Modify Parameter Password="));
+    tJKFAllReplyPointer->TokenStartCurrentCalibration =     '\0'; // set end of string token
     tJKFAllReplyPointer->TokenDedicatedChargerSwitchState = '\0'; // set end of string token
-    Serial.println(tJKFAllReplyPointer->ModifyParameterPassword);
+    
+    CONSOLELN(F("Protocol Version Number="),   tJKFAllReplyPointer->ProtocolVersionNumber)
+    CONSOLELN(F("Software Version Number="),   tJKFAllReplyPointer->SoftwareVersionNumber)
+    CONSOLELN(F("Modify Parameter Password="), tJKFAllReplyPointer->ModifyParameterPassword)
+    CONSOLELN(F("# External Temperature Sensors="), tJKFAllReplyPointer->NumberOfTemperatureSensors); // 0x86
 
-    myPrintln(F("# External Temperature Sensors="), tJKFAllReplyPointer->NumberOfTemperatureSensors); // 0x86
-
-    Serial.println();
+    CONSOLELN();
 }
 
 void printMiscellaneousInfo() {
     JKReplyStruct *tJKFAllReplyPointer = sJKFAllReplyPointer;
 
-    myPrintlnSwap(F("Balance Starting Cell Voltage[mV]="), tJKFAllReplyPointer->BalancingStartMillivolt);
-    myPrintlnSwap(F("Balance Triggering Voltage Difference[mV]="), tJKFAllReplyPointer->BalancingStartDifferentialMillivolt);
-    Serial.println();
-    myPrintlnSwap(F("Current Calibration[mA]="), tJKFAllReplyPointer->CurrentCalibrationMilliampere);
-    myPrintlnSwap(F("Sleep Wait Time[s]="), tJKFAllReplyPointer->SleepWaitingTimeSeconds);
-    Serial.println();
-    myPrintln(F("Dedicated Charge Switch Active="), tJKFAllReplyPointer->DedicatedChargerSwitchIsActive);
-    myPrintln(F("Start Current Calibration State="), tJKFAllReplyPointer->StartCurrentCalibration);
-    myPrintlnSwap(F("Battery Actual Capacity[Ah]="), tJKFAllReplyPointer->ActualBatteryCapacityAmpereHour);
-    Serial.println();
+    CONSOLELN(F("Balance Starting Cell Voltage[mV]="),         swap(tJKFAllReplyPointer->BalancingStartMillivolt))
+    CONSOLELN(F("Balance Triggering Voltage Difference[mV]="), swap(tJKFAllReplyPointer->BalancingStartDifferentialMillivolt))
+    CONSOLELN();
+    CONSOLELN(F("Current Calibration[mA]="),            swap(tJKFAllReplyPointer->CurrentCalibrationMilliampere))
+    CONSOLELN(F("Sleep Wait Time[s]="),                 swap(tJKFAllReplyPointer->SleepWaitingTimeSeconds))
+    CONSOLELN();
+    CONSOLELN(F("Dedicated Charge Switch Active="),     tJKFAllReplyPointer->DedicatedChargerSwitchIsActive)
+    CONSOLELN(F("Start Current Calibration State="),    tJKFAllReplyPointer->StartCurrentCalibration)
+    CONSOLELN(F("Battery Actual Capacity[Ah]="),        swap(tJKFAllReplyPointer->ActualBatteryCapacityAmpereHour))
+    CONSOLELN();
 }
 
 /*
@@ -688,61 +587,60 @@ void handleAndPrintAlarmInfo() {
         if (tJKFAllReplyPointer->AlarmUnion.AlarmsAsWord == 0) {
             sCurrentErrorString = NULL; // reset error string
             sErrorStatusIsError = false;
-            Serial.println(F("All alarms are cleared now"));
+            CONSOLELN(F("All alarms are cleared now"));
         } else {
             uint16_t tAlarms = swap(tJKFAllReplyPointer->AlarmUnion.AlarmsAsWord);
-            Serial.println(F("*** ALARM FLAGS ***"));
-            Serial.print(sUpTimeString); // print uptime to have a timestamp for the alarm
-            Serial.print(F(": Alarm bits=0x"));
-            Serial.println(tAlarms, HEX);
+            CONSOLELN(F("*** ALARM FLAGS ***"));
+            CONSOLE(sUpTimeString, F(": Alarm bits=")); printWordPaddedHex(tAlarms); // print uptime to have a timestamp for the alarm
+            CONSOLELN();
 
             uint16_t tAlarmMask = 1;
             for (uint_fast8_t i = 0; i < NUMBER_OF_DEFINED_ALARM_BITS; ++i) {
                 if (tAlarms & tAlarmMask) {
-                    Serial.print(F("Alarm bit=0b"));
-                    Serial.print(tAlarmMask, BIN);
-                    Serial.print(F(" -> "));
+                    CONSOLE(F("Alarm bit=0b"));
+                    CONSOLE(tAlarmMask, BIN);
+                    CONSOLE(F(" -> "));
                     sCurrentErrorString = (char *) (pgm_read_dword(&JK_BMSErrorStringsArray[i]));
                     sErrorStringForLCD = sCurrentErrorString;
-                    Serial.println(reinterpret_cast<const __FlashStringHelper*>(sCurrentErrorString));
+                    CONSOLELN(reinterpret_cast<const __FlashStringHelper*>(sCurrentErrorString));
                 }
                 tAlarmMask <<= 1;
             }
-            Serial.println();
+            CONSOLELN();
         }
     }
 }
 
 void printEnabledState(bool aIsEnabled) {
     if (aIsEnabled) {
-        Serial.print(F(" enabled"));
+        CONSOLE(F(" enabled"));
     } else {
-        Serial.print(F(" disabled"));
+        CONSOLE(F(" disabled"));
     }
 }
 
 void printActiveState(bool aIsActive) {
     if (!aIsActive) {
-        Serial.print(F(" not"));
+        CONSOLE(F(" not"));
     }
-    Serial.print(F(" active"));
+    CONSOLE(F(" active"));
 }
 
 void printJKStaticInfo() {
 
-    Serial.println(F("*** BMS INFO ***"));
+    CONSOLELN(F("*** BMS INFO ***"));
     printBMSInfo();
 
-    Serial.println(F("*** BATTERY INFO ***"));
+    CONSOLELN(F("*** BATTERY INFO ***"));
     printBatteryInfo();
 
-    Serial.println(F("*** VOLTAGE PROTECTION INFO ***"));
+    CONSOLELN(F("*** VOLTAGE PROTECTION INFO ***"));
     printVoltageProtectionInfo();
 
-    Serial.println(F("*** TEMPERATURE PROTECTION INFO ***"));
+    CONSOLELN(F("*** TEMPERATURE PROTECTION INFO ***"));
     printTemperatureProtectionInfo();
 
-    Serial.println(F("*** MISC INFO ***"));
+    CONSOLELN(F("*** MISC INFO ***"));
     printMiscellaneousInfo();
 }
 
@@ -778,13 +676,15 @@ void printJKDynamicInfo() {
     printMonitoringInfo();
     if (sUpTimeStringMinuteHasChanged) {
         sUpTimeStringMinuteHasChanged = false;
-        Serial.println(reinterpret_cast<const __FlashStringHelper*>(sCSVCaption));
+        CONSOLELN(reinterpret_cast<const __FlashStringHelper*>(sCSVCaption));
     }
 #  else
     // print every minute and caption every 10 minutes
     if (sUpTimeStringMinuteHasChanged) {
         sUpTimeStringMinuteHasChanged = false;
-        printMonitoringInfo();
+        #if !defined(DISABLE_MONITORING)
+            CONSOLELN(F("CSV:"), setCSVString());
+        #endif
     }
 #  endif
 #endif
@@ -795,27 +695,24 @@ void printJKDynamicInfo() {
     if (sUpTimeStringTenthOfMinuteHasChanged) {
         sUpTimeStringTenthOfMinuteHasChanged = false;
 #if !defined(DISABLE_MONITORING) && !defined(MONOTORING_PERIOD_FAST)
-        Serial.println(reinterpret_cast<const __FlashStringHelper*>(sCSVCaption));
+        CONSOLELN(reinterpret_cast<const __FlashStringHelper*>(sCSVCaption));
 #endif
-        Serial.print(F("Total Runtime_"));
-        Serial.print(swap(sJKFAllReplyPointer->SystemWorkingMinutes));
-        Serial.print(F(" minutes -> "));
-        Serial.println(sUpTimeString);
-
-        Serial.println(F("*** CELL INFO ***"));
+        CONSOLELN(F("Total Runtime:"), swap(sJKFAllReplyPointer->SystemWorkingMinutes), F("minutes ->"), sUpTimeString);
+        CONSOLELN(F("*** CELL INFO ***"));
         printJKCellInfo();
+
 #if !defined(NO_CELL_STATISTICS)
         if (sBalancingCount > MINIMUM_BALANCING_COUNT_FOR_DISPLAY) {
-            Serial.println(F("*** CELL STATISTICS ***"));
-            Serial.print(F("Total balancing time="));
-
-            Serial.print(sBalancingCount * (MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS / 1000));
-            Serial.print(F(" s -> "));
-            Serial.print(sBalancingTimeString);
-            // Append seconds
-            char tString[4]; // "03S" is 3 bytes long
+            CONSOLELN(F("*** CELL STATISTICS ***"));
+            
+            // Prepare seconds for TimeString
+            char tString[4]; // "03S" is 3 bytes long plus \0
             sprintf_P(tString, PSTR("%02uS"), (uint16_t) (sBalancingCount % 30) * 2);
-            Serial.println(tString);
+
+            CONSOLE(F("Total balancing time="), (sBalancingCount * (MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS / 1000)), \
+                      F("s ->"), sBalancingTimeString)
+            CONSOLELN(tString) // aviod space between sBalancingTimeString and tString
+            
             printJKCellStatisticsInfo();
         }
 #endif
@@ -823,17 +720,15 @@ void printJKDynamicInfo() {
 #if !defined(SUPPRESS_LIFEPO4_PLAUSI_WARNING)
         if (swap(tJKFAllReplyPointer->CellOvervoltageProtectionMillivolt) > 3450) {
             // https://www.evworks.com.au/page/technical-information/lifepo4-care-guide-looking-after-your-lithium-batt/
-            Serial.print(F("Warning: CellOvervoltageProtectionMillivolt value "));
-            Serial.print(swap(tJKFAllReplyPointer->CellOvervoltageProtectionMillivolt));
-            Serial.println(F(" mV > 3450 mV is not recommended for LiFePO4 chemistry."));
-            Serial.println(F("There is less than 1% extra capacity above 3.5V."));
+            CONSOLE(F("Warning: CellOvervoltageProtectionMillivolt value"), swap(tJKFAllReplyPointer->CellOvervoltageProtectionMillivolt));
+            CONSOLELN(F(" mV > 3450 mV is not recommended for LiFePO4 chemistry."));
+            CONSOLELN(F("There is less than 1% extra capacity above 3.5V."));
         }
         if (swap(tJKFAllReplyPointer->CellUndervoltageProtectionMillivolt) < 3000) {
             // https://batteryfinds.com/lifepo4-voltage-chart-3-2v-12v-24v-48v/
-            Serial.print(F("Warning: CellUndervoltageProtectionMillivolt value "));
-            Serial.print(swap(tJKFAllReplyPointer->CellUndervoltageProtectionMillivolt));
-            Serial.println(F(" mV < 3000 mV is not recommended for LiFePO4 chemistry."));
-            Serial.println(F("There is less than 10% capacity below 3.0V and 20% capacity below 3.2V."));
+            CONSOLE(F("Warning: CellUndervoltageProtectionMillivolt value"), swap(tJKFAllReplyPointer->CellUndervoltageProtectionMillivolt));
+            CONSOLELN(F(" mV < 3000 mV is not recommended for LiFePO4 chemistry."));
+            CONSOLELN(F("There is less than 10% capacity below 3.0V and 20% capacity below 3.2V."));
         }
 #endif
     } // Print it every ten minutes
@@ -843,15 +738,19 @@ void printJKDynamicInfo() {
      * Print only if temperature changed more than 1 degree
      */
 #if defined(JKBMS_DEBUG)
-    Serial.print(F("TokenTemperaturePowerMosFet=0x"));
-    Serial.println(sJKFAllReplyPointer->TokenTemperaturePowerMosFet, HEX);
+    CONSOLE(F("TokenTemperaturePowerMosFet="));
+    printWordPaddedHex(sJKFAllReplyPointer->TokenTemperaturePowerMosFet);
+    CONSOLELN();
 #endif
+
     if (abs(JKComputedData.TemperaturePowerMosFet - JKLastPrintedData.TemperaturePowerMosFet) > 2
             || abs(JKComputedData.TemperatureSensor1 - JKLastPrintedData.TemperatureSensor1) > 2
-            || abs(JKComputedData.TemperatureSensor2 - JKLastPrintedData.TemperatureSensor2) > 2) {
-        myPrint(F("Temperature: Power MosFet="), JKComputedData.TemperaturePowerMosFet);
-        myPrint(F(", Sensor 1="), JKComputedData.TemperatureSensor1);
-        myPrintln(F(", Sensor 2="), JKComputedData.TemperatureSensor2);
+            || abs(JKComputedData.TemperatureSensor2 - JKLastPrintedData.TemperatureSensor2) > 2)
+    {
+        CONSOLE(F("Temperature: Power MosFet="), JKComputedData.TemperaturePowerMosFet);
+        CONSOLE(F(", Sensor 1="),                JKComputedData.TemperatureSensor1);
+        CONSOLELN(F(", Sensor 2="),              JKComputedData.TemperatureSensor2);
+
         JKLastPrintedData.TemperaturePowerMosFet = JKComputedData.TemperaturePowerMosFet;
         JKLastPrintedData.TemperatureSensor1 = JKComputedData.TemperatureSensor1;
         JKLastPrintedData.TemperatureSensor2 = JKComputedData.TemperatureSensor2;
@@ -862,8 +761,8 @@ void printJKDynamicInfo() {
      */
     if (tJKFAllReplyPointer->SOCPercent != lastJKReply.SOCPercent
             || JKComputedData.RemainingCapacityAmpereHour != JKLastPrintedData.RemainingCapacityAmpereHour) {
-        myPrint(F("SOC[%]="), tJKFAllReplyPointer->SOCPercent);
-        myPrintln(F(" -> Remaining Capacity[Ah]="), JKComputedData.RemainingCapacityAmpereHour);
+        CONSOLE(F("SOC:"), tJKFAllReplyPointer->SOCPercent);
+        CONSOLELN(F("% -> Remaining Capacity[Ah]:"), JKComputedData.RemainingCapacityAmpereHour);
         JKLastPrintedData.RemainingCapacityAmpereHour = JKComputedData.RemainingCapacityAmpereHour;
     }
 
@@ -872,13 +771,10 @@ void printJKDynamicInfo() {
      */
     if (abs(JKComputedData.BatteryVoltageFloat - JKLastPrintedData.BatteryVoltageFloat) > 0.03
             || abs(JKComputedData.BatteryLoadPower - JKLastPrintedData.BatteryLoadPower) >= 50) {
-        Serial.print(F("Battery Voltage[V]="));
-        Serial.print(JKComputedData.BatteryVoltageFloat, 2);
-        Serial.print(F(", Current[A]="));
-        Serial.print(JKComputedData.BatteryLoadCurrentFloat, 2);
-        myPrint(F(", Power[W]="), JKComputedData.BatteryLoadPower);
-        Serial.print(F(", Difference to empty[V]="));
-        Serial.println(JKComputedData.BatteryVoltageDifferenceToEmpty10Millivolt / 100.0, 1);
+        CONSOLE(F("Battery Voltage[V]:"), String(JKComputedData.BatteryVoltageFloat, 2))
+        CONSOLE(F("  Current[A]:"), String(JKComputedData.BatteryLoadCurrentFloat, 2))
+        CONSOLE(F("  Power[W]:"), JKComputedData.BatteryLoadPower);
+        CONSOLELN(F("  Difference to empty[V]:"), String(JKComputedData.BatteryVoltageDifferenceToEmpty10Millivolt / 100.0, 1))
         JKLastPrintedData.BatteryVoltageFloat = JKComputedData.BatteryVoltageFloat;
         JKLastPrintedData.BatteryLoadPower = JKComputedData.BatteryLoadPower;
     }
@@ -892,29 +788,29 @@ void printJKDynamicInfo() {
         /*
          * This happens quite seldom!
          */
-        Serial.print(F("Charging MosFet"));
+        CONSOLE(F("Charging MosFet"));
         printEnabledState(tJKFAllReplyPointer->ChargeIsEnabled);
-        Serial.print(',');
+        CONSOLE(',');
         printActiveState(tJKFAllReplyPointer->BMSStatus.StatusBits.ChargeMosFetActive);
-        Serial.print(F(" | Discharging MosFet"));
+        CONSOLE(F(" | Discharging MosFet"));
         printEnabledState(tJKFAllReplyPointer->DischargeIsEnabled);
-        Serial.print(',');
+        CONSOLE(',');
         printActiveState(tJKFAllReplyPointer->BMSStatus.StatusBits.DischargeMosFetActive);
-        Serial.print(F(" | Balancing")); // including balancer state to be complete :-)
+        CONSOLE(F(" | Balancing")); // including balancer state to be complete :-)
         printEnabledState(tJKFAllReplyPointer->BalancingIsEnabled);
-        Serial.print(',');
+        CONSOLE(',');
         printActiveState(tJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive);
-        Serial.println(); // printActiveState does no println()
+        CONSOLELN(); // printActiveState does no println()
     } else if (tJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive != lastJKReply.BMSStatus.StatusBits.BalancerActive) {
         /*
          * Only Balancer, since it happens very often
          */
-        Serial.print(F("Balancing"));
+        CONSOLE(F("Balancing"));
         printActiveState(tJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive);
         if (tJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive) {
             printJKCellInfoOverview();
         } else {
-            Serial.println(); // printActiveState does no println()
+            CONSOLELN(); // printActiveState does no println()
         }
     }
 }
@@ -927,16 +823,17 @@ void printJKDynamicInfo() {
  * E.g. 185;185;186;185;185;206;185;214;183;185;201;186;186;186;185;186;5096;-565;54;1
  *
  */
-void setCSVString() {
+String setCSVString() {
     JKReplyStruct *tJKFAllReplyPointer = sJKFAllReplyPointer;
+    char sStringBuffer[CSV_STRINGBUFFERSIZE];    // buffer for CSV Text
     /*
      * Individual cell voltages
      */
     uint_fast8_t tBufferIndex = 0;
 
 //    for (uint8_t i = 0; i < JKConvertedCellInfo.ActualNumberOfCellInfoEntries; ++i) {
-    if (sizeof(sStringBuffer) > (5 * 24)) {
-        for (uint8_t i = 0; i < 24; ++i) { // only 16 fits into sStringBuffer[90] 
+    if (sizeof(sStringBuffer) > (5 * MAXIMUM_NUMBER_OF_CELLS)) {
+        for (uint8_t i = 0; i < MAXIMUM_NUMBER_OF_CELLS; ++i) { // only 16 fits into sStringBuffer[90] 
             // check for valid data, otherwise we will get a string buffer overflow
             if (JKConvertedCellInfo.CellInfoStructArray[i].CellMillivolt > 2500) {
                 tBufferIndex += sprintf_P(&sStringBuffer[tBufferIndex], PSTR("%d;"),
@@ -946,10 +843,7 @@ void setCSVString() {
     }
 
     if ((uint_fast8_t) (tBufferIndex + 17) >= sizeof(sStringBuffer)) {
-        Serial.print(F("String buffer overflow, tBufferIndex="));
-        Serial.print(tBufferIndex);
-        Serial.print(F(" sizeof(sStringBuffer)="));
-        Serial.println(sizeof(sStringBuffer));
+        CONSOLELN(F("String buffer overflow, tBufferIndex="), tBufferIndex, F("sizeof(sStringBuffer)="), sizeof(sStringBuffer));
         sStringBuffer[0] = '\0';
     } else {
         // maximal string 5096;-20.00;100;1 -> 17 characters
@@ -958,12 +852,7 @@ void setCSVString() {
         tBufferIndex += sprintf_P(&sStringBuffer[tBufferIndex], PSTR("%u;%s;%d;%d"), JKComputedData.BatteryVoltage10Millivolt,
                 tCurrentAsFloatString, tJKFAllReplyPointer->SOCPercent, tJKFAllReplyPointer->BMSStatus.StatusBits.BalancerActive);
     }
-}
-
-void printMonitoringInfo() {
-    Serial.print(F("CSV: "));
-    setCSVString();
-    Serial.println(sStringBuffer);
+    return sStringBuffer;
 }
 #endif // !defined(DISABLE_MONITORING)
 

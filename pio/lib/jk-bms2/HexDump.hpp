@@ -93,7 +93,7 @@ void printMemoryHexDump(uint8_t *aMemory, uint16_t aNumberOfBytesToPrint, uint8_
                 } else {
                     printWordPaddedHex(tAddress);
                 }
-                Serial.print(F(": "));
+                CONSOLE(F(": "));
             }
 
             /*
@@ -107,21 +107,21 @@ void printMemoryHexDump(uint8_t *aMemory, uint16_t aNumberOfBytesToPrint, uint8_
                 /*
                  * print bytes ASCII representation
                  */
-                Serial.print(F("  "));
+                CONSOLE(F("  "));
                 for (uint_fast8_t i = 0; i < aBytesPerLine; i++) {
                     unsigned char tCharacterToPrint = aMemory[tIndex + i];
 //            if(isalnum(tIndex+i)){ // requires 40 bytes more program space
                     if (' ' <= tCharacterToPrint && tCharacterToPrint <= '~') {
-                        Serial.print(tCharacterToPrint);
+                        CONSOLE(tCharacterToPrint);
                     } else if (tCharacterToPrint != 0x00 && tCharacterToPrint != 0xFF) {
                         // for non printable characters except 0 and FF
-                        Serial.print('.');
+                        CONSOLE('.');
                     } else {
-                        Serial.print(' ');
+                        CONSOLE(' ');
                     }
                 }
             }
-            Serial.println();
+            CONSOLELN();
             tIndex += aBytesPerLine;
         }
     }
@@ -131,25 +131,14 @@ void printMemoryHexDump(uint8_t *aMemory, uint16_t aNumberOfBytesToPrint, uint8_
  * Print with leading space and padded with 0
  */
 void printBytePaddedHex(uint8_t aHexValueToPrint) {
-    Serial.print(F(" 0x"));
-    if (aHexValueToPrint < 0x10) {
-        Serial.print('0');
-    }
-    Serial.print(aHexValueToPrint, HEX);
+    char buf[8];
+    sprintf(buf, " 0x%02X", aHexValueToPrint ); // Convert to hex string
+    CONSOLE(buf);
 }
 
 void printWordPaddedHex(uint16_t aHexValueToPrint) {
-    Serial.print(F("0x"));
-    if (aHexValueToPrint < 0x1000) {
-        Serial.print('0');
-    }
-    if (aHexValueToPrint < 0x100) {
-        Serial.print('0');
-    }
-    if (aHexValueToPrint < 0x10) {
-        Serial.print('0');
-    }
-    Serial.print(aHexValueToPrint, HEX);
-
+    char buf[10];
+    sprintf(buf, " 0x%04X", aHexValueToPrint ); // Convert to hex string
+    CONSOLE(buf);
 }
 #endif // _HEX_DUMP_HPP

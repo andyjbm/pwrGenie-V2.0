@@ -27,8 +27,11 @@
 #define _JK_BMS_H
 
 #include <Arduino.h>
+#include "console.h"
 
 #define MAXIMUM_NUMBER_OF_CELLS                         24      // Maximum number of cell info which can be converted. Must be before #include "JK-BMS.hpp".
+#define CSV_STRINGBUFFERSIZE                            MAXIMUM_NUMBER_OF_CELLS * 5 + 10  // 24 cells each need 5 chars Plus 10.
+
 #define MILLISECONDS_BETWEEN_JK_DATA_FRAME_REQUESTS     10000
 #define TIMEOUT_MILLIS_FOR_FRAME_REPLY                  100     // I measured 26 ms between request end and end of received 273 byte result
 #define READJK_TIMEOUT_RETRY_COUNT                      5       // Number of times to retry a read if it times out.
@@ -83,26 +86,11 @@ void fillJKConvertedCellInfo();
 void fillJKComputedData();
 void initJKReplyFrameBuffer();
 void printJKReplyFrameBuffer();
-void myPrintln(const __FlashStringHelper *aPGMString, uint8_t a8BitValue);
-void myPrint(const __FlashStringHelper *aPGMString, uint8_t a8BitValue);
-void myPrintln(const __FlashStringHelper *aPGMString, uint16_t a16BitValue);
-void myPrint(const __FlashStringHelper *aPGMString, uint16_t a16BitValue);
-void myPrintln(const __FlashStringHelper *aPGMString, int16_t a16BitValue);
-void myPrint(const __FlashStringHelper *aPGMString, int16_t a16BitValue);
-void myPrintlnSwap(const __FlashStringHelper *aPGMString, uint16_t a16BitValue);
-void myPrintlnSwap(const __FlashStringHelper *aPGMString, int16_t a16BitValue);
-void myPrintSwap(const __FlashStringHelper *aPGMString, int16_t a16BitValue);
-void myPrintIntAsFloatSwap(const __FlashStringHelper *aPGMString, int16_t a16BitValue);
-void myPrintlnSwap(const __FlashStringHelper *aPGMString, uint32_t a32BitValue);
-
 void computeUpTimeString();
 void printJKStaticInfo();
 void printJKDynamicInfo();
 void handleAndPrintAlarmInfo();
-#if !defined(DISABLE_MONITORING)
-    void printMonitoringInfo();
-#endif
-
+String setCSVString();
 
  //Size of reply is 291 bytes for 16 cells. sizeof(JKReplyStruct) is 221.
  //Size is 303 bytes for 20 Cells.
@@ -110,8 +98,6 @@ struct JKReplyStruct *sJKFAllReplyPointer;
 uint16_t sReplyFrameBufferIndex = 0;            // Index of next byte to write to array, thus starting with 0.
 uint8_t JKReplyFrameBuffer[350];            // The raw big endian data as received from JK BMS
 uint16_t sReplyFrameLength;                 // Received length of frame
-const uint8_t sStringbufferSize = MAXIMUM_NUMBER_OF_CELLS * 5 + 10;  // 24 cells each need 5 chars Plus 10.      
-char sStringBuffer[sStringbufferSize];    // buffer for CSV Text
 
 const char lowCapacity[] PROGMEM = "Low capacity";                          // Byte 0.0,
 const char MosFetOvertemperature[] PROGMEM = "Power MosFet overtemperature"; // Byte 0.1;
