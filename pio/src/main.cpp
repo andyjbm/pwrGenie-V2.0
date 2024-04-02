@@ -133,8 +133,9 @@ void handleDebug(AsyncWebServerRequest *request){
       SPLfailed = true;
       SPLfailStr = FPSTR("Is Empty!");
     } else {
-      if (LEQInfo.indexOf("nan") != -1) {
-        SPLfailStr = FPSTR("SPL is nan! RESTART with SPL Meter in SLOW mode!"); 
+      if ((LEQInfo.indexOf("nan") > 0) || (LEQInfo.indexOf("inf") > 0)) {
+        SPLfailed = true;
+        SPLfailStr = FPSTR("SPL is nan/inf! RESTART with SPL Meter in SLOW mode!"); 
       }
     }
     page += debugStrInfo(F("SPL Data"), LEQInfo, SPLfailStr, !SPLfailed);

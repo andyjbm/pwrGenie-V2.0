@@ -11,6 +11,7 @@ LICENSE file in the root directory of this source tree.
    #define DEFS_H
 
    #include "console.h"
+   #include "Secrets.h"
 
 /*
 ********************************
@@ -44,31 +45,37 @@ LICENSE file in the root directory of this source tree.
    #elif PWR_GENIE_TYPE_SPL
       #define PWR_GENIE_MODE_SPL
       #define PWR_GENIE_TYPE_STR "SPL Meter"
+      #define EMONCMS_APIKEY EMONCMS_LPSSPL_APIKEY
 
    #elif PWR_GENIE_TYPE_EM21 
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_EM21
       #define PWR_GENIE_TYPE_STR "EM21 Carlo Gavazzi"
+      #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
    #elif PWR_GENIE_TYPE_DSE
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_DSE
       #define PWR_GENIE_TYPE_STR "DeepSea"
+      #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
    #elif PWR_GENIE_TYPE_APM303
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM303
       #define PWR_GENIE_TYPE_STR "APM303"
+      #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
    #elif PWR_GENIE_TYPE_APM403
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM403
       #define PWR_GENIE_TYPE_STR "APM403"
+      #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
    #elif PWR_GENIE_TYPE_JKBMS
       #define PWR_GENIE_MODE_JKBMS
       #define PWR_GENIE_TYPE_STR "JKBMS"
-
+      #define EMONCMS_APIKEY EMONCMS_JKBMS_APIKEY
+      
    #else
       #error "PWR_GENIE_TYPE not set in defs.h! Please pick one!"
    #endif
@@ -77,7 +84,7 @@ LICENSE file in the root directory of this source tree.
    #define  CONFIG_FILE_VERSION   "1.00" 
 
    // Wifi Manger Defs
-   #define USE_AVAILABLE_PAGES         // Displays the available pages panel on the Info pages.
+   #define USE_AVAILABLE_PAGES          // Displays the available pages panel on the Info pages.
 
    #define WIFI_CONECTION_TIMEOUT 10000 // 10 Seconds
 
@@ -117,7 +124,7 @@ LICENSE file in the root directory of this source tree.
    #define URLSIZE 40
    #define URISIZE 40
    #define APIKEYSIZE 40
-   #define NODESIZE 10
+   #define NODESIZE 15
    #define NUMBERSIZE 10
    #define BOOLSIZE 2
 
