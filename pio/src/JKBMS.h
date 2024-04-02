@@ -164,7 +164,7 @@
                         sSendRequestFrame = true;  // Try again, Set to send a new requestFrame.
                     } else {
                         // Retries reached, time to abort.
-                        LOGDEBUG1(F("readJK Frame Error or Timeout, retry Count: "), readJKRetries);
+                        CONSOLELN(F("readJK Frame Error or Timeout, retry Count:"), readJKRetries);
                         sFrameIsRequested = false; 
                         JK_LastFrameReceivedOK = false; // Signal to Main.cpp debug webpage.
                         sBMSFrameProcessingComplete = true; // Give up. We're done trying.
