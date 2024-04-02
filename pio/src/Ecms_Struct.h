@@ -2,7 +2,7 @@
 #ifndef ECMS_STRUCT_H
    #define ECMS_STRUCT_H
 
-   #include "Secrets.h"
+   #include "Secrets.h"    // See Secrets_h.example for inspiration.
    #include "defs.h"
 
    // Defined in Secrets.h, or here if you're not posting to github...
