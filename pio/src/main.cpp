@@ -127,15 +127,28 @@ void handleDebug(AsyncWebServerRequest *request){
   page += debugStrInfo(F("Emoncms last result"), ecms_LastResult, FPSTR("Is Empty!"), !ecms_LastResult.isEmpty());
  
   #ifdef PWR_GENIE_MODE_SPL
-  page += debugStrInfo(F("SPL Data"), LEQInfo, FPSTR("Is Empty!"), !LEQInfo.isEmpty());
+    bool SPLfailed = false;
+    String SPLfailStr = "";
+    if (LEQInfo.isEmpty()){
+      SPLfailed = true;
+      SPLfailStr = FPSTR("Is Empty!");
+    } else {
+      if (LEQInfo.indexOf("nan") != -1) {
+        SPLfailStr = FPSTR("SPL is nan! RESTART with SPL Meter in SLOW mode!"); 
+      }
+    }
+    page += debugStrInfo(F("SPL Data"), LEQInfo, SPLfailStr, !SPLfailed);
   #endif
+  
   #ifdef PWR_GENIE_MODE_MODBUS
-  page += debugStrInfo(F("MODBUS last result"), modbus_LastResult, modbus_LastResult, modbusSuccess);
+    page += debugStrInfo(F("MODBUS last result"), modbus_LastResult, modbus_LastResult, modbusSuccess);
   #endif
+  
   #ifdef PWR_GENIE_MODE_JKBMS
-  page += debugStrInfo(F("JKBMS lifetime timeouts"), (String)sTimeoutFrameCounterLifetime, "");
-  page += debugStrInfo(F("JKBMS last result"), JK_LastResultData, "", JK_LastFrameReceivedOK);
+    page += debugStrInfo(F("JKBMS lifetime timeouts"), (String)sTimeoutFrameCounterLifetime, "");
+    page += debugStrInfo(F("JKBMS last result"), JK_LastResultData, "", JK_LastFrameReceivedOK);
   #endif
+  
   page += "</div></fieldset>";
   wm.HTTPSendPage(page, request);
   CONSOLELN(F("HandleDebug page sent."));
@@ -237,16 +250,16 @@ void console_InfoPrint(){
 //The main code loop
 void loop() {
 
-/* Testing SPL Meter code leqv2.h
+#ifdef SPL_FAKE_READINGS
+// Testing SPL Meter code leqv2.h
   static unsigned long tmpmiliC;
-
-  // fake an SPL reading every second.
-  if ((millis() - tmpmiliC) > 1000) {
-    tmpmiliC += 1000;
+  // fake an SPL reading every 1.2 second.
+  if ((millis() - tmpmiliC) > 1200) {
+    tmpmiliC += 1200;
         ssreader::read_started = true;  
         ssreader::SPL_Complete = true;
   }
-*/
+#endif
 
   // For OTA servicing, device reset and other restart needs.
   if (wm.restartMe)
