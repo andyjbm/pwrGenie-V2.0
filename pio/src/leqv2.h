@@ -34,7 +34,7 @@
       //This approach compensates for possible drift over time as the number of samples required may change.
       unsigned short timeBuffer[maxBufferSize];
       float LEQbuffer[maxBufferSize];
-
+      bool bufferOverflow = false;                 // Catch for not pressing the SLOW button on the SPL meter!
       unsigned long thisMillis;
 
       class avgLEQ{
@@ -42,17 +42,17 @@
          private:
             unsigned int timeSum;
             float avgSum;
-            bool LEQvalid;
             unsigned int LEQSizeInSec;
             unsigned long LEQSizeInMillis;   // *ToDo Can this be just int?
             unsigned short BufOutIndex;
-            unsigned int LEQSampleCount;      // Number of active samples for average calculation.
+            unsigned int LEQSampleCount;     // Number of active samples for average calculation.
 
             #ifdef LEQ_DEBUG
                bool leqDebug = false;
             #endif
 
-         public: 
+         public:
+            bool isValid;
 
             avgLEQ(unsigned int _LEQSizeInSec){
                #ifdef LEQ_DEBUG
@@ -69,7 +69,7 @@
                avgSum += newvalpt;                    // New de-logerithmic value into the average
                timeSum += sampleTime;                 // time between last and this reading.
             
-               if (LEQvalid){
+               if (isValid){
                   //Drop old buffer values until we have enough for the corect LEQ duration.
                   //This is to allow drift in samples from the meter wrt real time from millis()
                   //Important: This means LEQSampleCount will *change* over time if it needs
@@ -107,9 +107,12 @@
                LEQSampleCount ++;
                
                // Look for achieving a complete LEQ buffer
-               if (!LEQvalid) { // Quick check for speed.
+               if (!isValid) { // Quick check for speed.
                   if (timeSum > LEQSizeInMillis){ // We are there.
-                     LEQvalid = true;
+                     isValid = true;
+                  }
+                  if (LEQSampleCount > maxBufferSize) { //Oh dear. Buffer not big enough.
+                     bufferOverflow = true;
                   }
                }
             }
@@ -125,16 +128,16 @@
                CONSOLE(F(", timeSum: ")); CONSOLE(timeSum);
                CONSOLE(F(", LEQSmplCount: ")); CONSOLE(LEQSampleCount);
                CONSOLE(F(", LEQSizeSec: ")); CONSOLE(LEQSizeInSec); 
-               CONSOLE(F(", LEQIsValid: ")); CONSOLELN(LEQvalid); 
+               CONSOLE(F(", LEQIsValid: ")); CONSOLELN(isValid); 
             }
-            
+
             String getInfo(){
                String info = String(F("leq: "))  + String(read());
                info += String(F(", BufOutIx: ")) + String(BufOutIndex);
                info += String(F(", timeSum: "))  + String(timeSum);
                info += String(F(", LEQsc: "))    + String(LEQSampleCount);
                info += String(F(", LEQSize: "))  + String(LEQSizeInSec);
-               info += String(F(", IsValid: "))  + String(LEQvalid);
+               info += String(F(", IsValid: "))  + String(isValid);
                return info;
             }
 
@@ -143,10 +146,8 @@
                avgSum = 0;
                timeSum = 0;
                BufOutIndex = 0;
-               LEQvalid = false; 
+               isValid = false; 
             }
-
-            bool isValid(){return LEQvalid;}
 
             // Return the current LEQ Value.
             float read(){
@@ -156,7 +157,10 @@
                // We now have an leq value.
                return roundf(avgdB * 10) / 10.0;  // This rounds our leq to 1 dp.
             }
-   }; // End Class avgLEQ
+      }; // End Class avgLEQ
+
+      //********************************************************************************
+      // Note: Global to all LEQarrays after here.
 
       leq::avgLEQ * leqArray[3];       // Array of pointers to LEQ instances.
 
@@ -206,6 +210,9 @@
          }
          LEQInfo += String(F("BufInIx: "))        + String(BufInIndex);
          LEQInfo += String(F(", sampleTime: "))   + String(sampleTime);
+         if (bufferOverflow) {
+            LEQInfo += String(F(", <b>BufferOverflow: *TRUE!* Broken! Put Meter in SLOW!</b>"));
+         }
       }
 
       // Reset 30 sec after startup to allow for meter handling and placement
