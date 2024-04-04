@@ -4,13 +4,12 @@
 
     #include "Arduino.h"
     #include <ModbusRTU.h>
-    #include "SoftwareSerial.h"
+    #include "SoftwareSerialisr.h"
 
     #include "defs.h"
     #include "emoncms.h"
 
     #include <stdlib.h>
-
    
     //settings for EM21 Modbus
     //These need turning into User Parameters
@@ -18,7 +17,7 @@
     #define EM21_HBASE      0
     #define EM21_BAUD       9600
     #define EM21_REG_PER    12          // Regs count to fetch in each block request.
-    #define EM21_REGMAX     60          // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21
+    #define EM21_REGMAX     60          // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
     #define EM21_DataElementCount 31    // Number of parameters these registers fit into.
 
     //Settings for APM403 Control Panel.
@@ -84,7 +83,10 @@
 
     const uint8_t mbRegCount = MODBUS_REGMAX;
 
-    SoftwareSerial S(mb_RX_PIN, mb_TX_PIN);
+    // What buffer to use here? 256 is safe because JKBMS is ok with 310.
+    // Is this why we could only fetch 12 registers at a time? (Maybe not bcuase rPI can only do 6 Regs at a time.)
+    // But that's 24 bytes and SoftwareSerial default is 64? To be tested on an EM21.
+    SoftwareSerial S(mb_RX_PIN, mb_TX_PIN,false,256); // *TODO* Work out the correct buffer size and fix the MODBUS_REG_PER values.
     ModbusRTU mb;
 
     uint16_t mbResult[mbRegCount];      // Register size is 16 bit. Some values use 2 registers.
@@ -167,7 +169,7 @@
 
     #ifdef MODBUS_DEVICE_APM303
 
-        // Parameeter names.
+        // Parameter names.
         const char d1[] PROGMEM = "gL1";        // genset L1
         const char d2[] PROGMEM = "gL2";        // genset L2
         const char d3[] PROGMEM = "gL3";        // genset L3

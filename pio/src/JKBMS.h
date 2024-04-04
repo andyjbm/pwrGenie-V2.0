@@ -25,8 +25,8 @@
    
     // Use Software serial for ESP8266 & Hardware for ESP32
     #ifdef JKBMS_SSerial
-        #include "SoftwareSerial.h"
-        SoftwareSerial TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN);
+        #include "SoftwareSerialisr.hpp"
+        SoftwareSerial TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN,false,310);
     #else
         HardwareSerial TxToJKBMS(1);
     #endif
@@ -77,8 +77,9 @@
             //310 is the size of the byte buffer. A JKBMS reply frame is 301 bytes. SoftwareSerial default is 64 bytes.
             //1550 is the size of the isr bit buffer. Ths works out at 5*buffer = 310*5=1550.
             //This is because the baud rate is so high and it takes so long to read bytes out of the buffer.
-            // Without these speecified, SoftwareSerial would choose a collosal isr buffer and use up approx 10kB ESP8266 RAM!
-           TxToJKBMS.begin(115200, EspSoftwareSerial::Config::SWSERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN, false, 310,1550);
+            // Without these specified, SoftwareSerial would choose a collosal isr buffer and use up approx 10kB ESP8266 RAM!
+//           TxToJKBMS.begin(115200, EspSoftwareSerial::Config::SWSERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN, false, 310,1550);
+           TxToJKBMS.begin(115200); //, EspSoftwareSerial::Config::SWSERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN, false, 310,1550);
         #else            
             TxToJKBMS.begin(115200, SERIAL_8N1, jkbms_RX_PIN, jkbms_TX_PIN);
         #endif

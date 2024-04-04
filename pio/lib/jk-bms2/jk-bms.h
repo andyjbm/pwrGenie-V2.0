@@ -74,7 +74,7 @@ enum jkbms_readJKResultCode : uint8_t {
 };
 
 #ifdef JKBMS_SSerial
-    #include "SoftwareSerial.h"
+    #include "SoftwareSerialisr.h"
     void requestJK_BMSStatusFrame(SoftwareSerial *aSerial, uint8_t * JK_RequestFrame, uint16_t jkSize, bool aDebugModeActive = false);
     jkbms_readJKResultCode readJK_BMSStatusFrameByte(SoftwareSerial *aSerial);
 #else
