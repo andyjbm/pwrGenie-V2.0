@@ -37,13 +37,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Speed up to 115200 can be used.
 
 
-class SoftwareSerial : public Stream {
+class SoftwareSerialisr : public Stream {
 public:
-  SoftwareSerial(int receivePin, int transmitPin, bool inverse_logic = false, unsigned int buffSize = 64, bool edge_triggered = false);
-  virtual ~SoftwareSerial();
+  SoftwareSerialisr(int receivePin, int transmitPin, bool inverse_logic = false, unsigned int buffSize = 64, bool edge_triggered = false);
+  virtual ~SoftwareSerialisr();
 
   void begin(long speed);
-  long baudRate();
+  uint32_t baudRate();
   // Transmit control pin
   void setTransmitEnablePin(int transmitEnablePin);
   // Enable or disable interrupts during tx
@@ -65,7 +65,7 @@ public:
 
   void rxRead();
 
-  volatile boolean SerialBusy = false;
+  //volatile boolean SerialBusy = false;
 
   // AVR compatibility methods
   bool listen() { enableRx(true); return true; }

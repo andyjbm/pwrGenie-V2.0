@@ -3,8 +3,9 @@
     #define pgMODBUS_H
 
     #include "Arduino.h"
-    #include <ModbusRTU.h>
+    #include <SoftwareSerial.h>
     #include "SoftwareSerialisr.h"
+    #include <ModbusRTU.h>
 
     #include "defs.h"
     #include "emoncms.h"
@@ -45,14 +46,14 @@
         #define MODBUS_REG_PER  EM21_REG_PER
         #define MODBUS_REGMAX   EM21_REGMAX   
         #define MODBUS_DATAELEMENTCOUNT EM21_DataElementCount
-    #elif MODBUS_DEVICE_APM403
+    #elif defined(MODBUS_DEVICE_APM403)
         #define MODBUS_ID       APM403_ID
         #define MODBUS_HBASE    APM403_HBASE
         #define MODBUS_BAUD     APM403_BAUD
         #define MODBUS_REG_PER  APM403_REG_PER
         #define MODBUS_REGMAX   APM403_REGMAX   
         #define MODBUS_DATAELEMENTCOUNT APM403_DataElementCount
-    #elif MODBUS_DEVICE_APM303
+    #elif defined(MODBUS_DEVICE_APM303)
         #define MODBUS_ID       APM303_ID
         #define MODBUS_HBASE    APM303_HBASE
         #define MODBUS_BAUD     APM303_BAUD
@@ -72,9 +73,9 @@
     #endif
 
     #ifdef ESP8266
-        #define mb_RX_PIN       D2
-        #define mb_TX_PIN       D3
-        #define mb_TX_EN_PIN    D0
+        #define mb_RX_PIN       4 //D2
+        #define mb_TX_PIN       0 //D3
+//        #define mb_TX_EN_PIN    16 //D0
     #else
         #define mb_RX_PIN       4
         #define mb_TX_PIN       0
@@ -86,7 +87,7 @@
     // What buffer to use here? 256 is safe because JKBMS is ok with 310.
     // Is this why we could only fetch 12 registers at a time? (Maybe not bcuase rPI can only do 6 Regs at a time.)
     // But that's 24 bytes and SoftwareSerial default is 64? To be tested on an EM21.
-    SoftwareSerial S(mb_RX_PIN, mb_TX_PIN,false,256); // *TODO* Work out the correct buffer size and fix the MODBUS_REG_PER values.
+    SoftwareSerialisr S(mb_RX_PIN, mb_TX_PIN,false,256); // *TODO* Work out the correct buffer size and fix the MODBUS_REG_PER values.
     ModbusRTU mb;
 
     uint16_t mbResult[mbRegCount];      // Register size is 16 bit. Some values use 2 registers.
@@ -273,8 +274,9 @@
     }
 
     void initModbus(){
-        S.begin(MODBUS_BAUD, SWSERIAL_8N1);
-        mb.begin(&S, mb_TX_EN_PIN);
+        //S.begin(MODBUS_BAUD, SWSERIAL_8N1);
+        S.begin(MODBUS_BAUD); //, SWSERIAL_8N1);
+        mb.begin(&S); //, mb_TX_EN_PIN);
         mb.master();
     }
 

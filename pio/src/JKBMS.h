@@ -26,7 +26,7 @@
     // Use Software serial for ESP8266 & Hardware for ESP32
     #ifdef JKBMS_SSerial
         #include "SoftwareSerialisr.hpp"
-        SoftwareSerial TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN,false,310);
+        SoftwareSerialisr TxToJKBMS(jkbms_RX_PIN,jkbms_TX_PIN,false,310);
     #else
         HardwareSerial TxToJKBMS(1);
     #endif
