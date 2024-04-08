@@ -41,7 +41,7 @@ extern "C" {
 
 // As the Arduino attachInterrupt has no parameter, lists of objects
 // and callbacks corresponding to each possible GPIO pins have to be defined
-SoftwareSerialisr *ObjList[MAX_PIN + 1];
+SoftwareSerial *ObjList[MAX_PIN + 1];
 
 void IRAM_ATTR sws_isr_0() { ObjList[0]->rxRead(); };
 void IRAM_ATTR sws_isr_1() { ObjList[1]->rxRead(); };
@@ -76,7 +76,7 @@ static void(*ISRList[MAX_PIN + 1])() = {
 	  sws_isr_15
 };
 
-SoftwareSerialisr::SoftwareSerialisr(int receivePin, int transmitPin, bool inverse_logic, unsigned int buffSize, bool edge_triggered) {
+SoftwareSerial::SoftwareSerial(int receivePin, int transmitPin, bool inverse_logic, unsigned int buffSize, bool edge_triggered) {
 	m_oneWire = (receivePin == transmitPin);
 	m_rxValid = m_txValid = m_txEnableValid = false;
 	m_buffer = NULL;
@@ -107,7 +107,7 @@ SoftwareSerialisr::SoftwareSerialisr(int receivePin, int transmitPin, bool inver
 	begin(9600);
 }
 
-SoftwareSerialisr::~SoftwareSerialisr() {
+SoftwareSerial::~SoftwareSerial() {
 	enableRx(false);
 	if (m_rxValid)
 		ObjList[m_rxPin] = NULL;
@@ -115,11 +115,11 @@ SoftwareSerialisr::~SoftwareSerialisr() {
 		free(m_buffer);
 }
 
-bool SoftwareSerialisr::isValidGPIOpin(int pin) {
+bool SoftwareSerial::isValidGPIOpin(int pin) {
 	return (pin >= 0 && pin <= 5) || (pin >= 12 && pin <= MAX_PIN);
 }
 
-void SoftwareSerialisr::begin(long speed) {
+void SoftwareSerial::begin(long speed) {
 	// Use getCycleCount() loop to get as exact timing as possible
 	m_bitTime = F_CPU / speed;
 	// By default enable interrupt during tx only for low speed
@@ -129,11 +129,11 @@ void SoftwareSerialisr::begin(long speed) {
 		enableRx(true);
 }
 
-uint32_t SoftwareSerialisr::baudRate() {
+uint32_t SoftwareSerial::baudRate() {
 	return F_CPU / m_bitTime;
 }
 
-void SoftwareSerialisr::setTransmitEnablePin(int transmitEnablePin) {
+void SoftwareSerial::setTransmitEnablePin(int transmitEnablePin) {
 	if (isValidGPIOpin(transmitEnablePin)) {
 		m_txEnableValid = true;
 		m_txEnablePin = transmitEnablePin;
@@ -145,11 +145,11 @@ void SoftwareSerialisr::setTransmitEnablePin(int transmitEnablePin) {
 	}
 }
 
-void SoftwareSerialisr::enableIntTx(bool on) {
+void SoftwareSerial::enableIntTx(bool on) {
 	m_intTxEnabled = on;
 }
 
-void SoftwareSerialisr::enableTx(bool on) {
+void SoftwareSerial::enableTx(bool on) {
 	if (m_oneWire && m_txValid) {
 		if (on) {
 			enableRx(false);
@@ -165,7 +165,7 @@ void SoftwareSerialisr::enableTx(bool on) {
 	}
 }
 
-void SoftwareSerialisr::enableRx(bool on) {
+void SoftwareSerial::enableRx(bool on) {
 	if (m_rxValid) {
 		if (on) {
 			if (m_edge)
@@ -179,14 +179,14 @@ void SoftwareSerialisr::enableRx(bool on) {
 	}
 }
 
-int SoftwareSerialisr::read() {
+int SoftwareSerial::read() {
 	if (!m_rxValid || (m_inPos == m_outPos)) return -1;
 	uint8_t ch = m_buffer[m_outPos];
 	m_outPos = (m_outPos + 1) % m_buffSize;
 	return ch;
 }
 
-int SoftwareSerialisr::available() {
+int SoftwareSerial::available() {
 	if (!m_rxValid) return 0;
 	int avail = m_inPos - m_outPos;
 	if (avail < 0) avail += m_buffSize;
@@ -195,7 +195,7 @@ int SoftwareSerialisr::available() {
 
 #define WAIT { while (ESP.getCycleCount()-start < wait) if (m_intTxEnabled) optimistic_yield(1); wait += m_bitTime; }
 
-size_t SoftwareSerialisr::write(uint8_t b) {
+size_t SoftwareSerial::write(uint8_t b) {
 	if (!m_txValid) return 0;
 
 	if (m_invert) b = ~b;
@@ -223,22 +223,22 @@ size_t SoftwareSerialisr::write(uint8_t b) {
 	return 1;
 }
 
-void SoftwareSerialisr::flush() {
+void SoftwareSerial::flush() {
 	m_inPos = m_outPos = 0;
 }
 
-bool SoftwareSerialisr::overflow() {
+bool SoftwareSerial::overflow() {
 	bool res = m_overflow;
 	m_overflow = false;
 	return res;
 }
 
-int SoftwareSerialisr::peek() {
+int SoftwareSerial::peek() {
 	if (!m_rxValid || (m_inPos == m_outPos)) return -1;
 	return m_buffer[m_outPos];
 }
 
-inline bool SoftwareSerialisr::propgateBits(bool level, int pulseBitLength)
+inline bool SoftwareSerial::propgateBits(bool level, int pulseBitLength)
 {
 	for (int i = 0; i < pulseBitLength; i++)
 	{
@@ -255,12 +255,12 @@ inline bool SoftwareSerialisr::propgateBits(bool level, int pulseBitLength)
 	return false;
 }
 
-inline void SoftwareSerialisr::setWaitingForStart()
+inline void SoftwareSerial::setWaitingForStart()
 {
 	m_getByteState = awaitingStart;
 }
 
-inline void SoftwareSerialisr::setStartBit(unsigned long start)
+inline void SoftwareSerial::setStartBit(unsigned long start)
 {
 	// mark - the start of a pulse
 	// set the timers and wait for the next pulse
@@ -271,7 +271,7 @@ inline void SoftwareSerialisr::setStartBit(unsigned long start)
 	m_getByteState = gotStart;
 }
 
-void ICACHE_RAM_ATTR SoftwareSerialisr::rxRead() {
+void ICACHE_RAM_ATTR SoftwareSerial::rxRead() {
 	// Advance the starting point for the samples but compensate for the
 	// initial delay which occurs before the interrupt is delivered
 	unsigned long wait = m_bitTime + m_bitTime / 3 - 500;

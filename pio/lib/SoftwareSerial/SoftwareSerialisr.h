@@ -37,10 +37,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // Speed up to 115200 can be used.
 
 
-class SoftwareSerialisr : public Stream {
+class SoftwareSerial : public Stream {
 public:
-  SoftwareSerialisr(int receivePin, int transmitPin, bool inverse_logic = false, unsigned int buffSize = 64, bool edge_triggered = false);
-  virtual ~SoftwareSerialisr();
+  SoftwareSerial(int receivePin, int transmitPin, bool inverse_logic = false, unsigned int buffSize = 64, bool edge_triggered = false);
+  virtual ~SoftwareSerial();
 
   void begin(long speed);
   uint32_t baudRate();

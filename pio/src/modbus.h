@@ -3,8 +3,7 @@
     #define pgMODBUS_H
 
     #include "Arduino.h"
-    #include <SoftwareSerial.h>
-    #include "SoftwareSerialisr.h"
+    #include "SoftwareSerialisr.hpp"
     #include <ModbusRTU.h>
 
     #include "defs.h"
@@ -87,7 +86,9 @@
     // What buffer to use here? 256 is safe because JKBMS is ok with 310.
     // Is this why we could only fetch 12 registers at a time? (Maybe not bcuase rPI can only do 6 Regs at a time.)
     // But that's 24 bytes and SoftwareSerial default is 64? To be tested on an EM21.
-    SoftwareSerialisr S(mb_RX_PIN, mb_TX_PIN,false,256); // *TODO* Work out the correct buffer size and fix the MODBUS_REG_PER values.
+
+    //SoftwareSerial S(mb_RX_PIN, mb_TX_PIN, false); //,256); // *TODO* Work out the correct buffer size and fix the MODBUS_REG_PER values.
+    SoftwareSerial S(mb_RX_PIN, mb_TX_PIN,false,256); // *TODO* Work out the correct buffer size and fix the MODBUS_REG_PER values.
     ModbusRTU mb;
 
     uint16_t mbResult[mbRegCount];      // Register size is 16 bit. Some values use 2 registers.
@@ -274,8 +275,7 @@
     }
 
     void initModbus(){
-        //S.begin(MODBUS_BAUD, SWSERIAL_8N1);
-        S.begin(MODBUS_BAUD); //, SWSERIAL_8N1);
+         S.begin(MODBUS_BAUD); //, SWSERIAL_8N1);
         mb.begin(&S); //, mb_TX_EN_PIN);
         mb.master();
     }
