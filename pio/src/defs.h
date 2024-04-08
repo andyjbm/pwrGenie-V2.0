@@ -39,39 +39,39 @@ LICENSE file in the root directory of this source tree.
 
    //Logic to set the correct code defines based on the mode
    //that's been chosen by the platformio environment. 
-   #if PWR_GENIE_TYPE_NONE
+   #ifdef PWR_GENIE_TYPE_NONE
       #define PWR_GENIE_TYPE_STR "No Source"
 
-   #elif PWR_GENIE_TYPE_SPL
+   #elif defined(PWR_GENIE_TYPE_SPL)
       #define PWR_GENIE_MODE_SPL
       #define PWR_GENIE_TYPE_STR "SPL Meter"
       #define EMONCMS_APIKEY EMONCMS_LPSSPL_APIKEY
 
-   #elif PWR_GENIE_TYPE_EM21 
+   #elif defined(PWR_GENIE_TYPE_EM21)
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_EM21
       #define PWR_GENIE_TYPE_STR "EM21 Carlo Gavazzi"
       #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
-   #elif PWR_GENIE_TYPE_DSE
+   #elif defined(PWR_GENIE_TYPE_DSE)
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_DSE
       #define PWR_GENIE_TYPE_STR "DeepSea"
       #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
-   #elif PWR_GENIE_TYPE_APM303
+   #elif defined(PWR_GENIE_TYPE_APM303)
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM303
       #define PWR_GENIE_TYPE_STR "APM303"
       #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
-   #elif PWR_GENIE_TYPE_APM403
+   #elif defined(PWR_GENIE_TYPE_APM403)
       #define PWR_GENIE_MODE_MODBUS
       #define MODBUS_DEVICE_APM403
       #define PWR_GENIE_TYPE_STR "APM403"
       #define EMONCMS_APIKEY EMONCMS_PWRGENIE_APIKEY
 
-   #elif PWR_GENIE_TYPE_JKBMS
+   #elif defined(PWR_GENIE_TYPE_JKBMS)
       #define PWR_GENIE_MODE_JKBMS
       #define PWR_GENIE_TYPE_STR "JKBMS"
       #define EMONCMS_APIKEY EMONCMS_JKBMS_APIKEY
@@ -113,23 +113,20 @@ LICENSE file in the root directory of this source tree.
 
    #define COMPILED_FRAMEWORK_VERSIONS ((String)FPSTR("pwrGenie V") + FPSTR(PWRGENIE_FW_VERSION) + " " + FPSTR(PIO_PACKAGE_PLATFORM_NAME) + " V" + FPSTR(PIO_PLATFORM_VERSION_FULL) + FPSTR(" Arduino V") + FPSTR(PIO_PACKAGE_FRAMEWORK_ARDUINO_DECODED_VERSION))
 
-/*
-******************************
-** End of Project wide Defs **
-******************************
-*/
+   // Project wide constants
+   // These are here to avoid circular dependancy between Globals.h and Ecms_Struct.h
+   
+   // Config page Parameter constants
+   const uint8_t NAMESIZE   = 25;
+   const uint8_t URLSIZE    = 40;
+   const uint8_t URISIZE    = 40;
+   const uint8_t APIKEYSIZE = 40;
+   const uint8_t NODESIZE   = 15;
+   const uint8_t NUMBERSIZE = 10;
+   const uint8_t BOOLSIZE   = 2;
 
-   // Config Parameter defines
-   #define NAMESIZE 25
-   #define URLSIZE 40
-   #define URISIZE 40
-   #define APIKEYSIZE 40
-   #define NODESIZE 15
-   #define NUMBERSIZE 10
-   #define BOOLSIZE 2
-
-   #define PWDSIZE 20
-   #define USRNSIZE 20
-   #define SSIDSIZE 20
+   const uint8_t PWDSIZE    = 20;
+   const uint8_t USRNSIZE   = 20;
+   const uint8_t SSIDSIZE   = 20;
 
 #endif

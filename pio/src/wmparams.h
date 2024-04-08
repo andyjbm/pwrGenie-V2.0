@@ -4,11 +4,11 @@
   #include <ESP.h>
   #include <Arduino.h>
   #include <string.h>
+
   #include "defs.h"
   #include "Globals.h"
   #include "Utils.h"
 
-  #include "uriwildcard.h"          // Must come b4 wifimanager to override uri.h
   #include "ESPAsync_WiFiManager.h"
 
   #include "Ecms_Struct.h"

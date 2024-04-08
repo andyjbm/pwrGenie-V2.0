@@ -3,8 +3,6 @@
   #define LLG_UTILS_H
 
   #include <Arduino.h>
-  #include "uriwildcard.h"              // Must come b4 wifimanager to override uri.h
-  #include <ESPAsync_WiFiManager.h>
   
   void validateInput(const char *input, char *output)
   {
