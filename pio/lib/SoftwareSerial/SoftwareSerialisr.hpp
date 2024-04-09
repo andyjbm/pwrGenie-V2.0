@@ -129,7 +129,7 @@ void SoftwareSerial::begin(long speed) {
 		enableRx(true);
 }
 
-uint32_t SoftwareSerial::baudRate() {
+long SoftwareSerial::baudRate() {
 	return F_CPU / m_bitTime;
 }
 
@@ -271,7 +271,7 @@ inline void SoftwareSerial::setStartBit(unsigned long start)
 	m_getByteState = gotStart;
 }
 
-void ICACHE_RAM_ATTR SoftwareSerial::rxRead() {
+void IRAM_ATTR SoftwareSerial::rxRead() {
 	// Advance the starting point for the samples but compensate for the
 	// initial delay which occurs before the interrupt is delivered
 	unsigned long wait = m_bitTime + m_bitTime / 3 - 500;

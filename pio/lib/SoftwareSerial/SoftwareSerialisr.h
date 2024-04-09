@@ -43,7 +43,7 @@ public:
   virtual ~SoftwareSerial();
 
   void begin(long speed);
-  uint32_t baudRate();
+  long baudRate();
   // Transmit control pin
   void setTransmitEnablePin(int transmitEnablePin);
   // Enable or disable interrupts during tx
@@ -63,7 +63,7 @@ public:
   // One wire control
   void enableTx(bool on);
 
-  void rxRead();
+  void IRAM_ATTR rxRead();
 
   //volatile boolean SerialBusy = false;
 
