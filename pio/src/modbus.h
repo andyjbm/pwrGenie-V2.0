@@ -72,8 +72,8 @@
     #endif
 
     #ifdef ESP8266
-        #define mb_RX_PIN       4 //D2
-        #define mb_TX_PIN       0 //D3
+        #define mb_RX_PIN       D2
+        #define mb_TX_PIN       D3
 //        #define mb_TX_EN_PIN    16 //D0
     #else
         #define mb_RX_PIN       4
@@ -275,7 +275,7 @@
     }
 
     void initModbus(){
-         S.begin(MODBUS_BAUD); //, SWSERIAL_8N1);
+    	S.begin(MODBUS_BAUD); //, SWSERIAL_8N1);
         mb.begin(&S); //, mb_TX_EN_PIN);
         mb.master();
     }
