@@ -298,7 +298,7 @@ void loop() {
   {
     // Modbus as-a-source device specific code:
     #if defined(PWR_GENIE_MODE_MODBUS)
-        CONSOLE(F("MODBUS Source Enabled, Calling doModbusWork(): "));
+        CONSOLELN(F("MODBUS Source Enabled, Calling doModbusWork():"));
         modbusSuccess = doModbusWork();
 
     // SPL Meter Specific code:
