@@ -2,7 +2,7 @@ Import("env")
 from platformio.builder.tools.piolib import PackageItem
 from platformio.package.version import get_original_version
 
-print("Adding platform and package version defines")
+print("\u001b[32m Adding platform and package version defines \u001b[0m")
 
 platform = env.PioPlatform()
 used_packages = platform.dump_used_packages()
@@ -26,14 +26,14 @@ for package in used_packages:
     # e.g. 5.1.0 => None
     pio_decoded_version = get_original_version(pio_package_version)
     name_converter = lambda name: name.upper().replace(" ", "_").replace("-", "_")
-    print("PIO_PACKAGE_%s_PKG_VERSION=%s" % (name_converter(pio_package_name), "\\\"" + pio_package_version + "\\\""))
+    print('{: <70s} = {}'.format("\u001b[33m PIO_PACKAGE_%s_PKG_VERSION\u001b[0m " % name_converter(pio_package_name), pio_package_version))
 
     env.Append(CPPDEFINES=[
      ("PIO_PACKAGE_%s_PKG_VERSION" % name_converter(pio_package_name) , "\\\"" + pio_package_version + "\\\"")
     ])
 
     if pio_decoded_version is not None: 
-        print("PIO_PACKAGE_%s_DECODED_VERSION=%s" % (name_converter(pio_package_name), pio_decoded_version))
+        print('{: <70s} = {}'.format("\u001b[33m PIO_PACKAGE_%s_DECODED_VERSION\u001b[0m " % name_converter(pio_package_name), pio_decoded_version))
         env.Append(CPPDEFINES=[
         ("PIO_PACKAGE_%s_DECODED_VERSION" % name_converter(pio_package_name) , "\\\"" + pio_decoded_version + "\\\"")
         ])
