@@ -16,7 +16,7 @@
         #error "You haven't decided on pins for BMS serial RS485 on this board yet. Please pick some and place the defs here in JKBMS.h"
         #define jkbms_RX_PIN    ?
         #define jkbms_TX_PIN    ?
-    #elif
+    #else
         #error "Board not recongnised. Add the board def and pick some pins for RS485 serial in JKBMS.h"
     #endif
 
