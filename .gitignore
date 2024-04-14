@@ -9,6 +9,7 @@ Archive
 Secrets.h
 Releases
 build_output
+compile_commands.json
 
 # Prerequisites
 *.d
