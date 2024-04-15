@@ -25,7 +25,7 @@
       
       // Buffer indexes & sizes
       uint16_t BufInIndex;
-      const uint16_t maxBufferSize = MAXLEQSIZE * 2.0; // Max array size. Not a define so that the calc only happens once and here.
+      const uint16_t maxBufferSize = MAXLEQSIZE * 2.15; // Max array size. Not a define so that the calc only happens once and here.
       const float float16scale = 1526624;  // For getting dB linear to fit into a float16. Effectively sets max float16 to 150dB. scale = POWER(10,E1) where E1 = 14-3-LOG10(65504)  
 
       //These buffers are to keep track of the time between samples. By summing these samples 
@@ -61,18 +61,21 @@
                resetLEQ();
             }
 
-            void addval(float newvalpt, uint16_t sampleTime){
+            void addval(float16 newLinSPL, uint16_t sampleTime){
       
-               avgSum += newvalpt;         // New de-logarithmic value into the linear average
-               timeSum += sampleTime;      // time between last and this reading.
-               LEQSampleCount ++;          // Unique to this instance. But the global buffIn Index is bumped up outside of the class.
+               // The sum needs to be float as this could potentially exceed the limit of float16.
+               // We use float16 on the new value to deliberately loose precision to that of the buffer value so that 
+               // the sum will be correctly reduced by the same amount when this value leaves the buffer.
+               avgSum += newLinSPL.toDouble();         // avgSum is sum of scaled linear spl values.
+               timeSum += sampleTime;                  // time between last and this reading.
+               LEQSampleCount ++;                      // Unique to this instance. But the global buffInIndex is bumped up outside of the class.
             
                if (isValid){
-                  // The focus is that the sum of the duration of the samples = (approx) the size of the LEQ,
-                  // The absolute number of samples required to achieve this doesn't matter and is only needed to calculate the average.
-                  // Here we drop values from the end of the buffer until sum sample duration is close to the LEQ duration.
+                  // The focus is that the sum of the duration of the samples = (approx) the size of the LEQ time.
+                  // The absolute number of samples required to achieve this is not relevant but is needed to calculate the average LEQ spl.
+                  // Here we drop values from the end of the buffer until the sum of sample durations is close to the LEQ duration.
                   // This allows drift in samples & sample times from the meter wrt real time from millis()
-                  // Important: This means LEQSampleCount will *change* over time if it needs to to fit the LEQ time window.
+                  // Note that this means LEQSampleCount will *change* over time if it needs to to fit the LEQ time window.
                   while (timeSum > LEQSizeInMillis){
                      #ifdef LEQ_DEBUG
                         if (leqDebug) {
@@ -86,13 +89,15 @@
                      #endif
                      // NOT inside leqdebug. This will print for all leq.
                      if (timeSum < timeBuffer[BufOutIndex]){  //Make sure we won't break anything.
+                        // Subtracting this buffer value would make timeSum go -ve.
+                        // If the buffer is working properly this should not happen. How did we get here?
                         CONSOLE(F("\nCRASH: ")); 
                         CONSOLE(F(", BufOutIndex: ")); CONSOLE(BufOutIndex);
                         CONSOLE(F(", BufInIndex: ")); CONSOLE(BufInIndex);
                         CONSOLE(F(", maxBufSize: ")); CONSOLELN(maxBufferSize);
                         break;
                      } else {
-                        // Roll the old out of the end of the buffer.
+                        // Roll the oldest out of the end of the buffer & remove from the average totals.
                         avgSum  -= LEQbuffer[BufOutIndex].toDouble();
                         timeSum -= timeBuffer[BufOutIndex];
                         BufOutIndex = (BufOutIndex+1) % maxBufferSize;
@@ -111,7 +116,7 @@
                   }
                   if (LEQSampleCount >= maxBufferSize) { //Oh dear. Buffer not big enough.
                      bufferOverflow = true;
-                     // Roll the old out of the end of the buffer and make do with smaller LEQ.
+                     // Loose the oldest out of the buffer and make do with shorter LEQ time window.
                      avgSum  -= LEQbuffer[BufOutIndex].toDouble();
                      timeSum -= timeBuffer[BufOutIndex];
                      BufOutIndex = (BufOutIndex+1) % maxBufferSize;
@@ -137,7 +142,7 @@
             String getInfo(){
                String info = String(F("leq: "))  + String(read(), 1);
                info += String(F(", BufOutIx: ")) + String(BufOutIndex);
-               info += String(F(", splSum: "))   + String(avgSum, 4);
+               info += String(F(", splSum: "))   + String(avgSum, 6);
                info += String(F(", timeSum: "))  + String(timeSum) + String(F("/"))  + String(LEQSizeInMillis);
                info += String(F(", LEQsc: "))    + String(LEQSampleCount)  + String(F("/"))  + String(maxBufferSize);
                info += String(F(", S/Sec: "))    + String(LEQSampleCount * 1000.0 / timeSum, 2);
@@ -170,13 +175,15 @@
       bool avgLEQ::bufferOverflow = false;   // Initialise class static.
       byte leqIDcount = 0;                   // LEQ Class instance index. 
 
-      uint16_t consecDupes = 0;
-      uint16_t oRange = 0;
-      uint16_t uRange = 0;
-      uint16_t pwr10Error = 0;
+   //   uint16_t consecDupes = 0;
+   //   uint16_t oRange = 0;
+   //   uint16_t uRange = 0;
+   //   String lastuRange = "";
+   //   String lastoRange = "";
+   //   uint16_t pwr10Error = 0;
 
       // Make a new LEQ, add it to the Array of LEQs and return its unique ID.
-      byte newLEQ(uint16_t LEQSizeInSec){
+      uint8_t newLEQ(uint16_t LEQSizeInSec){
          if (leqIDcount >= MAX_LEQS) return -1; // No more LEQs available.
          #ifdef LEQ_DEBUG
             CONSOLE(F("Hello from newLEQ...leqIDcount: ")); CONSOLE(leqIDcount);
@@ -198,11 +205,13 @@
       String getLEQInfo(uint16_t sampleTime){
 
          String LEQInfo = ""; //last10spl() + "<br>" 
-         LEQInfo += FPSTR("uRange: "); LEQInfo += uRange;
-         LEQInfo += FPSTR(", oRange: "); LEQInfo += oRange;
-         LEQInfo += FPSTR(", p10Err: "); LEQInfo += pwr10Error;
-         LEQInfo += FPSTR(", DupeCount: "); LEQInfo += consecDupes;
-         LEQInfo += "<br>";
+      //   LEQInfo += FPSTR("uRange: "); LEQInfo += uRange;
+      //   LEQInfo += FPSTR(":> "); LEQInfo += lastuRange;
+      //   LEQInfo += FPSTR(", oRange: "); LEQInfo += oRange;
+      //   LEQInfo += FPSTR(":> "); LEQInfo += lastoRange;
+      //   LEQInfo += FPSTR(", p10Err: "); LEQInfo += pwr10Error;
+      //   LEQInfo += FPSTR(", DupeCount: "); LEQInfo += consecDupes;
+      //   LEQInfo += "<br>";
          
          for (byte i=0; i < leqIDcount;i++){
             LEQInfo += String(F("ID: ")) + i + ", " + leqArray[i]->getInfo() + "<br>";
@@ -223,20 +232,23 @@
          static uint32_t thisMillis = 0;                 // STATIC! Initialised only once!
          static uint16_t lastspldB = 0;
    
-         if (spldB<1){
-            uRange ++;
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-         }
-         if (spldB > 1500){
-            oRange ++;
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-         }
+   // Range checks are done in the readerloop now.
+   //      if (spldB < 1){
+   //         lastuRange += ":" + String(spldB);
+   //         uRange ++;
+   //         return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+   //      }
+   //      if (spldB > 1500){
+   //         lastoRange += ":" + String(spldB);
+   //         oRange ++;
+   //         return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+   //      }
 
          // Explanation: The SPL meter in fast mode sends new packets every 120ms but only updates data value every 500ms (approx).
          // Rather than fill the buffer & use RAM unnecessarily we just let the sampletime increase for this dupe value until we receive a different value.
          
          if (spldB == lastspldB && (millis() - thisMillis < 800)) { // But we don't want consecutive dupes indefinately otherwise the graph will look odd.
-            consecDupes ++;
+   //         consecDupes ++;
             return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
          }
          lastspldB = spldB;
@@ -246,10 +258,10 @@
          // The float16scale is a "normalising" ratio which makes the max float16value (65504) equivalent to 150.0 dB
          // (See 1/2 precision float spreadsheet.)
          float bels = spldB / 100.0;
-         float newvalpten = pow(10, bels-4) / float16scale;   // then raise to 10^x and scale /10,000 (-4 exponent)
+         float splPwrTen = pow(10, bels-4) / float16scale;   // then raise to 10^x and scale /10,000 (-4 exponent)
          
-         if (newvalpten<0 || newvalpten > 65504) {
-            pwr10Error ++;
+         if (splPwrTen < 0 || splPwrTen > 65504) {
+   //         pwr10Error ++;
             return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
          }
 
@@ -258,7 +270,8 @@
          uint16_t sampleTime = thisMillis - lastMillis;  // Something's wrong if we're waiting more than a minute between samples!
          
          // Insert the values into the buffers.
-         LEQbuffer[BufInIndex] = newvalpten;
+         float16 splfloat16 = (float16)splPwrTen;  // Convert once & use same to add to buffer and to LEQ splsums.
+         LEQbuffer[BufInIndex] = splfloat16;
          timeBuffer[BufInIndex] = sampleTime;
          BufInIndex = (BufInIndex + 1) % maxBufferSize;  // Round Robin (FIFO...)
 
@@ -271,10 +284,10 @@
                }
          */
 
-         //Allow each LEQ add the values to their own sums and to up their own BufOut pointers.
+         //Allow each LEQ add the values to their own sums and increment their own BufOut pointers & counters.
          avgLEQ::bufferOverflow = false;
          for (uint8_t i=0; i < leqIDcount;i++){
-            leqArray[i]->addval(newvalpten, sampleTime);
+            leqArray[i]->addval(splfloat16, sampleTime);
          }
 
       return getLEQInfo(sampleTime);

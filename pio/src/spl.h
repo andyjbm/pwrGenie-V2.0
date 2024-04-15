@@ -188,6 +188,9 @@
          } 
       }
 
+      // Quit if outside range - something went wrong with decoding?
+      if (!(splval > 0 && splval < 1501)) return;
+
       LEQInfo = leq::addVal(splval);  // Add the new SPL to all leq instances.
 
       #if 0
