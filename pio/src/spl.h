@@ -33,8 +33,6 @@
          float leq15IsValid;
       };
 
-   splData splD;
-
    #if defined (ARDUINO_ARCH_ESP8266)
       #define  SPL_datapin         D2   //D2 GPIO4
       #define  SPL_clockpin        D1   //D1 GPIO5
@@ -55,58 +53,52 @@
       void begin();
       IRAM_ATTR void cb_readClock();
       void ssreaderLoop();
-      void add2leq(float db);
+      void add2leq(uint16_t db);
 
       // Somewhere to translate the received 7 segment pattern into a numeric Digit.
       struct segDecode{
-         byte seg;
-         byte val;
+         uint8_t seg;
+         uint8_t val;
       };
 
       // This is a seven segment display bitmap representation of each digit.
-      const segDecode sshashes[11] = {
+      const segDecode volatile sshashes[11] = {
          {0b01011111, 0}, {0b01010000, 1}, {0b01101011, 2}, {0b01111001, 3}, 
          {0b01110100, 4}, {0b00111101, 5}, {0b00111111, 6}, {0b01011000, 7},
          {0b01111111, 8}, {0b01111101, 9}, {0b00000000, 0}
          };
       
+      volatile uint8_t sevenseg[4];
       volatile bool read_started = false;
       volatile bool SPL_Complete = false;
-      volatile unsigned long thistick;
-      volatile unsigned long lasttick;
-      volatile byte sevenseg[4];
+      volatile unsigned long thistick = 0;
       IRAM_ATTR void cb_readClock();
 
       //leq instance IDs
-      byte leq10sec;
-      byte leq5;
-      byte leq15;
+      uint8_t leq10sec;
+      uint8_t leq5;
+      uint8_t leq15;
 
-      // For resetting 30 sec after powerup.
-      unsigned long creationtime;
       bool reset30sec = false;
+      String LEQInfo = "";
 
       void begin();
       void ssreaderLoop();
-      void add2leq(float db);
       void DoSPLSend();
    };  // End namespace ssreader.
 
    // Definitions
-
    void ssreader::begin() { // "static" class so using namespace and begin instead of ctor.
 
       // Initialise some LEQ instances (in seconds)...
       leq10sec = leq::newLEQ(10);
       leq5 = leq::newLEQ(60 * 5);
       leq15 = leq::newLEQ(60 * 15);
-      creationtime = millis();
 
       read_started = false;
       SPL_Complete = false;
       thistick = millis();
-      lasttick = thistick;
-      
+
       pinMode(SPL_datapin,INPUT);
       pinMode(SPL_clockpin,INPUT);
       attachInterrupt(digitalPinToInterrupt(SPL_clockpin), ssreader::cb_readClock, FALLING);
@@ -115,9 +107,10 @@
    // Callback on clock rising edges. This is where the magic happens.
    IRAM_ATTR void ssreader::cb_readClock(){
 
-      static byte bitpower;
-      static byte digit;
-         
+      volatile static uint8_t bitpower;
+      volatile static uint8_t digit;
+      volatile unsigned long lasttick;
+
       if (!read_started){
 
          lasttick = thistick;
@@ -142,7 +135,7 @@
          //read_started == true, we are reading data for real....
          if (!SPL_Complete) {
             if ((bitpower > 99) && (bitpower < 132) &&        // 32 bits total
-               (bitpower != 103) && (bitpower != 111) &&   // Decimal point positions. 
+               (bitpower != 103) && (bitpower != 111) &&      // Decimal point positions. 
                (bitpower != 119) && (bitpower != 127)){
                
                // Digit time... read in the seven segment encoded bit pattern.
@@ -161,58 +154,53 @@
    //We check for a complete reading here and do all the finishing off here rather than in the ISR...
    void ssreader::ssreaderLoop(){
       //Check for timeout. 
-      if (read_started && SPL_Complete){
-            //Timeout triggered - we are done. Now we can decode.
-            read_started = false;  
-            SPL_Complete = false;
-   /*
-            std::string str ="";
-            for (byte digit=0; digit<4; digit++){ 
-               str += std::bitset<8>(sevenseg[digit]).to_string();
-               str += ".";
-            }
-            CONSOLELN(str.c_str());
-   */
-            unsigned int splval = 0;
-            for (byte digit=4; digit-- > 0;){      // For each digit...
-               splval *= 10;                       // Next digit.
-               for (byte i=0; i<11; i++){          // Scan all possible 7 seg patterns for a match.
-                  if (sevenseg[digit] == sshashes[i].seg){ // Convert the 7 seg into its digit value.
-                     splval += sshashes[i].val;
-                     break; 
-                  }
-               }  
-            }
-            add2leq(splval / 10.0);  // Implicit conversion to float   
+      if (!(read_started && SPL_Complete)){
+         return;
       }
-   }
-
-   void ssreader::add2leq(float db){
-      //static float lastdb;
-      // In fast mode the spl meter free runs the display quite fast even if the meter's
-      // adc hasn't finished a new conversion. We need a way to send timely samples.
-      // if (lastdb == db){ return; } 
-      // lastdb = db;
-
+      //Timeout triggered - we are done. Now we can decode.
+      read_started = false;  
+      SPL_Complete = false;
+/*
+      std::string str ="";
+      for (byte digit=0; digit<4; digit++){ 
+         str += std::bitset<8>(sevenseg[digit]).to_string();
+         str += ".";
+      }
+      CONSOLELN(str.c_str());
+*/
+      uint16_t splval = 0;
+      for (uint8_t digit=4; digit-- > 0;){      // For each digit...
+         splval *= 10;                          // Next digit.
+         for (uint8_t i=0; i<11; i++){          // Scan all possible 7 seg patterns for a match.
+            if (sevenseg[digit] == sshashes[i].seg){ // Convert the 7 seg into its digit value.
+               splval += sshashes[i].val;
+               break; 
+            }
+         }  
+      }
+      // splval is now = dB * 10   
+      
       // Reset 30 sec after startup to allow for meter handling and placement
       if (!reset30sec) {
-         if (millis() - creationtime > 30000) {
+         if (millis() > 40000) {
             reset30sec = true;   // Don't reset again this lifetime.
             leq::resetAll();
          } 
       }
 
-      leq::addVal(db);  // Add the new SPL to all leq instances.
+      LEQInfo = leq::addVal(splval);  // Add the new SPL to all leq instances.
 
-      //CONSOLE(F("SPL= ")); CONSOLE(db);
-      
-      leq::leqArray[leq10sec]->printInfo();
-      leq::leqArray[leq5]->printInfo();
-      leq::leqArray[leq15]->printInfo();
+      #if 0
+         //CONSOLE(F("SPL= ")); CONSOLE(db);
+         leq::leqArray[leq10sec]->printInfo();
+         leq::leqArray[leq5]->printInfo();
+         leq::leqArray[leq15]->printInfo();
+      #endif
    }
 
    // Called by foreground loop every x seconds to send data to emoncms.
    void ssreader::DoSPLSend() {
+      splData splD;
       splD.leq10sec = leq::leqArray[leq10sec]->read();
       splD.leq5 = leq::leqArray[leq5]->read();
       splD.leq15 = leq::leqArray[leq15]->read();

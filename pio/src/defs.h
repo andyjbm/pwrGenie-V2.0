@@ -103,6 +103,10 @@ LICENSE file in the root directory of this source tree.
       #define DEBUG true
    #endif
 
+   #ifndef DEBUG_AUTOREFRESH
+      #define DEBUG_AUTOREFRESH 10
+   #endif
+
    //#define BearSSL_DEBUG  // This is only relevant on the ESP8266 which doesn't realistically have enough ram for all this anyway.
    
    #ifdef ESP8266 

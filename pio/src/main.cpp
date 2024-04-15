@@ -115,11 +115,17 @@ String debugStrInfo(const __FlashStringHelper * title, String sPass, String sFai
 // Handle our debug page.
 void handleDebug(AsyncWebServerRequest *request){
   CONSOLELN(F("Page Request: handleDebug call."));
-    
-  //String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"));  // Without the auto refresh for debugging the webpage HTML
-  String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"), WM_META_AUTO_DEBUG);
-  page += FPSTR("<fieldset><div class = 'msg' style='word-wrap: break-word;'>");
 
+  #if (DEBUG_AUTOREFRESH == 0)  
+    String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"));  // Without the auto refresh for debugging the webpage HTML
+  #elif (DEBUG_AUTOREFRESH == 1)
+    String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"), WM_META_AUTO_DEBUG_1s);
+  #else
+    String page = wm.buildHeader(FPSTR("main_Debug"),FPSTR("Debug Info"), WM_META_AUTO_DEBUG_10s);
+  #endif
+
+  page += FPSTR("<fieldset><div class = 'msg' style='word-wrap: break-word;'>");
+  
   // The last Emoncms data string to be posted.
   page += debugStrInfo(F("Emoncms last json data"), strJsonData, FPSTR("Is Empty!"), !strJsonData.isEmpty(), true);
   
@@ -129,16 +135,16 @@ void handleDebug(AsyncWebServerRequest *request){
   #ifdef PWR_GENIE_MODE_SPL
     bool SPLfailed = false;
     String SPLfailStr = "";
-    if (LEQInfo.isEmpty()){
+    if (ssreader::LEQInfo.isEmpty()){
       SPLfailed = true;
       SPLfailStr = FPSTR("Is Empty!");
     } else {
-      if ((LEQInfo.indexOf("nan") > 0) || (LEQInfo.indexOf("inf") > 0)) {
-        SPLfailed = true;
-        SPLfailStr = FPSTR("SPL is nan/inf! RESTART with SPL Meter in SLOW mode!"); 
+      if ((ssreader::LEQInfo.indexOf("nan") > 0) || (ssreader::LEQInfo.indexOf("inf") > 0)) {
+        //SPLfailed = true;
+        ssreader::LEQInfo = FPSTR("SPL is nan/inf! RESTART with SPL Meter in SLOW mode!<br>") + ssreader::LEQInfo; 
       }
     }
-    page += debugStrInfo(F("SPL Data"), LEQInfo, SPLfailStr, !SPLfailed);
+    page += debugStrInfo(F("SPL Data"), ssreader::LEQInfo, SPLfailStr, !SPLfailed);
   #endif
   
   #ifdef PWR_GENIE_MODE_MODBUS

@@ -102,7 +102,8 @@ const char WM_HTTP_UPDATE_FAIL[] 	PROGMEM = "<br/><div class='msg D'><strong>Upd
 const char WM_HTTP_UPDATE_SUCCESS[] PROGMEM = "<br/><div class='msg S'><strong>Update Successful.</strong><br/>Device Rebooting now...</div>";
 
 const char WM_META_AUTO_ROOT[] 		PROGMEM = "<meta http-equiv=\"refresh\" content=\"5; url=/\">";
-const char WM_META_AUTO_DEBUG[] 	PROGMEM = "<meta http-equiv=\"refresh\" content=\"10; url=/debug\">";
+const char WM_META_AUTO_DEBUG_10s[] PROGMEM = "<meta http-equiv=\"refresh\" content=\"10; url=/debug\">";
+const char WM_META_AUTO_DEBUG_1s[] 	PROGMEM = "<meta http-equiv=\"refresh\" content=\"1; url=/debug\">";
 
 const char WM_HTTP_HEAD_CL[]        PROGMEM = "Content-Length";
 const char WM_HTTP_HEAD_CT[]        PROGMEM = "text/html";
