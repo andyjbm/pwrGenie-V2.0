@@ -177,10 +177,13 @@
 
    //   uint16_t consecDupes = 0;
    //   uint16_t oRange = 0;
-   //   uint16_t uRange = 0;
-   //   String lastuRange = "";
    //   String lastoRange = "";
-   //   uint16_t pwr10Error = 0;
+   //   uint16_t oRange = 0;
+   //   String lastoRange = "";
+   //   uint16_t dpwpCount = 0;
+   //   String lastdpWP ="";
+   //   uint16_t digitNFCount = 0;
+   //   String lastdnf ="";
 
       // Make a new LEQ, add it to the Array of LEQs and return its unique ID.
       uint8_t newLEQ(uint16_t LEQSizeInSec){
@@ -205,12 +208,12 @@
       String getLEQInfo(uint16_t sampleTime){
 
          String LEQInfo = ""; //last10spl() + "<br>" 
-      //   LEQInfo += FPSTR("uRange: "); LEQInfo += uRange;
-      //   LEQInfo += FPSTR(":> "); LEQInfo += lastuRange;
-      //   LEQInfo += FPSTR(", oRange: "); LEQInfo += oRange;
+      //   LEQInfo += FPSTR("oRange: "); LEQInfo += oRange;
       //   LEQInfo += FPSTR(":> "); LEQInfo += lastoRange;
-      //   LEQInfo += FPSTR(", p10Err: "); LEQInfo += pwr10Error;
-      //   LEQInfo += FPSTR(", DupeCount: "); LEQInfo += consecDupes;
+      //   LEQInfo += FPSTR(", dpWP: "); LEQInfo += dpwpCount;
+      //   LEQInfo += FPSTR(":> "); LEQInfo += lastdpWP;
+      //   LEQInfo += FPSTR(", DNF: "); LEQInfo += digitNFCount;
+      //   LEQInfo += FPSTR(":> "); LEQInfo += lastdnf;
       //   LEQInfo += "<br>";
          
          for (byte i=0; i < leqIDcount;i++){
@@ -232,17 +235,25 @@
          static uint32_t thisMillis = 0;                 // STATIC! Initialised only once!
          static uint16_t lastspldB = 0;
    
-   // Range checks are done in the readerloop now.
-   //      if (spldB < 1){
-   //         lastuRange += ":" + String(spldB);
-   //         uRange ++;
-   //         return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-   //      }
-   //      if (spldB > 1500){
-   //         lastoRange += ":" + String(spldB);
-   //         oRange ++;
-   //         return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-   //      }
+         #if 0 // Done in spl decoding loop now.
+         // Main Range checks.
+         if (!(spldB > 0 && spldB < 1501)){
+            lastoRange += ":" + String(spldB);
+            oRange ++;
+            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+         }
+
+         if (dpWrongPlace){
+            lastdpWP += ":" + String(spldB);
+            dpwpCount ++;
+            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+         }
+         if (digitNotFound){
+            lastdnf += ":" + String(spldB);
+            digitNFCount ++;
+            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+         }
+         #endif
 
          // Explanation: The SPL meter in fast mode sends new packets every 120ms but only updates data value every 500ms (approx).
          // Rather than fill the buffer & use RAM unnecessarily we just let the sampletime increase for this dupe value until we receive a different value.

@@ -62,10 +62,17 @@
       };
 
       // This is a seven segment display bitmap representation of each digit.
-      const segDecode volatile sshashes[11] = {
-         {0b01011111, 0}, {0b01010000, 1}, {0b01101011, 2}, {0b01111001, 3}, 
-         {0b01110100, 4}, {0b00111101, 5}, {0b00111111, 6}, {0b01011000, 7},
-         {0b01111111, 8}, {0b01111101, 9}, {0b00000000, 0}
+      // Each one is eight bits: bgcXafed  where X is decimal point. (Its always present for units but not the other digits.)
+      
+      // Val & 0x0f is the value, 0x10 flag indicates dp present..
+      const segDecode volatile sshashes[21] = {
+         {0b10101111, 0}, {0b10100000, 1}, {0b11001011, 2}, {0b11101001, 3}, 
+         {0b11100100, 4}, {0b01101101, 5}, {0b01101111, 6}, {0b10101000, 7},
+         {0b11101111, 8}, {0b11101101, 9},
+         {0b10111111, 0x10}, {0b10101000, 0x11}, {0b11011011, 0x12}, {0b11111001, 0x13}, 
+         {0b11110100, 0x14}, {0b01111101, 0x15}, {0b01111111, 0x16}, {0b10111000, 0x17},
+         {0b11111111, 0x18}, {0b11111101, 0x19}, 
+         {0b00000000, 0x00}   // This represents hundreds position for numbers => 99.9 when the 100s is off (not lit).
          };
       
       volatile uint8_t sevenseg[4];
@@ -73,6 +80,9 @@
       volatile bool SPL_Complete = false;
       volatile unsigned long thistick = 0;
       IRAM_ATTR void cb_readClock();
+
+      bool digitNotFound = false;
+      bool dpWrongPlace = false;
 
       //leq instance IDs
       uint8_t leq10sec;
@@ -83,6 +93,7 @@
       String LEQInfo = "";
 
       void begin();
+      void isr_reset();
       void ssreaderLoop();
       void DoSPLSend();
    };  // End namespace ssreader.
@@ -95,13 +106,29 @@
       leq5 = leq::newLEQ(60 * 5);
       leq15 = leq::newLEQ(60 * 15);
 
-      read_started = false;
-      SPL_Complete = false;
-      thistick = millis();
-
+      // make safe while we config the hardware.
+      SPL_Complete = true;
+      read_started = true;  
+      
       pinMode(SPL_datapin,INPUT);
       pinMode(SPL_clockpin,INPUT);
       attachInterrupt(digitalPinToInterrupt(SPL_clockpin), ssreader::cb_readClock, FALLING);
+
+      //ready to go.
+      isr_reset();     
+   }
+
+   // This sets up the isr for a packet read.
+   // The isr will then wait till the foreground code has decoded and called this reset again.
+   void ssreader::isr_reset(){
+      sevenseg[0] = 0;
+      sevenseg[1] = 0;
+      sevenseg[2] = 0;
+      sevenseg[3] = 0;
+      
+      thistick = millis();
+      SPL_Complete = false;
+      read_started = false;  
    }
 
    // Callback on clock rising edges. This is where the magic happens.
@@ -113,38 +140,31 @@
 
       if (!read_started){
 
+         //We're looking for a reeeeeeally long high (>80ms ish) (High to low transition)
+         //to indicate the gap between end of the last packet and the start of this one.
+         //Note if the foreground code has to wait & takes a while decoding we could miss a packet or two.
          lasttick = thistick;
          thistick = millis();
-
-         //We're looking for a reeeeeeally long high (80ms ish) (High to low transition)
-         //to indicate the end of the last packet.
          if (thistick-lasttick > SPL_deadspace) {
             // This is the 1st clock. Start of data packet. Reset everything before we begin.
             bitpower = 0;
             digit = 0;
-            sevenseg[0] = 0;
-            sevenseg[1] = 0;
-            sevenseg[2] = 0;
-            sevenseg[3] = 0;
             
             // First edge detected - off we go.
             read_started = true;
-            SPL_Complete = false;
          }
       } else {
          //read_started == true, we are reading data for real....
          if (!SPL_Complete) {
-            if ((bitpower > 99) && (bitpower < 132) &&        // 32 bits total
-               (bitpower != 103) && (bitpower != 111) &&      // Decimal point positions. 
-               (bitpower != 119) && (bitpower != 127)){
-               
+            if ((bitpower > 99) && (bitpower < 132)){ // 32 bits total
                // Digit time... read in the seven segment encoded bit pattern.
-               // Each one is eight bits: bgcXafed  where X I'm guessing would be a decimal point. (We'll never know, it doesn't move.)
+               // Each one is eight bits: bgcXafed  where X is decimal point. (It's always present for units but not the other digits.)
                // We start at bit 100 in the datastream... Bits 103, 111, and 119 will be the decimal points.
+               // Clumsy method, We could just use an uint32_t, (rather than an array[digit]) & read all the bits straight in but it makes decoding to digits easier later.
                sevenseg[digit] = (sevenseg[digit] << 1) + digitalRead(SPL_datapin);
             }
-            bitpower += 1;
-            if ((bitpower == 108) | (bitpower == 116) | (bitpower == 124)){ digit += 1; } // Next digit
+            bitpower ++;
+            if ((bitpower == 108) | (bitpower == 116) | (bitpower == 124)){ digit ++; } // Next digit
             if (bitpower >= 132) {SPL_Complete = true;}  // We've finished. The ISR can stop responding and the foreground loop can do the decode.
          }
       }
@@ -152,14 +172,12 @@
 
    //This is executed in the foreground and should be called by main::loop()
    //We check for a complete reading here and do all the finishing off here rather than in the ISR...
+   //In fast mode this is not guaranteed to complete before the next data packet
+   //so they'll be lost until this one is decoded and the foreground resets the isr.
    void ssreader::ssreaderLoop(){
-      //Check for timeout. 
-      if (!(read_started && SPL_Complete)){
-         return;
-      }
-      //Timeout triggered - we are done. Now we can decode.
-      read_started = false;  
-      SPL_Complete = false;
+
+      if (!(read_started && SPL_Complete)) return; //Check for read completing, quit if we're not ready.
+      
 /*
       std::string str ="";
       for (byte digit=0; digit<4; digit++){ 
@@ -168,29 +186,42 @@
       }
       CONSOLELN(str.c_str());
 */
+
+      //Got one, now we can decode.
+      dpWrongPlace = false;
       uint16_t splval = 0;
-      for (uint8_t digit=4; digit-- > 0;){      // For each digit...
-         splval *= 10;                          // Next digit.
-         for (uint8_t i=0; i<11; i++){          // Scan all possible 7 seg patterns for a match.
-            if (sevenseg[digit] == sshashes[i].seg){ // Convert the 7 seg into its digit value.
-               splval += sshashes[i].val;
-               break; 
+      for (uint8_t digit=4; digit-- > 0;){            // For each digit...*NOTE* digit counts from 3 to zero! NOT 4 to 1.
+         splval *= 10;                                // Next digit.
+         digitNotFound = true;
+         for (uint8_t i=0; i<21; i++){                // Scan all possible 7 seg patterns for a match.
+            if (sevenseg[digit] == sshashes[i].seg){  // Convert the 7 seg into its digit value.
+               splval += (sshashes[i].val & 0xf);     // We want the value excl dp indicator.
+               digitNotFound = false;
+
+               // Check dp is only present for digit 2. eg: 101.3
+               bool dp = ((sshashes[i].val & 0x10) == 0x10);  // Get the dp.
+               dpWrongPlace = (dp ^ (digit == 1)); // dp xor (digit is 2)
+               break; // Save time.
             }
-         }  
+         }
+         if (digitNotFound) break; // We didn't identify this one... Bit pattern error.
       }
-      // splval is now = dB * 10   
       
-      // Reset 30 sec after startup to allow for meter handling and placement
+      // Reset 30 sec + 10 sec for connecting to wifi after startup to allow for meter handling and placement
       if (!reset30sec) {
          if (millis() > 40000) {
             reset30sec = true;   // Don't reset again this lifetime.
             leq::resetAll();
          } 
       }
-
+ 
+      isr_reset();  // Done decoding. Setup the skittles ready for the next data packet.
+ 
       // Quit if outside range - something went wrong with decoding?
+      if (digitNotFound || dpWrongPlace) return;
       if (!(splval > 0 && splval < 1501)) return;
 
+      // splval is now = dB * 10   
       LEQInfo = leq::addVal(splval);  // Add the new SPL to all leq instances.
 
       #if 0
