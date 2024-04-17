@@ -309,7 +309,9 @@ void loop() {
 
     // SPL Meter Specific code:
     #elif defined(PWR_GENIE_MODE_SPL)
-      CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend(): "));
+      #ifndef QUIET_LOOP
+        CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend(): "));
+      #endif
       ssreader::DoSPLSend();
 
     // JKBMS request for data.
@@ -340,6 +342,8 @@ void loop() {
       }
     #endif
     
-    CONSOLELN(F("Loop Done. "));
+    #ifndef QUIET_LOOP
+      CONSOLELN(F("Loop Done. "));
+    #endif
   }
 }

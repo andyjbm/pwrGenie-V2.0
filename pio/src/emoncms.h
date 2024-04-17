@@ -59,24 +59,35 @@
     bool useHttps = false; if (ecmsParams.Port == 443) useHttps = true;
 
     if (useHttps){
-      CONSOLE(F("EMONCMS using https: ")); CONSOLELN((String)ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
-      CONSOLE(F("Connecting..."));
+      #ifndef QUIET_LOOP
+        CONSOLE(F("EMONCMS using https: ")); CONSOLELN((String)ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
+        CONSOLE(F("Connecting..."));
+      #endif
       ecms_secureClient.setInsecure(); // unfortunately necessary, ESP8266 does not support SSL without hard coding certificates
       if (!ecms_secureClient.connect(ecmsParams.server, 443)){
-        CONSOLE(F("secureClient.connect failed... ")); CONSOLELN(ecmsParams.server);
+        #ifndef QUIET_LOOP
+          CONSOLE(F("secureClient.connect failed... ")); CONSOLELN(ecmsParams.server);
+        #endif
         return false;
       } 
-      CONSOLE(F("secureClient connected... "));
+      #ifndef QUIET_LOOP
+        CONSOLE(F("secureClient connected... "));
+      #endif
       ecms_http.begin(ecms_secureClient, (String)ecmsParams.server, (int)ecmsParams.Port, (String)ecmsParams.uri, true);
-      CONSOLE(F("http.begin connected... "));
-
+      #ifndef QUIET_LOOP
+        CONSOLE(F("http.begin connected... "));
+      #endif
     } else {
 #endif
       // Insecure, no SSL. Need to do the POST way so we can accomodate a different port.
-      CONSOLE(F("EMONCMS using http: ")); CONSOLELN((String) ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
-      CONSOLE(F("Connecting..."));
+      #ifndef QUIET_LOOP
+        CONSOLE(F("EMONCMS using http: ")); CONSOLELN((String) ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
+        CONSOLE(F("Connecting..."));
+      #endif
       ecms_http.begin(ecms_client, (String)ecmsParams.server, (int)ecmsParams.Port, (String)ecmsParams.uri);
-      CONSOLE(F("http.begin connected... "));
+      #ifndef QUIET_LOOP
+        CONSOLE(F("http.begin connected... "));
+      #endif
 #ifdef SECURE_ENABLED  
     }
 #endif
@@ -99,20 +110,28 @@
     psuV.~String();
 
     //CONSOLELN(msg);
-    CONSOLE(F("calling http.POST()... "));
+    #ifndef QUIET_LOOP
+      CONSOLE(F("calling http.POST()... "));
+    #endif
     int httpCode;
     httpCode = ecms_http.POST(msg);    //Make the call.
 
     // httpCode will be 200 or 202 on success
-    CONSOLE(String("EMONCMS Result: ") + httpCode + String(", "));
+    #ifndef QUIET_LOOP
+      CONSOLE(String("EMONCMS Result: ") + httpCode + String(", "));
+    #endif
     ecms_LastResult = "Last EMONCMS: " + String(httpCode) + ", ";
     if (httpCode == 200 || httpCode == 202){
-      CONSOLELN(ecms_http.getString());
+      #ifndef QUIET_LOOP
+        CONSOLELN(ecms_http.getString());
+      #endif
       ecms_LastResult += ecms_http.getString();
     } else {
-      CONSOLELN(ecms_http.getString());
-      CONSOLELN(ecms_http.errorToString(httpCode));
-      CONSOLELN(String("EMONCMS POST data: ") + msg);
+      #ifndef QUIET_LOOP
+        CONSOLELN(ecms_http.getString());
+        CONSOLELN(ecms_http.errorToString(httpCode));
+        CONSOLELN(String("EMONCMS POST data: ") + msg);
+      #endif
       ecms_LastResult += ecms_http.getString() + ", " + ecms_http.errorToString(httpCode) + ", JSON: " + msg;
     }
     ecms_http.end();
