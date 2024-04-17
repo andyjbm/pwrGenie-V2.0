@@ -69,10 +69,10 @@
          {0b10101111, 0}, {0b10100000, 1}, {0b11001011, 2}, {0b11101001, 3}, 
          {0b11100100, 4}, {0b01101101, 5}, {0b01101111, 6}, {0b10101000, 7},
          {0b11101111, 8}, {0b11101101, 9},
-         {0b10111111, 0x10}, {0b10101000, 0x11}, {0b11011011, 0x12}, {0b11111001, 0x13}, 
+         {0b10111111, 0x10}, {0b10110000, 0x11}, {0b11011011, 0x12}, {0b11111001, 0x13}, 
          {0b11110100, 0x14}, {0b01111101, 0x15}, {0b01111111, 0x16}, {0b10111000, 0x17},
          {0b11111111, 0x18}, {0b11111101, 0x19}, 
-         {0b00000000, 0x00}   // This represents hundreds position for numbers => 99.9 when the 100s is off (not lit).
+         {0b00000000, 0x20}   // This represents hundreds position for numbers => 99.9 when the 100s is off (not lit).
          };
       
       volatile uint8_t sevenseg[4];
@@ -83,6 +83,7 @@
 
       bool digitNotFound = false;
       bool dpWrongPlace = false;
+      bool noDigitWrongPlace = false;
 
       //leq instance IDs
       uint8_t leq10sec;
@@ -190,7 +191,8 @@
       //Got one, now we can decode.
       dpWrongPlace = false;
       uint16_t splval = 0;
-      for (uint8_t digit=4; digit-- > 0;){            // For each digit...*NOTE* digit counts from 3 to zero! NOT 4 to 1.
+      uint8_t digit;
+      for (digit=4; digit-- > 0;){            // For each digit...*NOTE* digit counts from 3 to zero! NOT 4 to 1.
          splval *= 10;                                // Next digit.
          digitNotFound = true;
          for (uint8_t i=0; i<21; i++){                // Scan all possible 7 seg patterns for a match.
@@ -199,8 +201,10 @@
                digitNotFound = false;
 
                // Check dp is only present for digit 2. eg: 101.3
-               bool dp = ((sshashes[i].val & 0x10) == 0x10);  // Get the dp.
-               dpWrongPlace = (dp ^ (digit == 1)); // dp xor (digit is 2)
+               bool dp = ((sshashes[i].val & 0x10) == 0x10);  // Get the dp present flag.
+               dpWrongPlace = (dp ^ (digit == 1)); // dp xor. Only units digit has decimal point.
+               bool nd = ((sshashes[i].val & 0x20) == 0x20);  // Get the digit off flag.
+               noDigitWrongPlace = (nd ^ (digit == 3)); // Only the hundreds digit is allowed to be off.
                break; // Save time.
             }
          }
@@ -214,15 +218,42 @@
             leq::resetAll();
          } 
       }
- 
+
+      static String isrReadError = "";
+      static uint16_t isrREcount = 0;
+      if (digitNotFound || dpWrongPlace || noDigitWrongPlace || !(splval > 0 && splval < 1501)){
+         isrREcount++;   
+         isrReadError = "[{m}]: count:{c}, dnf:{dnf}: digit:{d}, dpwp:{dpwp}, ndwp:{ndwp}, spl:[{spl}], 7seg:<{ss3}, {ss2}, {ss1}, {ss0}>";
+   
+         isrReadError.replace(FPSTR("{m}"),     String(millis()));
+         isrReadError.replace(FPSTR("{c}"),     String(isrREcount));
+         isrReadError.replace(FPSTR("{dnf}"),   String(digitNotFound));
+         isrReadError.replace(FPSTR("{d}"),     String(digit));
+         isrReadError.replace(FPSTR("{dpwp}"),  String(dpWrongPlace));
+         isrReadError.replace(FPSTR("{ndwp}"),  String(noDigitWrongPlace));
+         isrReadError.replace(FPSTR("{spl}"),   String(splval));
+
+         isrReadError.replace(FPSTR("{ss3}"), String(sevenseg[3]));
+         isrReadError.replace(FPSTR("{ss2}"), String(sevenseg[2]));
+         isrReadError.replace(FPSTR("{ss1}"), String(sevenseg[1]));
+         isrReadError.replace(FPSTR("{ss0}"), String(sevenseg[0]));
+         CONSOLELN(isrReadError);
+      }
+
+      
       isr_reset();  // Done decoding. Setup the skittles ready for the next data packet.
- 
-      // Quit if outside range - something went wrong with decoding?
-      if (digitNotFound || dpWrongPlace) return;
+
+      // Quit if outside range or something went wrong with decoding.
+      if (digitNotFound || dpWrongPlace || noDigitWrongPlace) return;
       if (!(splval > 0 && splval < 1501)) return;
 
       // splval is now = dB * 10   
-      LEQInfo = leq::addVal(splval);  // Add the new SPL to all leq instances.
+      if (isrReadError.isEmpty()) {
+         LEQInfo = "";
+      } else {
+         LEQInfo = isrReadError + FPSTR("<br>");
+      }
+      LEQInfo += leq::addVal(splval);  // Add the new SPL to all leq instances. Return is error info.
 
       #if 0
          //CONSOLE(F("SPL= ")); CONSOLE(db);

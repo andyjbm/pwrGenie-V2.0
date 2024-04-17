@@ -175,16 +175,6 @@
       bool avgLEQ::bufferOverflow = false;   // Initialise class static.
       byte leqIDcount = 0;                   // LEQ Class instance index. 
 
-   //   uint16_t consecDupes = 0;
-   //   uint16_t oRange = 0;
-   //   String lastoRange = "";
-   //   uint16_t oRange = 0;
-   //   String lastoRange = "";
-   //   uint16_t dpwpCount = 0;
-   //   String lastdpWP ="";
-   //   uint16_t digitNFCount = 0;
-   //   String lastdnf ="";
-
       // Make a new LEQ, add it to the Array of LEQs and return its unique ID.
       uint8_t newLEQ(uint16_t LEQSizeInSec){
          if (leqIDcount >= MAX_LEQS) return -1; // No more LEQs available.
@@ -195,26 +185,9 @@
          return leqIDcount++;    // Return the ID of the new LEQ.
       }
 
-      //String last10spl(){
-      //    String last10spl = "BufLast30: ";
-      //
-      //    for (uint8_t i=1; i<31;i++){
-      //       if (i!=1) last10spl += ", ";
-      //       last10spl += String(LEQbuffer[(BufInIndex-i + maxBufferSize) % maxBufferSize].toDouble(), 6);
-      //    }
-      //    return last10spl;
-      // }
-
       String getLEQInfo(uint16_t sampleTime){
 
-         String LEQInfo = ""; //last10spl() + "<br>" 
-      //   LEQInfo += FPSTR("oRange: "); LEQInfo += oRange;
-      //   LEQInfo += FPSTR(":> "); LEQInfo += lastoRange;
-      //   LEQInfo += FPSTR(", dpWP: "); LEQInfo += dpwpCount;
-      //   LEQInfo += FPSTR(":> "); LEQInfo += lastdpWP;
-      //   LEQInfo += FPSTR(", DNF: "); LEQInfo += digitNFCount;
-      //   LEQInfo += FPSTR(":> "); LEQInfo += lastdnf;
-      //   LEQInfo += "<br>";
+         String LEQInfo = "";
          
          for (byte i=0; i < leqIDcount;i++){
             LEQInfo += String(F("ID: ")) + i + ", " + leqArray[i]->getInfo() + "<br>";
@@ -235,31 +208,10 @@
          static uint32_t thisMillis = 0;                 // STATIC! Initialised only once!
          static uint16_t lastspldB = 0;
    
-         #if 0 // Done in spl decoding loop now.
-         // Main Range checks.
-         if (!(spldB > 0 && spldB < 1501)){
-            lastoRange += ":" + String(spldB);
-            oRange ++;
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-         }
-
-         if (dpWrongPlace){
-            lastdpWP += ":" + String(spldB);
-            dpwpCount ++;
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-         }
-         if (digitNotFound){
-            lastdnf += ":" + String(spldB);
-            digitNFCount ++;
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
-         }
-         #endif
-
          // Explanation: The SPL meter in fast mode sends new packets every 120ms but only updates data value every 500ms (approx).
          // Rather than fill the buffer & use RAM unnecessarily we just let the sampletime increase for this dupe value until we receive a different value.
          
          if (spldB == lastspldB && (millis() - thisMillis < 800)) { // But we don't want consecutive dupes indefinately otherwise the graph will look odd.
-   //         consecDupes ++;
             return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
          }
          lastspldB = spldB;
@@ -271,8 +223,7 @@
          float bels = spldB / 100.0;
          float splPwrTen = pow(10, bels-4) / float16scale;   // then raise to 10^x and scale /10,000 (-4 exponent)
          
-         if (splPwrTen < 0 || splPwrTen > 65504) {
-   //         pwr10Error ++;
+         if (splPwrTen < 0 || splPwrTen > 65504) {  // Quit if we are going to blow up float16
             return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
          }
 
@@ -281,19 +232,10 @@
          uint16_t sampleTime = thisMillis - lastMillis;  // Something's wrong if we're waiting more than a minute between samples!
          
          // Insert the values into the buffers.
-         float16 splfloat16 = (float16)splPwrTen;  // Convert once & use same to add to buffer and to LEQ splsums.
+         float16 splfloat16 = (float16)splPwrTen;  // Convert once & use same to add to float16 buffer and to float32 LEQ splsums.
          LEQbuffer[BufInIndex] = splfloat16;
          timeBuffer[BufInIndex] = sampleTime;
          BufInIndex = (BufInIndex + 1) % maxBufferSize;  // Round Robin (FIFO...)
-
-         // If we need more bufferspace then increase them here.
-         /* Great idea, but q**ks everything up. Best start with an array that's the right size in the 1st place.
-               if (LEQSampleCount +1 >= maxBufferSize){
-                  maxBufferSize += 10; // Add ten more values
-                  LEQbuffer.resize(10);
-                  timeBuffer.resize(10);
-               }
-         */
 
          //Allow each LEQ add the values to their own sums and increment their own BufOut pointers & counters.
          avgLEQ::bufferOverflow = false;
