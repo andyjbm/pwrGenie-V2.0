@@ -13,15 +13,19 @@ Important Notes so far
 You will need to open the Secrets_h.example file, put your emoncms APIKEYS in there adn rename it to Secrets.h for the source to compile. See the comments in the file.
 
 Still in testing:
-    modbus devices EM21, APMx03 DSE - testing new SoftwareSerial library compatibility. There may be issues.
+    Nothing atm.
 
 Working:
+    Refactor to spl and leq to allow the splmeter to run in fast mode without breaking the data.
+    Implemented float16 library (see credits) in leq to be able to use a bigger leq buffer for the same RAM.
+
+    modbus working properly with softwareserialisr now. Lots of refactoring to make it easier to add new modbus devices and protocols.
     JKBMS, SPL Meter, on the following boards:
 
     ESP32 boards:
         d1-mini-esp32
         ESP32doit-devkit-v1
-        ESP32-S2-mini (mine is a bit flakey (reboots every 2-3hrs) but I think that's because it's a chinese knock off.)
+        ESP32-S2-mini (mine is a bit flakey (reboots every 2-3hrs) but I think that's because it's a chinese knock off. Every other board I've tested has been stable.)
     
     ESP8266 boards: 
         lolin ESP8266 d1-mini
@@ -52,5 +56,6 @@ Credits:
     SoftwareSerial:          https://github.com/CrazyRobMiles/Esp8266EdgeSoftwareSerial
     modbus-esp8266:          https://registry.platformio.org/libraries/emelianov/modbus-esp8266                  
     ArduinoJson:             https://registry.platformio.org/libraries/bblanchon/ArduinoJson
+    float16:                 https://github.com/RobTillaart/float16
     getFrameworkVersions.py  Anon from somewhere - StackOverflow possibly... I'm still searching my google history!
 Apologies to those I've missed, they will be added as and when I realise!
