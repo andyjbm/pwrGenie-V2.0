@@ -25,7 +25,7 @@
       
       // Buffer indexes & sizes
       uint16_t BufInIndex;
-      const uint16_t maxBufferSize = MAXLEQSIZE * 2.15; // Max array size. Not a define so that the calc only happens once and here.
+      const uint16_t maxBufferSize = MAXLEQSIZE * 2; // Max array size. Not a define so that the calc only happens once and here.
       const float float16scale = 1526624;  // For getting dB linear to fit into a float16. Effectively sets max float16 to 150dB. scale = POWER(10,E1) where E1 = 14-3-LOG10(65504)  
 
       //These buffers are to keep track of the time between samples. By summing these samples 

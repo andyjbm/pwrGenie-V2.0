@@ -26,7 +26,7 @@
 
    // SPL LEQ results:
    struct splData {
-         float leq10sec;
+         float leq60sec;
          float leq5;
          float leq15;
          float leq5IsValid;
@@ -86,7 +86,7 @@
       bool noDigitWrongPlace = false;
 
       //leq instance IDs
-      uint8_t leq10sec;
+      uint8_t leq60sec;
       uint8_t leq5;
       uint8_t leq15;
 
@@ -103,9 +103,9 @@
    void ssreader::begin() { // "static" class so using namespace and begin instead of ctor.
 
       // Initialise some LEQ instances (in seconds)...
-      leq10sec = leq::newLEQ(10);
-      leq5 = leq::newLEQ(60 * 5);
-      leq15 = leq::newLEQ(60 * 15);
+      leq60sec = leq::newLEQ(60);
+      leq5     = leq::newLEQ(60 * 5);
+      leq15    = leq::newLEQ(60 * 15);
 
       // make safe while we config the hardware.
       SPL_Complete = true;
@@ -257,7 +257,7 @@
 
       #if 0
          //CONSOLE(F("SPL= ")); CONSOLE(db);
-         leq::leqArray[leq10sec]->printInfo();
+         leq::leqArray[leq60sec]->printInfo();
          leq::leqArray[leq5]->printInfo();
          leq::leqArray[leq15]->printInfo();
       #endif
@@ -266,7 +266,7 @@
    // Called by foreground loop every x seconds to send data to emoncms.
    void ssreader::DoSPLSend() {
       splData splD;
-      splD.leq10sec = leq::leqArray[leq10sec]->read();
+      splD.leq60sec = leq::leqArray[leq60sec]->read();
       splD.leq5 = leq::leqArray[leq5]->read();
       splD.leq15 = leq::leqArray[leq15]->read();
 
