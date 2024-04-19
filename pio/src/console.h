@@ -18,6 +18,12 @@
         #define PWRGENIE_CONSOLE      Serial
       #endif
 
+      #define PP_THIRD_ARG(a,b,c,...) c
+      #define VA_OPT_SUPPORTED_I(...) PP_THIRD_ARG(__VA_OPT__(,),true,false,)
+      #define VA_OPT_SUPPORTED VA_OPT_SUPPORTED_I(?)
+
+      static_assert(VA_OPT_SUPPORTED);
+
       // Really knatty code for recursing a macro. See here:  
       // https://www.scs.stanford.edu/~dm/blog/va-opt.html
       #define PARENS ()
@@ -28,13 +34,12 @@
       #define EXPAND1(...) __VA_ARGS__
     
       #define FOR_EACH(macro, ...) __VA_OPT__(EXPAND(FOR_EACH_HELPER(macro, __VA_ARGS__)))
-      #define FOR_EACH_AGAIN() FOR_EACH_HELPER
       #define FOR_EACH_HELPER(macro, a1, ...) macro(a1) __VA_OPT__(PG_SEPARATOR FOR_EACH_AGAIN PARENS (macro, __VA_ARGS__))
-    
+      #define FOR_EACH_AGAIN() FOR_EACH_HELPER
+      
       //Now my implementation.
       #define PG_SEPARATOR FE_PRINT(" ")
       #define FE_PRINT(x) PWRGENIE_CONSOLE.print(x);
-
 
       // These will expand 342? times printing " " (by executing PG_SEPARATOR) between each arg.
       // The expansion can make compiler warning output look messy if you don't use CONSOLE() correctly.
