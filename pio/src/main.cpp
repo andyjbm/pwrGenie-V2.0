@@ -16,16 +16,15 @@ Credits to:
 #include <Arduino.h>
 #include <ESP.h>
 
-#include <FS.h>                    //this needs to be first, or it all crashes and burns...
-#include <LittleFS.h>
+#include <LittleFS.h>             //Needed by wifiManager
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
 #include "defs.h"
 #include "Globals.h"
 #include "Utils.h"
 
-#include "uriwildcard.h"          // Must come b4 wifimanager to override uri.h
-#include "ESPAsync_WiFiManager.h"
+#include "uriwildcard.h"            // Must come b4 wifimanager to override uri.h
+#include "ESPAsync_WiFiManager.h"   // Needs defs.h first.
 
 #ifdef PWR_GENIE_MODE_MODBUS
   #include "modbus.h"
