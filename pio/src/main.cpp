@@ -24,7 +24,7 @@ Credits to:
 #include "Utils.h"
 
 #include "uriwildcard.h"            // Must come b4 wifimanager to override uri.h
-#include "ESPAsync_WiFiManager.h"   // Needs defs.h first.
+#include "ESPAsync_WiFiManager.h"   // Needs LittleFS and defs.h first.
 
 #ifdef PWR_GENIE_MODE_MODBUS
   #include "modbus.h"
