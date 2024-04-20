@@ -16,13 +16,19 @@
     #error Architecture unrecognized by this code.   
   #endif
 
-#ifdef SECURE_ENABLED  
-  #include <WiFiClientSecure.h>
-#endif
+  #ifdef SECURE_ENABLED  
+    #include <WiFiClientSecure.h>
+  #endif
+
+  WiFiClient ecms_client;
+  #ifdef SECURE_ENABLED
+    WiFiClientSecure ecms_secureClient;
+  #endif
+  HTTPClient ecms_http;
 
   extern float psuVolts;
-  String ecms_LastResult = "";          // Used to transfer to debug page call
-  String strJsonData = new char[1024];  // Global. Keep our place on the heap.
+  String ecms_LastResult  = "";          // Used to transfer to debug page call
+  String strJsonData      = ""; // new char[1024];  // Global. Keep our place on the heap.
 
   namespace emoncms {
     bool send2emoncms(const char * const ecmsDataNames[], float * ecmsResults, int arraySize);
@@ -47,11 +53,6 @@
     return true;
   }
   
-  WiFiClient ecms_client;
-#ifdef SECURE_ENABLED
-    WiFiClientSecure ecms_secureClient;
-#endif
-  HTTPClient ecms_http;
   bool emoncms::send2emoncms(const String &strJsonData ){
     // The uri looks like "/emoncms/input/post".
 
