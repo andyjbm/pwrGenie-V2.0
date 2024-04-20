@@ -25,7 +25,7 @@
       
       // Buffer indexes & sizes
       uint16_t BufInIndex;
-      const uint16_t maxBufferSize = MAXLEQSIZE * 2; // Max array size. Not a define so that the calc only happens once and here.
+      const uint16_t maxBufferSize = MAXLEQSIZE * 1.9; // Max array size. Not a define so that the calc only happens once and here.
       const float float16scale = 1526624;  // For getting dB linear to fit into a float16. Effectively sets max float16 to 150dB. scale = POWER(10,E1) where E1 = 14-3-LOG10(65504)  
 
       //These buffers are to keep track of the time between samples. By summing these samples 
@@ -185,22 +185,20 @@
          return leqIDcount++;    // Return the ID of the new LEQ.
       }
 
-      String getLEQInfo(uint16_t sampleTime){
+      void getLEQInfo(String &sLeqInfo, uint16_t sampleTime){
 
-         String LEQInfo = "";
-         
          for (byte i=0; i < leqIDcount;i++){
-            LEQInfo += String(F("ID: ")) + i + ", " + leqArray[i]->getInfo() + "<br>";
+            sLeqInfo += String(F("ID: ")) + i + ", " + leqArray[i]->getInfo() + "<br>";
          }
-         LEQInfo += String(F("BufInIx: "))        + String(BufInIndex);
-         LEQInfo += String(F(", sampleTime: "))   + String(sampleTime);
+         sLeqInfo += String(F("BufInIx: "))        + String(BufInIndex);
+         sLeqInfo += String(F(", sampleTime: "))   + String(sampleTime);
          if (avgLEQ::bufferOverflow) { // static across all instances.
-            LEQInfo += String(F("<br><b>BufferOverflow: *TRUE!* Broken! Put Meter in SLOW!</b>"));
+            sLeqInfo += String(F("<br><b>BufferOverflow: *TRUE!* Broken! Put Meter in SLOW!</b>"));
          }
-         return LEQInfo;
+         return;
       }
 
-       String addVal(uint16_t spldB){  // This is spl * 10. eg 1054  = 105.4dB
+       void addVal(uint16_t spldB, String  &strInfo){  // This is spl * 10. eg 1054  = 105.4dB
          #ifdef LEQ_DEBUG
             CONSOLE(F("Buffer: ")); for (short i=0; i<10; i++){CONSOLE(timeBuffer[i]); CONSOLE(" ");}
          #endif
@@ -212,7 +210,8 @@
          // Rather than fill the buffer & use RAM unnecessarily we just let the sampletime increase for this dupe value until we receive a different value.
          
          if (spldB == lastspldB && (millis() - thisMillis < 800)) { // But we don't want consecutive dupes indefinately otherwise the graph will look odd.
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+            getLEQInfo(strInfo, millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+            return;
          }
          lastspldB = spldB;
 
@@ -224,7 +223,8 @@
          float splPwrTen = pow(10, bels-4) / float16scale;   // then raise to 10^x and scale /10,000 (-4 exponent)
          
          if (splPwrTen < 0 || splPwrTen > 65504) {  // Quit if we are going to blow up float16
-            return getLEQInfo(millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+            getLEQInfo(strInfo, millis() - thisMillis); // Actually lastMillis but we don't want to commit yet.
+            return;
          }
 
          uint32_t lastMillis = thisMillis;
@@ -243,7 +243,8 @@
             leqArray[i]->addval(splfloat16, sampleTime);
          }
 
-      return getLEQInfo(sampleTime);
+         getLEQInfo(strInfo, sampleTime);
+         return;
       }
 
        // Reset 30 sec after startup to allow for meter handling and placement

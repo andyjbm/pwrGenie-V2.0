@@ -91,7 +91,7 @@
       uint8_t leq15;
 
       bool reset30sec = false;
-      String LEQInfo = "";
+      String LEQInfo  = "";
 
       void begin();
       void isr_reset();
@@ -103,7 +103,7 @@
    void ssreader::begin() { // "static" class so using namespace and begin instead of ctor.
 
       // Initialise some LEQ instances (in seconds)...
-      leq60sec = leq::newLEQ(60);
+      leq60sec = leq::newLEQ(10);
       leq5     = leq::newLEQ(60 * 5);
       leq15    = leq::newLEQ(60 * 15);
 
@@ -223,7 +223,7 @@
       static uint16_t isrREcount = 0;
       if (digitNotFound || dpWrongPlace || noDigitWrongPlace || !(splval > 0 && splval < 1501)){
          isrREcount++;   
-         isrReadError = "[{m}]: count:{c}, dnf:{dnf}: digit:{d}, dpwp:{dpwp}, ndwp:{ndwp}, spl:[{spl}], 7seg:<{ss3}, {ss2}, {ss1}, {ss0}>";
+         isrReadError = FPSTR("[{m}]: count:{c}, dnf:{dnf}: digit:{d}, dpwp:{dpwp}, ndwp:{ndwp}, spl:[{spl}], 7seg:<{ss3}, {ss2}, {ss1}, {ss0}>");
    
          isrReadError.replace(FPSTR("{m}"),     String(millis()));
          isrReadError.replace(FPSTR("{c}"),     String(isrREcount));
@@ -240,7 +240,6 @@
          CONSOLELN(isrReadError);
       }
 
-      
       isr_reset();  // Done decoding. Setup the skittles ready for the next data packet.
 
       // Quit if outside range or something went wrong with decoding.
@@ -253,7 +252,7 @@
       } else {
          LEQInfo = isrReadError + FPSTR("<br>");
       }
-      LEQInfo += leq::addVal(splval);  // Add the new SPL to all leq instances. Return is error info.
+      leq::addVal(splval, LEQInfo);  // Add the new SPL to all leq instances. Return is error info.
 
       #if 0
          //CONSOLE(F("SPL= ")); CONSOLE(db);
