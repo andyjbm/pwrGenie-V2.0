@@ -594,7 +594,7 @@ class ESPAsync_WiFiManager
     // returns the Parameters Count
     int           getParametersCount();
 
-    const char*   getStatus(const int& status);
+    const __FlashStringHelper * getStatus(const int& status);
 
 #ifdef ESP32
     String getESP32WiFiSSID();

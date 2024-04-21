@@ -986,7 +986,7 @@ int ESPAsync_WiFiManager::connectWifi(const String& ssid, const String& pass)
 
   int connRes = waitForConnectResult();
 
-  LOGWARN1("Connection result: ", getStatus(connRes));
+  LOGWARN1(F("Connection result: "), getStatus(connRes));
 
   //not connected, WPS enabled, no pass - first attempt
   if (_tryWPS && connRes != WL_CONNECTED && pass == "")
@@ -1034,32 +1034,32 @@ void ESPAsync_WiFiManager::startWPS()
 
 //Convenient for debugging but wasteful of program space.
 //Remove if short of space
-const char* ESPAsync_WiFiManager::getStatus(const int& status)
+const __FlashStringHelper * ESPAsync_WiFiManager::getStatus(const int& status)
 {
   switch (status)
   {
     case WL_IDLE_STATUS:
-      return "WL_IDLE_STATUS";
+      return F("WL_IDLE_STATUS");
 
     case WL_NO_SSID_AVAIL:
-      return "WL_NO_SSID_AVAIL";
+      return F("WL_NO_SSID_AVAIL");
 
     case WL_CONNECTED:
-      return "WL_CONNECTED";
+      return F("WL_CONNECTED");
 
     case WL_CONNECT_FAILED:
-      return "WL_CONNECT_FAILED";
+      return F("WL_CONNECT_FAILED");
 
 #if ESP8266
     case WL_WRONG_PASSWORD:
-      return "WL_WRONG_PASSWORD";
+      return F("WL_WRONG_PASSWORD");
 #endif
 
     case WL_DISCONNECTED:
-      return "WL_DISCONNECTED";
+      return F("WL_DISCONNECTED");
 
     default:
-      return "UNKNOWN";
+      return F("UNKNOWN");
   }
 }
 
