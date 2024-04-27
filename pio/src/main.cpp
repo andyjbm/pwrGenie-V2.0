@@ -50,6 +50,7 @@ AsyncDNSServer dnsServer;
 ESPAsync_WiFiManager wm(&webServer, &dnsServer, "ESP_WebServer");
 
 unsigned long milliCounter;   // For the loop timer.
+bool reconnect = false;
 
 //Callback after changes to Wifi page or Config page.
 void paramsChangedCallback() {
@@ -58,6 +59,7 @@ void paramsChangedCallback() {
   retrieve_WM_Params();
   
   saveConfig();     // save the custom parameters to FS
+  reconnect = true; // Maybe recode so we only do this if wifi creds have actually changed.
 }
 
 AsyncWebServerResponse *addHeaders(AsyncWebServerResponse *response){
@@ -266,6 +268,14 @@ void loop() {
         ssreader::SPL_Complete = true;
   }
 #endif
+
+  // Reconnect the wifi
+  if (reconnect)
+  { 
+    reconnect=false;
+    CONSOLELN(F("Reconnect has been requested..."));
+    wm.autoConnect(my_APSSID,my_APPassword);
+  }
 
   // For OTA servicing, device reset and other restart needs.
   if (wm.restartMe)
