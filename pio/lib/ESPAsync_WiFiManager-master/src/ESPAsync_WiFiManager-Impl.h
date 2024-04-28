@@ -2445,7 +2445,7 @@ String ESPAsync_WiFiManager::buildHeader(String pageTitle, String pageHeading, S
 
   // Title, Hostname and IP address:
   String str = FPSTR(HTTP_PAGE_MAIN1); // Tokens {t}, {h} {ip}
-  str.replace(T_t,pageHeading);
+  str.replace(T_t, pageHeading);
   str.replace(T_h, getWiFiHostname());
   str.replace(T_i, WiFi.localIP().toString());
   page += str;
