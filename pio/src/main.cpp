@@ -59,6 +59,8 @@ void paramsChangedCallback() {
   retrieve_WM_Params();
   
   saveConfig();     // save the custom parameters to FS
+  
+  if (!((String)my_hostname).isEmpty()) {wm.setRFC952_hostname(my_hostname);}
   reconnect = true; // Maybe recode so we only do this if wifi creds have actually changed.
 }
 
