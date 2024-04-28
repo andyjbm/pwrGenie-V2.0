@@ -103,7 +103,7 @@
    void ssreader::begin() { // "static" class so using namespace and begin instead of ctor.
 
       // Initialise some LEQ instances (in seconds)...
-      leq60sec = leq::newLEQ(10);
+      leq60sec = leq::newLEQ(60);
       leq5     = leq::newLEQ(60 * 5);
       leq15    = leq::newLEQ(60 * 15);
 
