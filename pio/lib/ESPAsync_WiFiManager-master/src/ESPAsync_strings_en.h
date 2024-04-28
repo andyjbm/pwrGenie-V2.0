@@ -86,7 +86,6 @@ const char WM_HTTP_HEAD_START[] PROGMEM = "<!DOCTYPE html><html lang='en'><head>
 	"<meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'/>"
 	"<title>{v}</title>";
 
-//const char WM_HTTP_HEAD_END[] PROGMEM = "</head><body><div class='container'><div style='text-align:left;display:inline-block;min-width:260px;'>";
 const char WM_HTTP_HEAD_END[] PROGMEM = "</head><body><div class='container'>";
 
 const char WM_HTTP_200[]      PROGMEM = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
@@ -171,7 +170,6 @@ const char HTTP_FORM_LABEL[]       PROGMEM = "<label for='{i}'>{t}</label>";
 const char HTTP_FORM_PARAM[]       PROGMEM = "<br/><input id='{i}' name='{n}' maxlength='{l}' value='{v}' {c}>\n"; // do not remove newline!
 const char HTTP_FORM_BOOL_PARAM[]  PROGMEM = "<input type='checkbox' id='{i}' name='{n}' length='{l}' value='1' {c}><br/>";
 
-//const char HTTP_ROOT_MAIN[]        PROGMEM = "<h1>{t}</h1><h3 style='font-size: 1.1em'>{v}</h3>";
 const char HTTP_PAGE_MAIN1[]       PROGMEM = "<div class='tdiv'><small class='fr'>{fh}</small><h1>{t}</h1><h3><span class='fl'>{h}</span><span class='fr'>{i}</span></h3>";
 const char HTTP_PAGE_MAIN2[]	   PROGMEM = "<table style='width:100%'><tr><td><b>Uptime:</b>{1}h {2}m {3}s</td><td><b>PSU:</b>{p}v</td><td class='tar'><b>FW:</b>{m}</td></tr></table></div>";
 const char HTTP_PAGE_MAIN3[]	   PROGMEM = "<p><small>{h}</small></p>";
@@ -180,7 +178,6 @@ const char HTTP_FORM_PARAM_HEAD[]  PROGMEM = "Configure Device Parameters";
 const char HTTP_FORM_WIFI_HEAD[]   PROGMEM = "Configure Device Wifi";
 const char HTTP_FORM_INFO_HEAD[]   PROGMEM = "Device Info";
 const char HTTP_FORM_END[]         PROGMEM = "<br/><br/><button type='submit'>Save</button></form>";
-
 
 #if USE_ESP_WIFIMANAGER_NTP
 
