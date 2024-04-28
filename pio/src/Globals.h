@@ -16,10 +16,21 @@
         pgMode_Opt_Both_Source_n_Send
     };
 
-    const char DEFAULT_SSID[]           PROGMEM = "pwrGenie-cfg";
-    const char DEFAULT_SSID_PASSWORD[]  PROGMEM = "pwrgenie";
-    const char DEFAULT_AP_PASSWORD[]    PROGMEM = "pwrgenie";
 
+    #ifndef DEFAULT_AP_PASSWORD
+        #define DEFAULT_AP_PASSWORD "pwrgenie"
+    #endif
+    #ifndef DEFAULT_SSID
+        #define DEFAULT_SSID "pwrGenie-cfg"
+    #endif
+    #ifndef DEFAULT_SSID_PW
+        #define DEFAULT_SSID_PW "pwrgenie"
+    #endif
+
+    const char default_AP_PASSWORD[]    PROGMEM = DEFAULT_AP_PASSWORD;
+    const char default_SSID[]           PROGMEM = DEFAULT_SSID;
+    const char default_SSID_PASSWORD[]  PROGMEM = DEFAULT_SSID_PW;
+    
     //Custom http:
     //const char TYPE_HIDDEN[] PROGMEM = "type=\"hidden\"";
     const char TYPE_NUMBER[] PROGMEM = "type=\"number\" step=\"any\"";

@@ -20,9 +20,9 @@
     strcpy(my_devicename, defaultstr.c_str());
     strcpy(my_hostname, defaultstr.c_str());
     strcpy(my_APSSID, defaultstr.c_str());
-    strcpy(my_APPassword, String(FPSTR(DEFAULT_AP_PASSWORD)).c_str());
-    strcpy(my_wifiSSID, String(FPSTR(DEFAULT_SSID)).c_str());
-    strcpy(my_wifiPassword, String(FPSTR(DEFAULT_SSID_PASSWORD)).c_str());
+    strcpy(my_APPassword, String(FPSTR(default_AP_PASSWORD)).c_str());
+    strcpy(my_wifiSSID, String(FPSTR(default_SSID)).c_str());
+    strcpy(my_wifiPassword, String(FPSTR(default_SSID_PASSWORD)).c_str());
     my_wifiSSID1[0] = 0;
     my_wifiPassword1[0] = 0;
   }
