@@ -2,9 +2,6 @@
 #ifndef CONSOLE_H
    #define CONSOLE_H
 
-
-
-
    // Turn off console output globally. 
     #ifdef NO_CONSOLE
       #define CONSOLE(...) do {} while (0)

@@ -9,6 +9,7 @@
 
   #include "defs.h"
   #include "Globals.h"
+  #include "wmparams.h"
 
   extern ESPAsync_WiFiManager wm;
 
