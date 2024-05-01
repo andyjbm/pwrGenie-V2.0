@@ -68,10 +68,11 @@
   //   return encodedstr;
   // }
 
-  float ReadPsuVolts(float my_vfact) {
+  float ReadPsuVolts(float vfactor) {
     //return 100; // Temp while we debug wifi
     analogRead(A0); // Dump the 1st read because wifi also uses ADC.
-    float psuVolts = ((float)(analogRead(A0) / my_vfact));
+    float psuVolts = ((float)(analogRead(A0) / vfactor));
+    if (psuVolts < 0 || psuVolts > 99) psuVolts=999; // Check for broken config or psuVolts out of range.
     return psuVolts;
   }
 

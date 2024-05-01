@@ -87,14 +87,14 @@
     new ESPAsync_WMParameter("P11", FPSTR(pgpNames[pgParam::username]),    emtDM, USRNSIZE),
     new ESPAsync_WMParameter("P12", FPSTR(pgpNames[pgParam::password]),    emtDM, PWDSIZE),
 
-    new ESPAsync_WMParameter("P21", FPSTR(pgpNames[pgParam::vfact]),       emtDM, 7, (const char*)FPSTR(TYPE_NUMBER)),
+    new ESPAsync_WMParameter("P21", FPSTR(pgpNames[pgParam::vfact]),       "150", 7, (const char*)FPSTR(TYPE_NUMBER)), // Default Voltage Scale.
     new ESPAsync_WMParameter ("<hr>"), // Line Break
     new ESPAsync_WMParameter("P22", FPSTR(pgpNames[pgParam::pg_Mode]),     emtDM, NUMBERSIZE, "", 1, WMParam_type::isSelection, pgModeOptions, pgModeOptionsCount),
     new ESPAsync_WMParameter("<hr>"),  // Line Break
     
     new ESPAsync_WMParameter("E01", FPSTR(pgpNames[pgParam::e_server]),    EMONCMS_DEFAULT_URL,    NAMESIZE),
     new ESPAsync_WMParameter("E02", FPSTR(pgpNames[pgParam::e_uri]),       EMONCMS_DEFAULT_URI,    URISIZE),
-    new ESPAsync_WMParameter("E03", FPSTR(pgpNames[pgParam::e_Port]),      "443",                  7, (const char*)FPSTR(TYPE_NUMBER)),
+    new ESPAsync_WMParameter("E03", FPSTR(pgpNames[pgParam::e_Port]),      "443", 7, (const char*)FPSTR(TYPE_NUMBER)),
     new ESPAsync_WMParameter("E04", FPSTR(pgpNames[pgParam::e_node]),      EMONCMS_FACTORY_NODE,   NODESIZE),
     new ESPAsync_WMParameter("E05", FPSTR(pgpNames[pgParam::e_apikey]),    EMONCMS_DEFAULT_APIKEY, APIKEYSIZE),
   };

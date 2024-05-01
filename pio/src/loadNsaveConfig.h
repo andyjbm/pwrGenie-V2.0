@@ -56,8 +56,8 @@
     jsonDoc["P13"] = wm.getSSID1();   
     jsonDoc["P14"] = wm.getPW1(); 
     
-    jsonDoc["P21"] = wm.getParameter(pgParam::vfact)->getParam_asFloat();
-    jsonDoc["P22"] = wm.getParameter(pgParam::pg_Mode)->getParam_asInt();
+    jsonDoc["P21"] = wm.getParameter(pgParam::vfact)->getParam_asString();   // Save number to jSon as string.
+    jsonDoc["P22"] = wm.getParameter(pgParam::pg_Mode)->getParam_asString();
 
     jsonDoc["E01"] = wm.getParameter(pgParam::e_server)->getParam_asString();
     jsonDoc["E02"] = wm.getParameter(pgParam::e_uri)->getParam_asString();
@@ -180,7 +180,6 @@
             if (jsonDoc.containsKey("P14")) strcpy(pg_wifiPassword1, jsonDoc["P14"]); // = (const char *)jsonDoc["wifiPassword"];
 
             if (jsonDoc.containsKey("P21")) wm.getParameter(pgParam::vfact)     ->setValue(jsonDoc["P21"]);
-            if (jsonDoc.containsKey("P21")) wm.getParameter(pgParam::vfact)     ->setValue(jsonDoc["P21"]);
             if (jsonDoc.containsKey("P22")) wm.getParameter(pgParam::pg_Mode)   ->setValue(jsonDoc["P22"]);
 
             if (jsonDoc.containsKey("E01")) wm.getParameter(pgParam::e_server)  ->setValue(jsonDoc["E01"]);
@@ -191,9 +190,9 @@
 
             //Globals we do need...
             strcpy(pgHostname,    wm.getParameter(pgParam::hostname)->getParam_asString().c_str());
-            pgMode     = wm.getParameter(pgParam::pg_Mode)->getParam_asInt();
             strcpy(pg_APSSID,     wm.getParameter(pgParam::APSSID)->getParam_asString().c_str()); 
-            strcpy(pg_APPassword, wm.getParameter(pgParam::APPassword)->getParam_asString().c_str()); 
+            strcpy(pg_APPassword, wm.getParameter(pgParam::APPassword)->getParam_asString().c_str());
+            pgMode =              wm.getParameter(pgParam::pg_Mode)->getParam_asInt();
 
             if (String(jsonFileVersion).isEmpty()) {
               CONSOLELN(F("Config File Version missing - resaving..."));
