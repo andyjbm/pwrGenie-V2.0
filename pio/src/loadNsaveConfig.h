@@ -15,16 +15,22 @@
   //Reset the device ident type parameters to factory defaults
   void resetAPcreds(){
     String defaultstr = "pwrGenie-" + String(wm.getChipID(),HEX); // For esp8266
-    CONSOLE(F("Defaultstr will be: ")); CONSOLELN(defaultstr);
+    CONSOLE(F("Reset Creds>> defaultstr will be: ")); CONSOLELN(defaultstr);
 
-    strcpy(my_devicename, defaultstr.c_str());
-    strcpy(my_hostname, defaultstr.c_str());
-    strcpy(my_APSSID, defaultstr.c_str());
-    strcpy(my_APPassword, String(FPSTR(default_AP_PASSWORD)).c_str());
-    strcpy(my_wifiSSID, String(FPSTR(default_SSID)).c_str());
-    strcpy(my_wifiPassword, String(FPSTR(default_SSID_PASSWORD)).c_str());
-    my_wifiSSID1[0] = 0;
-    my_wifiPassword1[0] = 0;
+    wm.getParameter(pgParam::devicename)->setValue(defaultstr.c_str());
+    wm.getParameter(pgParam::hostname)  ->setValue(defaultstr.c_str());
+    wm.getParameter(pgParam::APSSID)    ->setValue(defaultstr.c_str());
+    wm.getParameter(pgParam::APPassword)->setValue(default_AP_PASSWORD);
+
+    strcpy(pg_wifiSSID,     String(FPSTR(default_SSID)).c_str());
+    strcpy(pg_wifiPassword, String(FPSTR(default_SSID_PASSWORD)).c_str());
+
+    pg_wifiSSID1[0] = 0;
+    pg_wifiPassword1[0] = 0;
+    
+    strcpy(pgHostname, defaultstr.c_str());
+    strcpy(pg_APSSID, defaultstr.c_str());
+    strcpy(pg_APPassword, String(FPSTR(default_AP_PASSWORD)).c_str());
   }
 
   //Save Parameters to Flash Memory using LittleFS
@@ -33,31 +39,42 @@
     DynamicJsonDocument jsonDoc(1024);
 
     jsonDoc["FileVersion"] = CONFIG_FILE_VERSION;
-    jsonDoc["P01"] = my_devicename;
-    jsonDoc["P02"] = my_hostname;
-    jsonDoc["P03"] = my_APSSID;         // STA (Access Point) SSID
-    jsonDoc["P04"] = my_APPassword;
-    jsonDoc["P05"] = my_port;
-    jsonDoc["P06"] = my_wifiSSID;       // Host SSID for client mode.
-    jsonDoc["P07"] = my_wifiPassword; 
-    jsonDoc["P08"] = my_LoRa_1;
-    jsonDoc["P09"] = my_LoRa_2;
-    jsonDoc["P10"] = my_channel;
-    jsonDoc["P11"] = my_username;
-    jsonDoc["P12"] = my_password;
-    
-    jsonDoc["P13"] = my_wifiSSID1;   
-    jsonDoc["P14"] = my_wifiPassword1; 
-    
-    jsonDoc["P21"] = my_vfact;
-    jsonDoc["P22"] = my_pg_Mode;
+    jsonDoc["P01"] = wm.getParameter(pgParam::devicename)->getParam_asString();// my_devicename;
+    jsonDoc["P02"] = wm.getParameter(pgParam::hostname)->getParam_asString();
+    jsonDoc["P03"] = wm.getParameter(pgParam::APSSID)->getParam_asString();         // STA (Access Point) SSID
+    jsonDoc["P04"] = wm.getParameter(pgParam::APPassword)->getParam_asString();
+    jsonDoc["P05"] = wm.getParameter(pgParam::port)->getParam_asString();
+    jsonDoc["P06"] = wm.getSSID();       // Host SSID for client mode.
+    jsonDoc["P07"] = wm.getPW();
 
-    jsonDoc["E01"] = ecmsParams.server;
-    if ((String)ecmsParams.uri="") {strcpy(ecmsParams.uri, EMONCMS_DEFAULT_URI);}
-    jsonDoc["E02"] = ecmsParams.uri;
-    jsonDoc["E03"] = ecmsParams.Port;
-    jsonDoc["E04"] = ecmsParams.node;
-    jsonDoc["E05"] = ecmsParams.apikey;
+    jsonDoc["P08"] = wm.getParameter(pgParam::LoRa_1)->getParam_asString();
+    jsonDoc["P09"] = wm.getParameter(pgParam::LoRa_2)->getParam_asString();
+    jsonDoc["P10"] = wm.getParameter(pgParam::channel)->getParam_asString();
+    jsonDoc["P11"] = wm.getParameter(pgParam::username)->getParam_asString();
+    jsonDoc["P12"] = wm.getParameter(pgParam::password)->getParam_asString();
+    jsonDoc["P13"] = wm.getSSID1();   
+    jsonDoc["P14"] = wm.getPW1(); 
+    
+    jsonDoc["P21"] = wm.getParameter(pgParam::vfact)->getParam_asFloat();
+    jsonDoc["P22"] = wm.getParameter(pgParam::pg_Mode)->getParam_asInt();
+
+    jsonDoc["E01"] = wm.getParameter(pgParam::e_server)->getParam_asString();
+    jsonDoc["E02"] = wm.getParameter(pgParam::e_uri)->getParam_asString();
+    jsonDoc["E03"] = wm.getParameter(pgParam::e_Port)->getParam_asString();
+    jsonDoc["E04"] = wm.getParameter(pgParam::e_node)->getParam_asString();
+    jsonDoc["E05"] = wm.getParameter(pgParam::e_apikey)->getParam_asString();
+
+    //Get globals from the parameters after a config page save.
+
+    strcpy(pg_wifiSSID, wm.getSSID().c_str());
+    strcpy(pg_wifiPassword, wm.getPW().c_str());
+    strcpy(pg_wifiSSID1, wm.getSSID1().c_str());
+    strcpy(pg_wifiPassword1, wm.getPW1().c_str());
+
+    strcpy(pgHostname, wm.getParameter(pgParam::hostname)->getParam_asString().c_str());
+    pgMode     = wm.getParameter(pgParam::pg_Mode)->getParam_asInt();
+    strcpy(pg_APSSID,     wm.getParameter(pgParam::APSSID)->getParam_asString().c_str()); 
+    strcpy(pg_APPassword, wm.getParameter(pgParam::APPassword)->getParam_asString().c_str()); 
 
     CONSOLE(F("Saving config: "));
 
@@ -110,6 +127,7 @@
       CONSOLELN(LittleFS.format());
       resetCreds = true;  
     } else {
+      String jsonFileVersion ="";
       CONSOLE(F("mounted file system, "));
       if (!LittleFS.exists(CFGFILE)) {
         CONSOLELN(F("No config file!"));
@@ -142,38 +160,54 @@
             CONSOLELN("\n");
             
             //Let's load the config file!
-            if (jsonDoc.containsKey("FileVersion")) strcpy(my_FileVersion, jsonDoc["FileVersion"]);
-            if (jsonDoc.containsKey("P01")) strcpy(my_devicename, jsonDoc["P01"]);
-            if (jsonDoc.containsKey("P02")) strcpy(my_hostname, jsonDoc["P02"]);
-            if (jsonDoc.containsKey("P03")) strcpy(my_APSSID, jsonDoc["P03"]);
-            if (jsonDoc.containsKey("P04")) strcpy(my_APPassword, jsonDoc["P04"]);
-            if (jsonDoc.containsKey("P05")) my_port = jsonDoc["P05"];
-            if (jsonDoc.containsKey("P06")) strcpy(my_wifiSSID, jsonDoc["P06"]); // = (const char *)jsonDoc["wifiSSID"];
-            if (jsonDoc.containsKey("P07")) strcpy(my_wifiPassword, jsonDoc["P07"]); // = (const char *)jsonDoc["wifiPassword"];
-            if (jsonDoc.containsKey("P08")) strcpy(my_LoRa_1, jsonDoc["P08"]);
-            if (jsonDoc.containsKey("P09")) strcpy(my_LoRa_2, jsonDoc["P09"]);
-            if (jsonDoc.containsKey("P10")) my_channel = jsonDoc["P10"];
-            if (jsonDoc.containsKey("P11")) strcpy(my_username, jsonDoc["P11"]);
-            if (jsonDoc.containsKey("P12")) strcpy(my_password, jsonDoc["P12"]);
+            // Put the values directly into the WMParameter collection and don't bother with global Vars.
+            if (jsonDoc.containsKey("FileVersion")) jsonFileVersion = (String)jsonDoc["FileVersion"];
+            if (jsonDoc.containsKey("P01")) wm.getParameter(pgParam::devicename)->setValue(jsonDoc["P01"]);
+            if (jsonDoc.containsKey("P02")) wm.getParameter(pgParam::hostname)  ->setValue(jsonDoc["P02"]);
+            if (jsonDoc.containsKey("P03")) wm.getParameter(pgParam::APSSID)    ->setValue(jsonDoc["P03"]);
+            if (jsonDoc.containsKey("P04")) wm.getParameter(pgParam::APPassword)->setValue(jsonDoc["P04"]);
+            if (jsonDoc.containsKey("P05")) wm.getParameter(pgParam::port)      ->setValue(jsonDoc["P05"]);
+            if (jsonDoc.containsKey("P06")) strcpy(pg_wifiSSID,     jsonDoc["P06"]); // = (const char *)jsonDoc["wifiSSID"];
+            if (jsonDoc.containsKey("P07")) strcpy(pg_wifiPassword, jsonDoc["P07"]); // = (const char *)jsonDoc["wifiPassword"];
+            if (jsonDoc.containsKey("P08")) wm.getParameter(pgParam::LoRa_1)    ->setValue(jsonDoc["P08"]);
+            if (jsonDoc.containsKey("P09")) wm.getParameter(pgParam::LoRa_2)    ->setValue(jsonDoc["P09"]);
+            if (jsonDoc.containsKey("P10")) wm.getParameter(pgParam::channel)   ->setValue(jsonDoc["P10"]);
+            if (jsonDoc.containsKey("P11")) wm.getParameter(pgParam::username)  ->setValue(jsonDoc["P11"]);
+            if (jsonDoc.containsKey("P12")) wm.getParameter(pgParam::password)  ->setValue(jsonDoc["P12"]);
 
-            if (jsonDoc.containsKey("P13")) strcpy(my_wifiSSID1, jsonDoc["P13"]); // = (const char *)jsonDoc["wifiSSID"];
-            if (jsonDoc.containsKey("P14")) strcpy(my_wifiPassword1, jsonDoc["P14"]); // = (const char *)jsonDoc["wifiPassword"];
+            if (jsonDoc.containsKey("P13")) strcpy(pg_wifiSSID1, jsonDoc["P13"]); // = (const char *)jsonDoc["wifiSSID"];
+            if (jsonDoc.containsKey("P14")) strcpy(pg_wifiPassword1, jsonDoc["P14"]); // = (const char *)jsonDoc["wifiPassword"];
 
-            if (jsonDoc.containsKey("P21")) my_vfact = jsonDoc["P21"];
-            if (jsonDoc.containsKey("P22")) my_pg_Mode = jsonDoc["P22"];
+            if (jsonDoc.containsKey("P21")) wm.getParameter(pgParam::vfact)     ->setValue(jsonDoc["P21"]);
+            if (jsonDoc.containsKey("P21")) wm.getParameter(pgParam::vfact)     ->setValue(jsonDoc["P21"]);
+            if (jsonDoc.containsKey("P22")) wm.getParameter(pgParam::pg_Mode)   ->setValue(jsonDoc["P22"]);
 
-            if (jsonDoc.containsKey("E01")) strcpy(ecmsParams.server, jsonDoc["E01"]);
-            if (jsonDoc.containsKey("E02")) strcpy(ecmsParams.uri, jsonDoc["E02"]);
-            if (jsonDoc.containsKey("E03")) ecmsParams.Port = jsonDoc["E03"];
-            if (jsonDoc.containsKey("E04")) strcpy(ecmsParams.node, jsonDoc["E04"]);
-            if (jsonDoc.containsKey("E05")) strcpy(ecmsParams.apikey, jsonDoc["E05"]);
+            if (jsonDoc.containsKey("E01")) wm.getParameter(pgParam::e_server)  ->setValue(jsonDoc["E01"]);
+            if (jsonDoc.containsKey("E02")) wm.getParameter(pgParam::e_uri)     ->setValue(jsonDoc["E02"]);
+            if (jsonDoc.containsKey("E03")) wm.getParameter(pgParam::e_Port)    ->setValue(jsonDoc["E03"]);
+            if (jsonDoc.containsKey("E04")) wm.getParameter(pgParam::e_node)    ->setValue(jsonDoc["E04"]);
+            if (jsonDoc.containsKey("E05")) wm.getParameter(pgParam::e_apikey)  ->setValue(jsonDoc["E05"]);
+
+            //Globals we do need...
+            strcpy(pgHostname,    wm.getParameter(pgParam::hostname)->getParam_asString().c_str());
+            pgMode     = wm.getParameter(pgParam::pg_Mode)->getParam_asInt();
+            strcpy(pg_APSSID,     wm.getParameter(pgParam::APSSID)->getParam_asString().c_str()); 
+            strcpy(pg_APPassword, wm.getParameter(pgParam::APPassword)->getParam_asString().c_str()); 
+
+            if (String(jsonFileVersion).isEmpty()) {
+              CONSOLELN(F("Config File Version missing - resaving..."));
+              resave = true;
+            } else {
+              if (!(jsonFileVersion == CONFIG_FILE_VERSION)) {
+                CONSOLELN(F("Config File Version mismatch - resaving..."));
+                resave = true;
+              }
+            }
             
             //Check wifi connection creds are valid.
-            if (String(my_wifiSSID).isEmpty()) {
+            if (String(pg_wifiSSID).isEmpty()) {
               CONSOLE(F("Config missing wifiSSID, trying credentials stored in ESP: "));
-              validateInput(wm.WiFi_SSID().c_str(), my_wifiSSID);
-              validateInput(wm.WiFi_Pass().c_str(), my_wifiPassword);
-              if (String(my_wifiSSID).isEmpty()) {
+              if (String(wm.WiFi_SSID().c_str()).isEmpty()) {
                 CONSOLELN(F("No valid wifiSSID stored in ESP either!"));
               } else {
                 CONSOLELN(F("Found valid wifiSSID stored in ESP, using those."));
@@ -181,7 +215,7 @@
               }
             }
             //Check Access point Creds.
-            if (String(my_APSSID).isEmpty()) {
+            if (String(wm.getParameter(pgParam::APSSID)->getValue()).isEmpty()) {
               CONSOLELN(F("Config missing AP SSID."));
               resetCreds=true;
             }
@@ -194,19 +228,9 @@
     if (resetCreds || resave) { CONSOLELN("\n");}
     
     if (resetCreds){
-      CONSOLELN(F("Loading default AP creds and saving."));
+      CONSOLELN(F("resetCreds True, Erase Called>> Loading default AP creds and saving."));
       resetAPcreds();
       resave=true;
-    }
-
-    if (String(my_FileVersion).isEmpty()) {
-      CONSOLELN(F("Config File Version missing - resaving..."));
-      resave = true;
-    } else {
-      if (!(strcmp(my_FileVersion, CONFIG_FILE_VERSION)==0)) {
-        CONSOLELN(F("Config File Version mismatch - resaving..."));
-        resave = true;
-      }
     }
 
     if (resave) {

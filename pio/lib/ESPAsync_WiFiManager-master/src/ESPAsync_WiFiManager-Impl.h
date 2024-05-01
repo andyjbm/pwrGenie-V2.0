@@ -38,7 +38,6 @@
 #ifndef ESPAsync_WiFiManager_Impl_h
 #define ESPAsync_WiFiManager_Impl_h
 
-
 ESPAsync_WMParameter::ESPAsync_WMParameter(const char *custom)
 {
   _WMParam_data._id = NULL;
@@ -54,7 +53,6 @@ ESPAsync_WMParameter::ESPAsync_WMParameter(const char *custom)
   _customHTML = custom;
 }
 
-
 ESPAsync_WMParameter::ESPAsync_WMParameter(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length,
                                  const char *custom, const int& labelPlacement,
                                  const WMParam_type type, const char **selectionType_Options, const byte selectionType_Options_Count)
@@ -68,7 +66,6 @@ ESPAsync_WMParameter::ESPAsync_WMParameter(const WMParam_Data& WMParam_data)
   init(WMParam_data._id, WMParam_data._placeholder, WMParam_data._value, WMParam_data._length, "",
        WMParam_data._labelPlacement, WMParam_data._type, _WMParam_data._selectionType_Options, _WMParam_data._selectionType_Options_Count);
 }
-
 
 void ESPAsync_WMParameter::init(const char *id, const __FlashStringHelper *placeholder, const char *defaultValue, const int& length,
                            const char *custom, const int& labelPlacement,
@@ -93,6 +90,20 @@ void ESPAsync_WMParameter::init(const char *id, const __FlashStringHelper *place
   _WMParam_data._selectionType_Options_Count = selectionType_Options_Count;
 }
 
+void ESPAsync_WMParameter::setValue(const char *defaultValue) {
+  if(!_WMParam_data._id){
+    // Serial.println("cannot set value of this parameter");
+    return;
+  }
+    // Use existing length or set a default if there isn't one.
+    if (!(_WMParam_data._length>0)) {
+        _WMParam_data._length = WFM_DEFAULT_LABEL_SIZE;
+        PGLOGINFO(F("WMP setValue setting to default length: "));
+    } else {
+      PGLOGINFO(F("WMP setValue using existing length: "));
+    }
+    setValue(defaultValue, _WMParam_data._length);
+}
 
 void ESPAsync_WMParameter::setValue(const char *defaultValue, int length) {
   if(!_WMParam_data._id){
@@ -111,7 +122,6 @@ void ESPAsync_WMParameter::setValue(const char *defaultValue, int length) {
   }
 }
 
-
 ESPAsync_WMParameter::~ESPAsync_WMParameter()
 {
   if (_WMParam_data._value != NULL)
@@ -128,7 +138,6 @@ void ESPAsync_WMParameter::setWMParam_Data(const WMParam_Data& WMParam_data)
   memcpy(&_WMParam_data, &WMParam_data, sizeof(_WMParam_data));
 }
 
-
 void ESPAsync_WMParameter::getWMParam_Data(WMParam_Data& WMParam_data)
 {
   LOGINFO(F("getWMParam_Data"));
@@ -136,30 +145,25 @@ void ESPAsync_WMParameter::getWMParam_Data(WMParam_Data& WMParam_data)
   memcpy(&WMParam_data, &_WMParam_data, sizeof(WMParam_data));
 }
 
-
 const char* ESPAsync_WMParameter::getValue()
 {
   return _WMParam_data._value;
 }
-
 
 const char* ESPAsync_WMParameter::getID()
 {
   return _WMParam_data._id;
 }
 
-
 const __FlashStringHelper* ESPAsync_WMParameter::getPlaceholder()
 {
   return _WMParam_data._placeholder;
 }
 
-
 int ESPAsync_WMParameter::getValueLength()
 {
   return _WMParam_data._length;
 }
-
 
 int ESPAsync_WMParameter::getLabelPlacement()
 {
@@ -177,25 +181,18 @@ const char* ESPAsync_WMParameter::getCustomHTML()
 }
 
 
-/**
-   [getParameters description]
-   @access public
-*/
+// End of WMParameter Class.
+//================================================
+
 ESPAsync_WMParameter** ESPAsync_WiFiManager::getParameters()
 {
   return _params;
 }
 
-
-/**
-   [getParametersCount description]
-   @access public
-*/
 int ESPAsync_WiFiManager::getParametersCount()
 {
   return _paramsCount;
 }
-
 
 char* ESPAsync_WiFiManager::getRFC952_hostname(const char* iHostname)
 {
@@ -271,10 +268,9 @@ ESPAsync_WiFiManager::~ESPAsync_WiFiManager()
   }
 }
 
-
 void ESPAsync_WiFiManager::setRFC952_hostname(const char *iHostname)
 {
-if (iHostname[0] == 0)
+  if (iHostname[0] == 0)
   {
 #ifdef ESP8266
     String _hostname = "ESP8266-" + String(ESP.getChipId(), HEX);
@@ -296,16 +292,12 @@ if (iHostname[0] == 0)
   LOGWARN1(F("RFC925 Hostname ="), RFC952_hostname);
 
   setHostname();
-  }
+}
 
 #if USE_DYNAMIC_PARAMS
-  bool ESPAsync_WiFiManager::addParameter(ESPAsync_WMParameter *p)
-#else
-  void ESPAsync_WiFiManager::addParameter(ESPAsync_WMParameter *p)
-#endif
+
+bool ESPAsync_WiFiManager::addParameter(ESPAsync_WMParameter *p)
 {
-#if USE_DYNAMIC_PARAMS
-
   if (_paramsCount == _max_params)
   {
     // rezise the params array
@@ -330,9 +322,12 @@ if (iHostname[0] == 0)
   LOGINFO2(F("Adding parameter"), p->getID(), p->getValue());
 
   return true;
+}
 
 #else
 
+void ESPAsync_WiFiManager::addParameter(ESPAsync_WMParameter *p)
+{
   // Danger here. Better to use Tzapu way here
   if (_paramsCount < (WIFI_MANAGER_MAX_PARAMS))
   {
@@ -345,10 +340,12 @@ if (iHostname[0] == 0)
   {
     LOGINFO("Can't add parameter. Full");
   }
-
-#endif
 }
+#endif
 
+ESPAsync_WMParameter *ESPAsync_WiFiManager::getParameter(uint8_t index){
+  return _params[index];
+}
 
 void ESPAsync_WiFiManager::setupConfigPortal()  // Most of this is prepping the AP to host a websever for the Portal.
 {

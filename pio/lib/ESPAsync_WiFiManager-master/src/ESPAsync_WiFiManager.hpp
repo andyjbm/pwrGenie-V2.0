@@ -183,6 +183,13 @@ typedef struct
 #define WFM_LABEL_AFTER				2
 #define WFM_NO_LABEL          0
 
+#ifndef WFM_DEFAULT_LABEL_SIZE
+  #define WFM_DEFAULT_LABEL_SIZE 20
+#endif
+#ifndef WFM_MAX_LABEL_SIZE
+  #define WFM_MAX_LABEL_SIZE 20
+#endif
+
 ////////////////////////////////////////////////////
 
 /** Handle CORS in pages */
@@ -281,7 +288,13 @@ class ESPAsync_WMParameter
     int           getLabelPlacement();
     WMParam_type  getType();
     const char    *getCustomHTML();
+    void          setValue(const char *defaultValue);
     void          setValue(const char *defaultValue, int length);
+
+    inline int          getParam_asInt()    { return validateInt(_WMParam_data._value); };
+    inline float        getParam_asFloat()  { return validateFloat(_WMParam_data._value); };
+    inline const String getParam_asString() { return validateCharStr(_WMParam_data._value); };
+    inline void         getParam_asChararry(char *output) {return validateInput(_WMParam_data._value, output); };
     
   private:
   
@@ -294,6 +307,48 @@ class ESPAsync_WMParameter
               const WMParam_type type, const char **selectionType_Options, const byte _selectionType_Options_Count);
 
     friend class ESPAsync_WiFiManager;
+
+    static void validateInput(const char *input, char *output)
+    {
+      String tmp = input;
+      tmp.trim();
+      tmp.replace(' ', '_');
+      tmp.toCharArray(output, tmp.length() + 1);
+    };
+
+    static void validateInput(const char *input, String &output)
+    {
+      String tmp = input;
+      tmp.trim();
+      tmp.replace(' ', '_');
+      output = tmp; //tmp.toCharArray(output, tmp.length() + 1);
+    };
+    
+    static const String validateCharStr(const char *input)
+    {
+      //char output[WFM_MAX_LABEL_SIZE];
+      String tmp = input;
+      tmp.trim();
+      tmp.replace(' ', '_');
+      //tmp.toCharArray(output, tmp.length() + 1);
+      return tmp;
+    };
+
+    static int validateInt(const char *input)
+    {
+      String tmp = input;
+      tmp.trim();
+      tmp.replace(',', '.');
+      return tmp.toInt();
+    };
+
+    static float validateFloat(const char *input)
+    {
+      String tmp = input;
+      tmp.trim();
+      tmp.replace(',', '.');
+      return tmp.toFloat();
+    };
 };
 
 ////////////////////////////////////////////////////
@@ -408,6 +463,11 @@ class ESPAsync_WiFiManager
     void          addParameter(ESPAsync_WMParameter *p);
 #endif
 
+    //returns the list of Parameters
+    ESPAsync_WMParameter **getParameters();
+    ESPAsync_WMParameter  *getParameter(uint8_t index);
+    int           getParametersCount();
+
     //if this is set, it will exit after config, even if connection is unsucessful.
     void          setBreakAfterConfig(bool shouldBreak);
     
@@ -434,10 +494,8 @@ class ESPAsync_WiFiManager
 
     String        getModeString(uint8_t mode);
 
-
     //called after webserver has started
     void          setWebServerCallback( std::function<void()> func );
-    
 
     // KH add to display SSIDs and PWDs in CP   
     void				  setCredentials(const char* ssid, const char* pwd, const char* ssid1, const char* pwd1)
@@ -521,12 +579,6 @@ class ESPAsync_WiFiManager
     }
 #endif     
  
-    //returns the list of Parameters
-    ESPAsync_WMParameter** getParameters();
-    
-    // returns the Parameters Count
-    int           getParametersCount();
-
     const __FlashStringHelper * getStatus(const int& status);
 
 #ifdef ESP32
@@ -583,7 +635,6 @@ class ESPAsync_WiFiManager
     {  
       return _timezoneName;
     }
-
  
     inline void setTimezoneName(const String& inTimezoneName) 
     {  
@@ -619,7 +670,6 @@ class ESPAsync_WiFiManager
       return "";      
     }
 
-
     const char * getTZ(const String& timezoneName)
     {
       return getTZ(timezoneName.c_str());      
@@ -634,7 +684,8 @@ class ESPAsync_WiFiManager
     inline void HTTPSendPage(String &page, AsyncWebServerRequest *request);
     
     bool         restartMe               = false;
-	
+
+
   private:
   
     AsyncDNSServer      *dnsServer;
@@ -711,15 +762,7 @@ class ESPAsync_WiFiManager
     int           status                  = WL_IDLE_STATUS;
 
 // Andy Add START
-    // callbacks
-    // @todo use cb list (vector) maybe event ids, allow no return value
-    //std::function<void(WiFiManager*)> _apcallback;
     std::function<void()> _webservercallback;
-    //std::function<void()> _savewificallback;
-    //std::function<void()> _presavecallback;
-    //std::function<void()> _saveparamscallback;
-    //std::function<void()> _resetcallback;
-    //std::function<void()> _preotaupdatecallback;
 //Andy Add END
     
     // For configuring CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"

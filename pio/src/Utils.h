@@ -3,13 +3,32 @@
   #define LLG_UTILS_H
 
   #include <Arduino.h>
-  
+
+  #if 0
   void validateInput(const char *input, char *output)
   {
     String tmp = input;
     tmp.trim();
     tmp.replace(' ', '_');
     tmp.toCharArray(output, tmp.length() + 1);
+  }
+
+  void validateInput(const char *input, String &output)
+  {
+    String tmp = input;
+    tmp.trim();
+    tmp.replace(' ', '_');
+    output = tmp; //tmp.toCharArray(output, tmp.length() + 1);
+  }
+  
+  char *validateCharStr(const char *input)
+  {
+    char output[MAXSIZE];
+    String tmp = input;
+    tmp.trim();
+    tmp.replace(' ', '_');
+    tmp.toCharArray(output, tmp.length() + 1);
+    return output;
   }
 
   int validateInt(const char *input)
@@ -27,6 +46,7 @@
     return tmp.toFloat();
   }
 
+#endif
 
   // String htmlencode(String str)
   // {

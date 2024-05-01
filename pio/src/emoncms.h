@@ -29,6 +29,8 @@
   extern float psuVolts;
   String ecms_LastResult  = "";          // Used to transfer to debug page call
   String strJsonData      = ""; // new char[1024];  // Global. Keep our place on the heap.
+  
+  emoncmsParams ecmsParams;           // Global config Parameter class for passing WMParameters to EMONCMS Server.
 
   namespace emoncms {
     bool send2emoncms(const char * const ecmsDataNames[], float * ecmsResults, int arraySize);
@@ -46,7 +48,7 @@
     }
     
     // Only post the data if the option is enabled in the config.
-    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+    if (pgMode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
     {
       return send2emoncms(strJsonData);
     } 
@@ -82,10 +84,10 @@
 #endif
       // Insecure, no SSL. Need to do the POST way so we can accomodate a different port.
       #ifndef QUIET_LOOP
-        CONSOLE(F("EMONCMS using http: ")); CONSOLELN((String) ecmsParams.server + ":" + String(ecmsParams.Port) + ecmsParams.uri);
+        CONSOLE(F("EMONCMS using http: ")); CONSOLELN((String) ecmsParams.server() + ":" + String(ecmsParams.Port()) + ecmsParams.uri());
         CONSOLE(F("Connecting..."));
       #endif
-      ecms_http.begin(ecms_client, (String)ecmsParams.server, (int)ecmsParams.Port, (String)ecmsParams.uri);
+      ecms_http.begin(ecms_client, (String)ecmsParams.server(), ecmsParams.Port(), (String)ecmsParams.uri());
       #ifndef QUIET_LOOP
         CONSOLE(F("http.begin connected... "));
       #endif
@@ -104,9 +106,9 @@
     psuV += "\"psuVolts:" + String(psuVolts,2) + "\"";
     
     String msg;
-    msg =  "node="    + (String)ecmsParams.node;
+    msg =  "node="    + (String)ecmsParams.node();
     msg += "&data="   + (String)"{" + strJsonData + psuV + (String)"}";
-    msg += "&apikey=" + (String)ecmsParams.apikey;
+    msg += "&apikey=" + (String)ecmsParams.apikey();
 
     psuV.~String();
 

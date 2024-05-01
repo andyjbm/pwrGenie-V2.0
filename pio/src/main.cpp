@@ -36,16 +36,16 @@ Credits to:
   #include "JKBMS.h"
 #endif
 
-#include "emoncms.h"
 #include "wmparams.h"
 #include "loadNsaveConfig.h"
+#include "emoncms.h"
 
 #ifdef BearSSL_DEBUG
   #include <StackThunk.h>
   uint16_t max_stack_usage = 0;
 #endif
 
-AsyncWebServer webServer(80); //Async_webserver_HTTP_PORT);
+AsyncWebServer webServer(80); //Async_webserver_HTTP_PORT); Should use my_port Parameter but haven't loaded the config yet??
 AsyncDNSServer dnsServer;
 ESPAsync_WiFiManager wm(&webServer, &dnsServer, "ESP_WebServer");
 
@@ -55,12 +55,10 @@ bool reconnect = false;
 //Callback after changes to Wifi page or Config page.
 void paramsChangedCallback() {
   CONSOLELN(F("paramsChanged Callback: "));
-  CONSOLELN(F("Get Params from WM: "));
-  retrieve_WM_Params();
-  
+    
   saveConfig();     // save the custom parameters to FS
   
-  if (!((String)my_hostname).isEmpty()) {wm.setRFC952_hostname(my_hostname);}
+  if (!((String)pgHostname).isEmpty()) {wm.setRFC952_hostname(pgHostname);}
   reconnect = true; // Maybe recode so we only do this if wifi creds have actually changed.
 }
 
@@ -186,28 +184,28 @@ void setup() {
   CONSOLELN(F("\n\nMAIN: Hello there, it's a new day!"));
   CONSOLELN(F("MAIN: Firmware Info:"), COMPILED_FRAMEWORK_VERSIONS);
 
+  add_WM_Params();
+
   resetAPcreds();  // Load factory defaults in case LittleFS config is blank and loading config fails.
   loadConfig();    // From LittleFS file.
 
-  set_WM_Params();
-  add_WM_Params();
   wm.setSaveConfigCallback(paramsChangedCallback); //   wm.setSaveParamsCallback(paramsChangedCallback);
   wm.setWebServerCallback(configMyWebHandlers);
 
   // This doesn't determine whether the portal will be closed. What it actually does is determine whether the save config handler will get called atuomatically when wifi creds change.
   // wm.setBreakAfterConfig(false);      // This is supposed to stop the portal from being closed after a new config is saved. Not sure if it works.
 
-  if (!((String)my_hostname).isEmpty()) {wm.setRFC952_hostname(my_hostname);}
+  if (!((String)pgHostname).isEmpty()) {wm.setRFC952_hostname(pgHostname);}
 
   CONSOLELN(F("\nMAIN: b4 wm.autoConnect..."));
   wm.setDebugOutput(true);
 
-  wm.setCredentials(my_wifiSSID, my_wifiPassword, my_wifiSSID1, my_wifiPassword1);  //Set the creds for the access points we want to try to connect to.
+  wm.setCredentials(pg_wifiSSID, pg_wifiPassword, pg_wifiSSID1, pg_wifiPassword1);  //Set the creds for the access points we want to try to connect to.
   wm.scanModal();   //Perform an initial Scan b4 we try to connect.
   
   // If connection fails it starts an access point **with the creds supplied in this call**.  
-  if (wm.autoConnect(my_APSSID,my_APPassword)) {  // These are the creds for starting an AP if connecting to ext wifi fails!
-    CONSOLELN(F("MAIN: Connected to external wifi as a client... yeey!"));
+  if (wm.autoConnect(pg_APSSID, pg_APPassword)) {  // These are the creds for starting an AP if connecting to ext wifi fails!
+    CONSOLELN(F("MAIN: Connected to external wifi as a client... whoop!"));
 
     //If connecting to an external wifi as-a-client succeeds, then the portal webserver won't be started by wm.autoconnect...
     CONSOLELN(F("MAIN: Starting portal webserver after connecting to ext wifi."));
@@ -276,7 +274,7 @@ void loop() {
   { 
     reconnect=false;
     CONSOLELN(F("Reconnect has been requested..."));
-    wm.autoConnect(my_APSSID,my_APPassword);
+    wm.autoConnect(pg_APSSID,pg_APPassword);
   }
 
   // For OTA servicing, device reset and other restart needs.
@@ -287,7 +285,7 @@ void loop() {
     ESP.restart();
   }
   
-  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+  if (pgMode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || pgMode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
   {
     #if defined(PWR_GENIE_MODE_SPL)
       // SPL Meter specific background service loop code.
@@ -303,7 +301,7 @@ void loop() {
   if ((milliCounter + LOOP_INFO_TIME - millis()) < LOOP_INFO_TIME)
   {
     milliCounter += LOOP_INFO_TIME;
-    psuVolts = ReadPsuVolts(my_vfact);   // psuVolts is global. Also used by wifi manager on config portal.
+    psuVolts = ReadPsuVolts(wm.getParameter(pgParam::vfact)->getParam_asFloat());   // psuVolts is global. Also used by wifi manager on config portal.
    
     //CONSOLE(F("psuVolts Read: "));
     //CONSOLELN(String(psuVolts,2));
@@ -311,7 +309,7 @@ void loop() {
     //For debugging:
     //console_InfoPrint();
     //testhostByName();
-  if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || my_pg_Mode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+  if (pgMode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || pgMode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
   {
     // Modbus as-a-source device specific code:
     #if defined(PWR_GENIE_MODE_MODBUS)
@@ -337,7 +335,7 @@ void loop() {
     
     // For posting ESP psuVolts when other posting is turned off.
     // The psuVolts will get posted automatically when source posting is enabled.
-    if (my_pg_Mode == pgMode_Opt::pgMode_Opt_Send_vBat_Only) {
+    if (pgMode == pgMode_Opt::pgMode_Opt_Send_vBat_Only) {
       CONSOLE(F("Emoncms sending ADCv: "));
       emoncms::send2emoncms("");  // Empty Params will just send the psuVolts.
     }
