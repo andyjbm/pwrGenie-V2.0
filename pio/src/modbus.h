@@ -108,7 +108,7 @@
 
     #ifdef MODBUS_DEVICE_EM21
         const uint8_t MODBUS_ID       = 1;
-        const uint8_t MODBUS_HBASE    = 0;
+        const uint16_t MODBUS_HBASE    = 0;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 12;         // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 60;         // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
@@ -130,7 +130,7 @@
     
     #elif defined(MODBUS_DEVICE_APM303)    
         const uint8_t MODBUS_ID       = 1;
-        const uint8_t MODBUS_HBASE    = 0;
+        const uint16_t MODBUS_HBASE    = 0;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 12;     // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 12;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
@@ -143,7 +143,7 @@
     
     #elif defined(MODBUS_DEVICE_APM403)
         const uint8_t MODBUS_ID       = 1;
-        const uint8_t MODBUS_HBASE    = 1036;
+        const uint16_t MODBUS_HBASE    = 1036;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 50;     // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 18;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
@@ -156,7 +156,7 @@
 
     #elif defined(MODBUS_DEVICE_DSE)    
         const uint8_t MODBUS_ID       = 1;
-        const uint8_t MODBUS_HBASE    = 0;
+        const uint16_t MODBUS_HBASE    = 0;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 12;     // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 12;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
@@ -216,7 +216,7 @@
 
     // Returns TRUE if there was a successful handshake. See mbResult via callback for reply outcome.
     // Returns FALSE if the Modbus was busy and couldn't send.
-    bool mbFetch(int baseReg, int numReg, uint16_t mbRegs[]){
+    bool mbFetch(uint16_t baseReg, uint16_t numReg, uint16_t mbRegs[]){
         if (!mb.slave()) { // Is the wire busy?
             mb.readHreg(MODBUS_ID, baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
             //mb.readHreg(MODBUS_ID, 1054, mbRegs, 2, mbCallback);       // Send Read Hreg from Modbus Server
