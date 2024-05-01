@@ -191,7 +191,7 @@ const char HTTP_FORM_END[]         PROGMEM = "<br/><br/><button type='submit'>Sa
       #define USE_CLOUDFLARE_NTP      true
       
       #if (_ESPASYNC_WIFIMGR_LOGLEVEL_ > 3)
-        #warning Forcing USE_CLOUDFLARE_NTP for ESP8266 as low memory can cause blank page
+        //#warning Forcing USE_CLOUDFLARE_NTP for ESP8266 as low memory can cause blank page
       #endif
     #endif
   #endif
