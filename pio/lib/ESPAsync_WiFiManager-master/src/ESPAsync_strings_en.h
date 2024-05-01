@@ -12,7 +12,7 @@ const char WM_HTTP_STYLE_CSS[]  PROGMEM =
 	".tdiv{text-align:left;display:block;min-width:260px;}"
 	"p{margin-top:10px;margin-bottom:5px}" // Footer credits and version info. WM_HTTP_HELP, HTTP_PAGE_MAIN3
 	".fr,.fh{float:right}.fl{float:left}.tar{text-align:right}" 		// div/Span float right, float left directives in HTTP_PAGE_MAIN1. fh is free heap class.
-	".fh{margin-top:2em}"												// free heap.
+	".fh{margin-top:1.5em}"												// free heap.
 
 	// msg callout
 	".msg{background:#def;border-left:5px solid #59d;padding:0.5em}"  		// .msg Blue #1fa3ec default.

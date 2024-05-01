@@ -68,11 +68,10 @@
   const char emtDM[]         = "";
 
   const char * pgpNames[] = {Pn01, Pn02, Pn03, Pn04, Pn05, Pn08, Pn09, Pn10, Pn11, Pn12,
-                             Pn21, emtDM, Pn22, emtDM, // Line Breaks have no name.
+                             Pn21, emtFM, Pn22, emtFM, // Line Breaks have no name.
                              En01, En02, En03, En04, En05};
 
   // The array of Parameter definitions. Instantiated once and then pointed to by the WMParameter Collection.
-  
   #define PG_PARAMCOUNT 19
   ESPAsync_WMParameter *pgParamsX[] = {
     // Format is:           ("HTMLID","LABEL NAME (appears on config page)", "default Value", "Value Size", "Param Type", "Options", "Number of Options" )
@@ -88,7 +87,7 @@
     new ESPAsync_WMParameter("P12", FPSTR(pgpNames[pgParam::password]),    emtDM, PWDSIZE),
 
     new ESPAsync_WMParameter("P21", FPSTR(pgpNames[pgParam::vfact]),       "150", 7, (const char*)FPSTR(TYPE_NUMBER)), // Default Voltage Scale.
-    new ESPAsync_WMParameter ("<hr>"), // Line Break
+    new ESPAsync_WMParameter("<hr>"), // Line Break
     new ESPAsync_WMParameter("P22", FPSTR(pgpNames[pgParam::pg_Mode]),     emtDM, NUMBERSIZE, "", 1, WMParam_type::isSelection, pgModeOptions, pgModeOptionsCount),
     new ESPAsync_WMParameter("<hr>"),  // Line Break
     
