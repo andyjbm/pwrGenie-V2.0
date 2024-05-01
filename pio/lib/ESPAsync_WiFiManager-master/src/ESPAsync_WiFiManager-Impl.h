@@ -452,13 +452,11 @@ void ESPAsync_WiFiManager::startPortalWebserver(){
   }
 
   /* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
-
-  //server->on("/",         std::bind(&ESPAsync_WiFiManager::handleRoot,        this, std::placeholders::_1)).setFilter(ON_AP_FILTER);
   server->on("/",         std::bind(&ESPAsync_WiFiManager::handleRoot,        this, std::placeholders::_1));
   server->on("/wifi",     std::bind(&ESPAsync_WiFiManager::handleWifi,        this, std::placeholders::_1));
   server->on("/wifisave", std::bind(&ESPAsync_WiFiManager::handleWifiSave,    this, std::placeholders::_1));
   server->on("/close",    std::bind(&ESPAsync_WiFiManager::handleServerClose, this, std::placeholders::_1));
-  server->on("/i",        std::bind(&ESPAsync_WiFiManager::handleInfo,       this, std::placeholders::_1));
+  server->on("/i",        std::bind(&ESPAsync_WiFiManager::handleInfo,        this, std::placeholders::_1));
   server->on("/cfg",      std::bind(&ESPAsync_WiFiManager::handleConfig,      this, std::placeholders::_1));
   server->on("/cfgsave",  std::bind(&ESPAsync_WiFiManager::handleConfigSave,  this, std::placeholders::_1));
   server->on("/restart",  std::bind(&ESPAsync_WiFiManager::handleRestart,     this, std::placeholders::_1));
@@ -473,9 +471,8 @@ void ESPAsync_WiFiManager::startPortalWebserver(){
                   std::bind(&ESPAsync_WiFiManager::handleUpdateDone,  this, std::placeholders::_1),
                   std::bind(&ESPAsync_WiFiManager::handleUpdating,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
   
-  //server->on("/favicon.ico",   std::bind(&ESPAsync_WiFiManager::handleFavicon,  this, std::placeholders::_1));
-  server->on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){request->send_P(200, "image/ico", favicon);});
-  server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){request->send_P(200, "text/css", WM_HTTP_STYLE_CSS);});
+  server->on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){request->send_P(200, FPSTR("image/ico"), favicon, sizeof(favicon));});
+  server->on("/style.css",   HTTP_GET, [](AsyncWebServerRequest *request){request->send_P(200, FPSTR("text/css"),  WM_HTTP_STYLE_CSS);});
   server->onNotFound (std::bind(&ESPAsync_WiFiManager::handleNotFound,          this, std::placeholders::_1));
 
   server->begin(); // Web server start
@@ -1839,7 +1836,7 @@ void ESPAsync_WiFiManager::handleConfigSave(AsyncWebServerRequest *request)
   }
 
   String page = FPSTR(WM_HTTP_HEAD_START);
-  page.replace("{v}", "Config Saved");
+  page.replace(FPSTR("{v}"), FPSTR("Config Saved"));
   
   page += FPSTR(WM_HTTP_SCRIPT);
   page += FPSTR(WM_HTTP_STYLE);
@@ -2062,23 +2059,34 @@ void ESPAsync_WiFiManager::handleNotFound(AsyncWebServerRequest *request)
     return;
   }
   
-  String reply = buildHeader(FPSTR("Erase"),FPSTR("Factory Reset the ESP!"), FPSTR(WM_META_AUTO_ROOT));
+//  String page = buildHeader(FPSTR("Not Found"),FPSTR("Request Not found"), FPSTR(WM_META_AUTO_ROOT));
+
+  String page = FPSTR(WM_HTTP_HEAD_START);
+  page.replace(FPSTR("{v}"), FPSTR("Not Found"));
   
-  reply += "Page Not Found\n\n";
-  reply += "URI: ";
+  page += FPSTR(WM_HTTP_SCRIPT);
+  page += FPSTR(WM_HTTP_STYLE);
+  page += _customHeadElement;
+  page += FPSTR(WM_META_AUTO_ROOT); // This to auto reload the home page.
+  page += FPSTR(WM_HTTP_HEAD_END);
+    
+  String reply = FPSTR("URI: ");
   reply += request->url();
-  reply += "\nMethod: ";
-  reply += (request->method() == HTTP_GET) ? "GET" : "POST";
-  reply += "\nArguments: ";
+  reply += FPSTR("\nMethod: ");
+  reply += (request->method() == HTTP_GET) ? FPSTR("GET") : FPSTR("POST");
+  reply += FPSTR("\nArguments: ");
   reply += request->args();
-  reply += "\n";
+  reply += FPSTR("\n");
 
   for (uint8_t i = 0; i < request->args(); i++)
   {
-    reply += " " + request->argName(i) + ": " + request->arg(i) + "\n";
+    reply += FPSTR(" ") + request->argName(i) + FPSTR(": ") + request->arg(i) + FPSTR("\n");
   }
+  String str = FPSTR(WM_HTTP_NOTFOUND);
+  str.replace(FPSTR("{nf}"), reply);
+  page += str;
 
-  HTTPSendPage(reply, request);
+  HTTPSendPage(page, request);
   LOGINFO1(F("NotFound page sent: "), request->url());
 }
 
@@ -2169,39 +2177,6 @@ void ESPAsync_WiFiManager::handleUpdateDone(AsyncWebServerRequest *request)
 	HTTPSendPage(page, request);
 }
 
-#if 0 // Handle Favicon directly in the seerver->on setup.
-void ESPAsync_WiFiManager::handleFavicon(AsyncWebServerRequest *request)
-{
-  LOGDEBUG(F("Favicon request"));
-
-  size_t fiSize = sizeof(favicon);
-  AsyncResponseStream *response = request->beginResponseStream("image/ico", fiSize);
-  for (size_t i = 0; i < fiSize; i++) {
-      //response->printf(favicon);
-      response->write(pgm_read_byte(favicon + i));
-  }
-      
-  response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));
-
-#if USING_CORS_FEATURE
-  // For configuring CORS Header, default to WM_HTTP_CORS_ALLOW_ALL = "*"
-  response->addHeader(FPSTR(WM_HTTP_CORS), _CORS_Header);
-#endif
-  
-  response->addHeader(FPSTR(WM_HTTP_PRAGMA), FPSTR(WM_HTTP_NO_CACHE));
-  response->addHeader(FPSTR(WM_HTTP_EXPIRES), "-1");
-
-  request->send(response);
-
-#if ( USING_ESP32_S2 || USING_ESP32_C3 )
-  // This was fixed in webserver. Was it fixed in ASync_Webserver?
-  // Fix ESP32-S2 issue with WebServer (https://github.com/espressif/arduino-esp32/issues/4348)
-  delay(1);
-#endif    // ( USING_ESP32_S2 || USING_ESP32_C3 )
-     
-}
-#endif
-
 inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerRequest *request)
 {
   //Framework Version *FIXME* Move to info page?
@@ -2214,8 +2189,8 @@ inline void ESPAsync_WiFiManager::HTTPSendPage(String &page, AsyncWebServerReque
 
   LOGINFO(F("Entering HTTP Send: "));  //, page);
   // Free heap b4 calling response. We need >12k free for webserver to be able to work.
-  str = F("Free heap: "); str += (String)ESP.getFreeHeap();
-  page.replace("{fh}", str);
+  str = F("<strong>Free heap:</strong> "); str += (String)ESP.getFreeHeap();
+  page.replace(FPSTR("{fh}"), str);
 
   AsyncWebServerResponse *response = request->beginResponse(200, WM_HTTP_HEAD_CT, page);
   response->addHeader(FPSTR(WM_HTTP_CACHE_CONTROL), FPSTR(WM_HTTP_NO_STORE));

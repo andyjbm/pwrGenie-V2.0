@@ -11,8 +11,9 @@ const char WM_HTTP_STYLE_CSS[]  PROGMEM =
 	".container{margin:auto;width:95%}"
 	".tdiv{text-align:left;display:block;min-width:260px;}"
 	"p{margin-top:10px;margin-bottom:5px}" // Footer credits and version info. WM_HTTP_HELP, HTTP_PAGE_MAIN3
+	".fr,.fh{float:right}.fl{float:left}.tar{text-align:right}" 		// div/Span float right, float left directives in HTTP_PAGE_MAIN1. fh is free heap class.
+	".fh{margin-top:2em}"												// free heap.
 
-	".fr{float:right}.fl{float:left}.tar{text-align:right}" 		// div/Span directives in HTTP_PAGE_MAIN1
 	// msg callout
 	".msg{background:#def;border-left:5px solid #59d;padding:0.5em}"  		// .msg Blue #1fa3ec default.
 	".msg h3{text-align:center;margin-top:10px;margin-bottom:14px}"			// Info panel header
@@ -35,9 +36,9 @@ const char WM_HTTP_STYLE_CSS[]  PROGMEM =
 	//"@media(min-width:768px) and (max-width:1200px){.container{width: 50%}}"
 
 	//buttons
-	".btn a{text-decoration: none}"
-	".btn,h2{font-size: 1.5em}"
-	"h1{font-size: 2em}"
+	".btn a{text-decoration:none}"
+	".btn,h2{font-size:1.5em}"
+	"h1{font-size:2em;margin-top:.25em}" // Margin-top to allow free heap to line up opposite.
 	".btn{background: #0ae;border-radius: 10px;border: 0;color: #fff;cursor: pointer;display: inline-block;margin: -3px 0;padding: 10px 0px 10px;width: 100%}"
 	".btn:hover{background: #09d}"
 	".btn:active,.btn:focus{background: #08b}"
@@ -170,7 +171,7 @@ const char HTTP_FORM_LABEL[]       PROGMEM = "<label for='{i}'>{t}</label>";
 const char HTTP_FORM_PARAM[]       PROGMEM = "<br/><input id='{i}' name='{n}' maxlength='{l}' value='{v}' {c}>\n"; // do not remove newline!
 const char HTTP_FORM_BOOL_PARAM[]  PROGMEM = "<input type='checkbox' id='{i}' name='{n}' length='{l}' value='1' {c}><br/>";
 
-const char HTTP_PAGE_MAIN1[]       PROGMEM = "<div class='tdiv'><small class='fr'>{fh}</small><h1>{t}</h1><h3><span class='fl'>{h}</span><span class='fr'>{i}</span></h3>";
+const char HTTP_PAGE_MAIN1[]       PROGMEM = "<div class='tdiv'><small class='fh'>{fh}</small><h1>{t}</h1><h3><span class='fl'>{h}</span><span class='fr'>{i}</span></h3>";
 const char HTTP_PAGE_MAIN2[]	   PROGMEM = "<table style='width:100%'><tr><td><b>Uptime:</b>{1}h {2}m {3}s</td><td><b>PSU:</b>{p}v</td><td class='tar'><b>FW:</b>{m}</td></tr></table></div>";
 const char HTTP_PAGE_MAIN3[]	   PROGMEM = "<p><small>{h}</small></p>";
 const char HTTP_FORM_POST[]        PROGMEM = "<form method='POST' action='{v}'>";
@@ -238,6 +239,7 @@ const char WM_HTTP_FORM_END[]               PROGMEM = "<button class='btn' type=
 
 const char WM_HTTP_WIFISAVED[]    PROGMEM = "<div class='msg'><h3>Credentials Saved</h3><br>Attempting to connect to the {x}/{x1} network. Wait around 10 seconds then check <a href='/'>if it's OK.</a> <p/>The {v} AP will run on the same WiFi channel of the {x}/{x1} AP. You may have to manually reconnect to the {v} AP.</div>";
 const char WM_HTTP_CONFIGSAVED[]  PROGMEM = "<div class='msg'><h3>Configuration Saved!</h3></div>";
+const char WM_HTTP_NOTFOUND[]  PROGMEM = "<div class='msg'><h3>Request Not Found!</h3>{nf}</div>";
 
 // Info html
 // @todo remove html elements from progmem, repetatve strings
@@ -325,7 +327,8 @@ const char T_h[]				  PROGMEM = "{h}";
 const char favIconHeader[] PROGMEM = "HTTP/1.1 200 OK\nContent-Type: image/ico\nConnection: close\n\n";
 // Base64 version:
 //const char favicon[]       PROGMEM = "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAtdJREFUOE+lk1toVGcUhb99zsxkGs8MU2ZGTag1TUJuEDGJomPAggZiqDrFS6sQ9aWWgiJSlT60eTIv0odCGWjM5SEXaUNKwYJaNYX6UGNIYlBJSdJqItYQw4hmZnKZTM755UzaqrR56n762Zu99r8WawmAUdNRIpYZAUKIuFHKbv+7RECpeaBHafrxxJXa38SoaisWXfWK0/CoxVlQ1n/uWkphWQrRNBwuA5VKxJUpm8Rb3Xodp1GlUollrkJ8JgXJRXDqsGiCruH1ByAV7xZPdeucQtzKsrCvJBdMdF3D7dJBIP5snty1Ps5+VEHlulXcfxzj664hrvVNoOkyL94d7cqyTBKxZBr57SyD6HSS2cQCNuXy4iD9ze+nf3dvNEppQYDniQWywhewEETb2qLKCvwc2J5LeYGfbeXZaa57Pu/m4uVRxq4eIWe1Qd4HnTz4/Sn+t7wEfW7GJuK4nDrClkZVUbKS/qYwc0mTusgtasNFrM/3U3PmKle+rObTSC9fNfThzjLSGjscgkPXlkSlskltKAnS1xhmb93P/NDYj6csi9hPh2m4OMwn4aJ/AHjDwccflnL+dCX5B7t4MBFbAqiweTaFqWsZoP7sDTbvyKenYTeH6m9wYl8JG4uCvLP/O8YHJjh2IkTkZIii2u8ZeTi9BFBWGOB2y5JQI+PPKczxpYUK1LRRmPMmQ+1707O7I1HWFQbS75z9nTx8kviLQnGQvqYw33bfJzfbw6OpGU5Fenk8NYOZMslb66P+6Aa2lK7ijz+nOddxh18GJ3G5bBErm1WodCU3v9nFzs+ucenHYfBmoLkdGJkuQBF7zUgWaILHm4GIII53W+by1/jcDadCfNE8wK+Dk2SucKJp8pozbcVNpdBE0O2ZaLbtbSO1XTe1zKqZaJQMw0WGS182S68iitOAVKJbjPfaimVR9Vr6Co+YswjLJPHvbdEQR+bLMP3fOL8AMWcuzi8HP64AAAAASUVORK5CYII=";
-const char favicon[] PROGMEM = {
+
+const uint8_t favicon[] PROGMEM = {
   0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, 
 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0xF3, 0xFF, 
 0x61, 0x00, 0x00, 0x00, 0x01, 0x73, 0x52, 0x47, 0x42, 0x00, 0xAE, 0xCE, 0x1C, 0xE9, 0x00, 0x00, 
