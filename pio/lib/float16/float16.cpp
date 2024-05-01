@@ -208,7 +208,11 @@ float float16::f16tof32(uint16_t _value) const
 
 uint16_t float16::f32tof16(float f) const
 {
+  #pragma GCC diagnostic push 
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
   uint32_t t = *(uint32_t *) &f;
+  #pragma GCC diagnostic pop
+  
   //  man bits = 10; but we keep 11 for rounding
   uint16_t man = (t & 0x007FFFFF) >> 12;
   int16_t  exp = (t & 0x7F800000) >> 23;
