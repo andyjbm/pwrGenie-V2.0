@@ -23,8 +23,14 @@ Credits to:
 #include "Globals.h"
 #include "Utils.h"
 
+#include "AsyncBlinker.h"
+
 #include "uriwildcard.h"            // Must come b4 wifimanager to override uri.h
 #include "ESPAsync_WiFiManager.h"   // Needs LittleFS and defs.h first.
+
+#ifdef ESP8266
+  #define LEDPIN D4
+#endif
 
 #ifdef PWR_GENIE_MODE_MODBUS
   #include "modbus.h"
@@ -170,9 +176,36 @@ void configMyWebHandlers(){
   wm.server->on("/debug", handleDebug); 
 }
 
+
+#define ledON LOW
+#define ledOFF HIGH
+#define onPeriod 50
+
+// Need this to flash during setup.
+void ledFlashModal(uint16_t mS, uint8_t count){
+  while (true) {
+    digitalWrite(LEDPIN, ledON);
+    delay (onPeriod);
+    digitalWrite(LEDPIN, ledOFF);
+    if (--count == 0) return;
+    delay (mS - onPeriod);
+  };
+}
+
+void blinkLED(bool enable) {
+  digitalWrite(LEDPIN, enable ? LOW : HIGH);
+}
+
+AsyncBlinker blinker(blinkLED);
+const uint16_t twoEvery2Sec[] = { 50,100,50,1800 }; // two every 2 sec. Must stay in scope.
+
 // Get everything ready.
 void setup() {
-  
+  // Set up the LED and say Hello...
+  pinMode(LEDPIN, OUTPUT);
+  digitalWrite(LEDPIN,ledOFF);
+  ledFlashModal(100,3);
+
   // Set up console serial and say hello...
   #ifdef SERIAL_115400
     Serial.begin(115400);
@@ -203,6 +236,9 @@ void setup() {
   wm.setCredentials(pg_wifiSSID, pg_wifiPassword, pg_wifiSSID1, pg_wifiPassword1);  //Set the creds for the access points we want to try to connect to.
   wm.scanModal();   //Perform an initial Scan b4 we try to connect.
   
+  // We managed a scan.
+  ledFlashModal(80,3);
+
   // If connection fails it starts an access point **with the creds supplied in this call**.  
   if (wm.autoConnect(pg_APSSID, pg_APPassword)) {  // These are the creds for starting an AP if connecting to ext wifi fails!
     CONSOLELN(F("MAIN: Connected to external wifi as a client... whoop!"));
@@ -242,6 +278,10 @@ void setup() {
 
   strJsonData="";                 //Full of junk when debug page is called b4 1st send.
   milliCounter = millis() + 1500; // Ready for the 1st loop. Wait a second 1st tho. 
+
+  // Blinker
+  blinker.setIntervals(twoEvery2Sec, sizeof(twoEvery2Sec) / 2);  
+  blinker.start();
 }
 
 void console_InfoPrint(){
@@ -255,19 +295,23 @@ void console_InfoPrint(){
   CONSOLELN();
 }
 
+
+
 //The main code loop
 void loop() {
 
-#ifdef SPL_FAKE_READINGS
-// Testing SPL Meter code leqv2.h
-  static unsigned long tmpmiliC;
-  // fake an SPL reading every 1.2 second.
-  if ((millis() - tmpmiliC) > 1200) {
-    tmpmiliC += 1200;
-        ssreader::read_started = true;  
-        ssreader::SPL_Complete = true;
-  }
-#endif
+  blinker.loopWork(millis());
+
+  #ifdef SPL_FAKE_READINGS
+  // Testing SPL Meter code leqv2.h
+    static unsigned long tmpmiliC;
+    // fake an SPL reading every 1.2 second.
+    if ((millis() - tmpmiliC) > 1200) {
+      tmpmiliC += 1200;
+          ssreader::read_started = true;  
+          ssreader::SPL_Complete = true;
+    }
+  #endif
 
   // Reconnect the wifi
   if (reconnect)
@@ -303,31 +347,28 @@ void loop() {
     milliCounter += LOOP_INFO_TIME;
     psuVolts = ReadPsuVolts(wm.getParameter(pgParam::vfact)->getParam_asFloat());   // psuVolts is global. Also used by wifi manager on config portal.
    
-    //CONSOLE(F("psuVolts Read: "));
-    //CONSOLELN(String(psuVolts,2));
-
     //For debugging:
     //console_InfoPrint();
     //testhostByName();
-  if (pgMode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || pgMode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
-  {
-    // Modbus as-a-source device specific code:
-    #if defined(PWR_GENIE_MODE_MODBUS)
-        CONSOLELN(F("MODBUS Source Enabled, Calling doModbusWork():"));
-        modbusSuccess = doModbusWork();
+    if (pgMode == pgMode_Opt::pgMode_Opt_Receive_Source_Only || pgMode == pgMode_Opt::pgMode_Opt_Both_Source_n_Send)
+    {
+      // Modbus as-a-source device specific code:
+      #if defined(PWR_GENIE_MODE_MODBUS)
+          CONSOLELN(F("MODBUS Source Enabled, Calling doModbusWork():"));
+          modbusSuccess = doModbusWork();
 
-    // SPL Meter Specific code:
-    #elif defined(PWR_GENIE_MODE_SPL)
-      #ifndef QUIET_LOOP
-        CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend(): "));
+      // SPL Meter Specific code:
+      #elif defined(PWR_GENIE_MODE_SPL)
+        #ifndef QUIET_LOOP
+          CONSOLELN(F("SPL Post Enabled, Calling DoSPLSend(): "));
+        #endif
+        ssreader::DoSPLSend();
+
+      // JKBMS request for data.
+      #elif defined(PWR_GENIE_MODE_JKBMS)
+        readJKBMS = true;
+        pg_jkbms::bms_pollLoop();
       #endif
-      ssreader::DoSPLSend();
-
-    // JKBMS request for data.
-    #elif defined(PWR_GENIE_MODE_JKBMS)
-      readJKBMS = true;
-      pg_jkbms::bms_pollLoop();
-    #endif
     
     } else {
       CONSOLELN(F("Source fetching is **DISABLED** in config."));
