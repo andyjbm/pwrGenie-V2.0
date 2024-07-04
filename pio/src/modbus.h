@@ -43,6 +43,31 @@
         const char mbrcXX[] PROGMEM ="No ResultCode Match.";
     };
 
+    enum indexDataNames{ vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3,iN,   //0 to 9
+                        p1,p2,p3, VA1,VA2,VA3, VAr1,VAr2,VAr3,          //10 to 18
+                        vLNAvg,vLLAvg, kW,kVA,kVAr,                     //19 to 23
+                        pf1,pf2,pf3,pfAvg,                              //24 to 27
+                        PhS,fHz, KWhT,kVArT,                            //28 t0 31
+                        bfHz, bL1,bL2,bL3, bL1L2,bL2L3,bL1L3,           //32 to 38
+                        
+                        vBatt1,vBatt2, v12Alt,                          //39 to 41
+                        LpH,Loadpc,Runtime,                             //42 to...
+                        CoolTemp,tIntManifold,POil,PIntake,
+                        SootLoad,AshLoad,DevTank,Fuelpc,                //...52
+                        RPM1,RPM2,RPM3,Hz1,Hz2,Hz3,                     //52 to 58
+                        
+                        d59,d60,d61,d62,d63,d64,d65,d66,d67,d68,d69, d70,d71,d72,d73,
+
+                        r1000,r1001,r1002,r1003,r1004,r1005,r1006,r1007,r1008,r1009,
+                        r1010,r1011,r1012,r1013,r1014,r1015,r1016,r1017,r1018,r1019,
+                        r1020,r1021,r1022,r1023,r1024,r1025,r1026,r1027,r1028,r1029,
+                        r1030,r1031,r1032,r1033,r1034,r1035,r1036,r1037,r1038,r1039,
+                        r1040,r1041,r1042,r1043,r1044,r1045,r1046,r1047,r1048,r1049,
+                        r1050,r1051,r1052,r1053,r1054,r1055,r1056,r1057,r1058,r1059,
+                        r1060,r1061,r1062,r1063,r1064,r1065,r1066,r1067,r1068,r1069,
+                        r1070,r1071,r1072,r1073        
+    };
+
     namespace mbDataNames{
         // Parameter names. Across all devices.
         const char d0[] PROGMEM = "vL1";
@@ -64,7 +89,6 @@
         const char d13[] PROGMEM = "VA1";
         const char d14[] PROGMEM = "VA2";
         const char d15[] PROGMEM = "VA3";
-
         const char d16[] PROGMEM = "VAr1";
         const char d17[] PROGMEM = "VAr2";
         const char d18[] PROGMEM = "VAr3";
@@ -78,7 +102,6 @@
         const char d24[] PROGMEM = "pf1";
         const char d25[] PROGMEM = "pf2";
         const char d26[] PROGMEM = "pf3";
-
         const char d27[] PROGMEM = "pfAvg";
 
         const char d28[] PROGMEM = "PhS";
@@ -95,16 +118,143 @@
         const char d37[] PROGMEM = "bL2L3";
         const char d38[] PROGMEM = "bL1L3";
 
+        const char d39[] PROGMEM = "vBatt1";
+        const char d40[] PROGMEM = "vBatt2";
+        const char d41[] PROGMEM = "12vAlt?";
+        
+        const char d42[] PROGMEM = "L/h";
+        const char d43[] PROGMEM = "Load%";
+        const char d44[] PROGMEM = "Runtime?";
+        const char d45[] PROGMEM = "Coolant Temp";        //80
+        const char d46[] PROGMEM = "t-IntManifold";
+        const char d47[] PROGMEM = "P-Oil";
+        const char d48[] PROGMEM = "P-Intake";
+        const char d49[] PROGMEM = "SootLoad";
+        const char d50[] PROGMEM = "AshLoad";             //90
+        const char d51[] PROGMEM = "DevTank%";
+        const char d52[] PROGMEM = "FuelTank%";
+        const char d53[] PROGMEM = "RPM1"; 
+        const char d54[] PROGMEM = "RPM2"; 
+        const char d55[] PROGMEM = "RPM3"; 
+        const char d56[] PROGMEM = "Hz1"; 
+        const char d57[] PROGMEM = "Hz2"; 
+        const char d58[] PROGMEM = "Hz3"; 
+        const char d59[] PROGMEM = "d59"; 
+        const char d60[] PROGMEM = "d60";
+        const char d61[] PROGMEM = "d61";
+        const char d62[] PROGMEM = "d62";
+        const char d63[] PROGMEM = "d63";
+        const char d64[] PROGMEM = "d64";
+        const char d65[] PROGMEM = "d65";
+        const char d66[] PROGMEM = "d66";
+        const char d67[] PROGMEM = "d67";
+        const char d68[] PROGMEM = "d68";
+        const char d69[] PROGMEM = "d69";
+        const char d70[] PROGMEM = "d70";
+        const char d71[] PROGMEM = "d71";
+        const char d72[] PROGMEM = "d72";
+        const char d73[] PROGMEM = "d73";
+        
+        const char r1000[] PROGMEM = "r1000";        //74
+        const char r1001[] PROGMEM = "r1001";
+        const char r1002[] PROGMEM = "r1002";
+        const char r1003[] PROGMEM = "r1003";
+        const char r1004[] PROGMEM = "r1004";
+        const char r1005[] PROGMEM = "r1005";
+        const char r1006[] PROGMEM = "r1006";        //80
+        const char r1007[] PROGMEM = "r1007";
+        const char r1008[] PROGMEM = "r1008";
+        const char r1009[] PROGMEM = "r1009";
+        const char r1010[] PROGMEM = "r1010";
+        const char r1011[] PROGMEM = "r1011";
+        const char r1012[] PROGMEM = "r1012";
+        const char r1013[] PROGMEM = "r1013";
+        const char r1014[] PROGMEM = "r1014";
+        const char r1015[] PROGMEM = "r1015";
+        const char r1016[] PROGMEM = "r1016";        //90
+        const char r1017[] PROGMEM = "r1017";
+        const char r1018[] PROGMEM = "r1018";
+        const char r1019[] PROGMEM = "r1019";
+        const char r1020[] PROGMEM = "r1020";
+        const char r1021[] PROGMEM = "r1021";
+        const char r1022[] PROGMEM = "r1022";
+        const char r1023[] PROGMEM = "r1023";
+        const char r1024[] PROGMEM = "r1024";
+        const char r1025[] PROGMEM = "r1025";
+        const char r1026[] PROGMEM = "r1026";       //100
+        const char r1027[] PROGMEM = "r1027";
+        const char r1028[] PROGMEM = "r1028";
+        const char r1029[] PROGMEM = "r1029";
+        const char r1030[] PROGMEM = "r1030";
+        const char r1031[] PROGMEM = "r1031";
+        const char r1032[] PROGMEM = "r1032";
+        const char r1033[] PROGMEM = "r1033";
+        const char r1034[] PROGMEM = "r1034";
+        const char r1035[] PROGMEM = "r1035";
+        const char r1036[] PROGMEM = "r1036";
+        const char r1037[] PROGMEM = "r1037";
+        const char r1038[] PROGMEM = "r1038";
+        const char r1039[] PROGMEM = "r1039";
+        const char r1040[] PROGMEM = "r1040";
+        const char r1041[] PROGMEM = "r1041";
+        const char r1042[] PROGMEM = "r1042";
+        const char r1043[] PROGMEM = "r1043";
+        const char r1044[] PROGMEM = "r1044";
+        const char r1045[] PROGMEM = "r1045";
+        const char r1046[] PROGMEM = "r1046";
+        const char r1047[] PROGMEM = "r1047";
+        const char r1048[] PROGMEM = "r1048";
+        const char r1049[] PROGMEM = "r1049";
+        const char r1050[] PROGMEM = "r1050";
+        const char r1051[] PROGMEM = "r1051";
+        const char r1052[] PROGMEM = "r1052";
+        const char r1053[] PROGMEM = "r1053";
+        const char r1054[] PROGMEM = "r1054";
+        const char r1055[] PROGMEM = "r1055";
+        const char r1056[] PROGMEM = "r1056";
+        const char r1057[] PROGMEM = "r1057";
+        const char r1058[] PROGMEM = "r1058";
+        const char r1059[] PROGMEM = "r1059";
+        const char r1060[] PROGMEM = "r1060";
+        const char r1061[] PROGMEM = "r1061";
+        const char r1062[] PROGMEM = "r1062";
+        const char r1063[] PROGMEM = "r1063";
+        const char r1064[] PROGMEM = "r1064";
+        const char r1065[] PROGMEM = "r1065";
+        const char r1066[] PROGMEM = "r1066";
+        const char r1067[] PROGMEM = "r1067";
+        const char r1068[] PROGMEM = "r1068";
+        const char r1069[] PROGMEM = "r1069";
+        const char r1070[] PROGMEM = "r1070";
+        const char r1071[] PROGMEM = "r1071";
+        const char r1072[] PROGMEM = "r1072";
+        const char r1073[] PROGMEM = "r1073";  //147
+
         const char * const mbDataNames[] = {
-            d0,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,d20,
-            d21,d22,d23,d24,d25,d26,d27,d28,d29,d30,d31,d32,d33,d34,d35,d36,d37,d38
-            };
+            d0,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,
+            d20,d21,d22,d23,d24,d25,d26,d27,d28,d29,d30,d31,d32,d33,d34,d35,d36,d37,d38,d39,
+            d40,d41,d42,d43,d44,d45,d46,d47,d48,d49,d50,d51,d52,d53,d54,d55,d56,d57,d58,d59,
+            d60,d61,d62,d63,d64,d65,d66,d67,d68,d69,d70,d71,d72,d73,
+
+            r1000,r1001,r1002,r1003,r1004,r1005,r1006,r1007,r1008,r1009,  //74
+            r1010,r1011,r1012,r1013,r1014,r1015,r1016,r1017,r1018,r1019,  //84
+            r1020,r1021,r1022,r1023,r1024,r1025,r1026,r1027,r1028,r1029,  //94
+            r1030,r1031,r1032,r1033,r1034,r1035,r1036,r1037,r1038,r1039,  //104
+            r1040,r1041,r1042,r1043,r1044,r1045,r1046,r1047,r1048,r1049,  //114
+            r1050,r1051,r1052,r1053,r1054,r1055,r1056,r1057,r1058,r1059,  //124
+            r1060,r1061,r1062,r1063,r1064,r1065,r1066,r1067,r1068,r1069,  //134
+            r1070,r1071,r1072,r1073                                       //144
+        };
     };
 
-    // This for the results after register data wrangling.
+    /* This for the results after register data wrangling.
     struct mbData {
-            float d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,d20,d21,d22,d23,d24,d25,d26,d27,d28,d29,d30,d31;
-        };
+            float   f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,
+                    f20,f21,f22,f23,f24,f25,f26,f27,f28,f29,f30,f31,f32,f33,f34,f35,f36,f37,f38,f39,
+                    f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f53,f54,f55,f56,f57,f58,f59,
+                    f60,f61,f62,f63,f64,f65,f66,f67,f68,f69,f70,f71,f72,f73;
+    };
+    */
 
     #ifdef MODBUS_DEVICE_EM21
         const uint8_t MODBUS_ID       = 1;
@@ -114,9 +264,21 @@
         const uint8_t MODBUS_REGMAX   = 60;         // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
         const uint8_t mbDataElementCount = 31;   // Number of parameters these registers fit into.
         
-        // Array of the names for EM21   
+        //Maps the MODBUS Register into the data element.
+        //The index is the DataElement index, The value is the MODBUS Register index.
+        //NOTE THE MODBUS Address depends on the size of other data elements before it!
+        //Allows for skipping some registers and changing the order of the resulting data.
+        const byte mbReg2DataMap[mbDataElementCount] = {
+            0,2,4, 6,8,10, 12,14,16, 18,20,22, 24,26,28, 30,32,34,
+            36,38,40,42,44,  46,47,48,49,50,51, 52,54
+        };
+
+        // Array of the names for EM21 - in MODBUS Register order.  
         const uint16_t mbNameIndex[] = {
-            0,1,2,3,4,5,6,7,8,  10,11,12, 13,14,15, 16,17,18, 19,20, 21,22,23, 24,25,26, 27,28,29, 30,31};
+            //0,1,2,3,4,5,6,7,8,  10,11,12, 13,14,15, 16,17,18, 19,20, 21,22,23, 24,25,26, 27,28,29, 30,31
+            vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3, p1,p2,p3, VA1,VA2,VA3, VAr1,VAr2,VAr3,
+            vLNAvg,vLLAvg, kW,kVA,kVAr, pf1,pf2,pf3,pfAvg, PhS,fHz, KWhT,kVArT
+            };
  
         const int mbScale[mbDataElementCount] = {
             10,10,10,  10,10,10,  1000,1000,1000,  10,10,10, 10,10,10, 
@@ -136,23 +298,69 @@
         const uint8_t MODBUS_REGMAX   = 12;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
         const uint8_t mbDataElementCount = 12;  // Number of parameters these registers fit into.
 
-        const uint16_t mbNameIndex[] = {0,1,2,3,4,5,6,7,8,21,22,27};
+        const byte mbReg2DataMap[mbDataElementCount] = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+        const uint16_t mbNameIndex[] = {
+            //0,1,2,3,4,5,6,7,8,21,22,27
+            vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3, kW,kVA, pfAvg
+            };
         const int mbScale[mbDataElementCount] =     {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbRegSize[mbDataElementCount] =  {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbDP[mbDataElementCount] =       {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
     
     #elif defined(MODBUS_DEVICE_APM403)
         const uint8_t MODBUS_ID       = 1;
-        const uint16_t MODBUS_HBASE    = 1036;
+        const uint16_t MODBUS_HBASE    = 1000; //1036;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 50;     // Regs count to fetch in each block request.
-        const uint8_t MODBUS_REGMAX   = 18;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
-        const uint8_t mbDataElementCount = 18;  // Number of parameters these registers fit into.
+        const uint8_t MODBUS_REGMAX   = 74;     //38 //18   // Number of registers to be fetched.
+        const uint8_t mbDataElementCount = 74;  //38 //18 // Number of parameters these registers fit into.
 
-        const uint16_t mbNameIndex[] = {29,0,1,2,3,4,5,6,7,8,9,32,33,34,35,36,37,38};
-        const int mbScale[mbDataElementCount] =     { 10,  1,1,1,  1,1,1,  1,1,1,1,  10,  1,1,1,  1,1,1 };
-        const byte mbRegSize[mbDataElementCount] =  {  1,  1,1,1,  1,1,1,  1,1,1,1,   1,  1,1,1,  1,1,1 };
-        const byte mbDP[mbDataElementCount] =       {  1,  1,1,1,  1,1,1,  1,1,1,1,   1,  1,1,1,  1,1,1 };
+        const uint8_t mbResult2SendCount = 74;  // The number of values from what we collected to send to EMONCMS.
+
+        const uint16_t mbNameIndex[] = {
+            r1000,RPM1,r1002,r1003,RPM2,LpH,CoolTemp,tIntManifold,POil,PIntake,
+            Loadpc,r1011,r1012,r1013,Runtime,SootLoad,AshLoad,DevTank,Hz1,RPM3,
+            r1020,r1021,r1022,r1023,r1024,r1025,r1026,r1027,r1028,r1029,
+            r1030,r1031,r1032,r1033,r1034,r1035,
+
+        //    74,75,76,77,78,79,80,81,82,83,      //reg 1000 to 1009
+        //    84,85,86,87,88,89,90,91,92,93,      //reg 1010 to 1019
+        //    94,95,96,97,98,99,100,101,102,103,  //reg 1020 to 1029
+        //    104,105,106,107,108,109,            //reg 1030 to 1035
+
+            fHz, vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3,iN,
+            bfHz, bL1,bL2,bL3, bL1L2,bL2L3,bL1L3,
+
+            vBatt1, v12Alt, r1056,r1057, Fuelpc, r1059, Runtime,
+            r1061, r1062, r1063, r1064, r1065, r1066, r1067, r1068, r1069,
+            vBatt2, r1071,r1072,r1073
+
+            //29,0,1,2,3,4,5,6,7,8,9,32,33,34,35,36,37,38,                    //Reg 1036 to 1053
+            //39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,    //Reg 1054 to 
+            //59,60,61,62,63,64,65,66,67,68,69,70,71,72,73                    //Reg
+        
+        };
+
+        //Map used to pick the dataElements we want and in the order we want.
+        const byte mbResultMap[mbResult2SendCount] = {
+            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,
+            20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,
+            40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,
+            60,61,62,63,64,65,66,67,68,69,70,71,72,73
+        };
+
+        const int mbScale[mbDataElementCount] =     { 
+            1,1,1,1,1, 10, 1,1, 100,100, 1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,
+            10,  1,1,1,  1,1,1,  1,1,1,1,  10,  1,1,1,  1,1,1, 10,10, 1,1, 1, 1,1,1,1,1,1, 1,1,1,1,1,10,1,1,1
+            };
+        const byte mbRegSize[mbDataElementCount] =  {
+            1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,
+            1,  1,1,1,  1,1,1,  1,1,1,1,   1,  1,1,1,  1,1,1,  1, 1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1
+            };
+        const byte mbDP[mbDataElementCount] =       {
+            1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,
+            1,  1,1,1,  1,1,1,  1,1,1,1,   1,  1,1,1,  1,1,1,  1,1, 1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1
+            };
 
     #elif defined(MODBUS_DEVICE_DSE)    
         const uint8_t MODBUS_ID       = 1;
@@ -162,12 +370,20 @@
         const uint8_t MODBUS_REGMAX   = 12;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
         const uint8_t mbDataElementCount = 12;  // Number of parameters these registers fit into.
 
-        const uint16_t mbNameIndex[] = {0,1,2,3,4,5,6,7,8,21,22,27};
+        const byte mbReg2DataMap[mbDataElementCount] = { 0,1,2,3,4,5,6,7,8,9,10,11 };
+        const uint16_t mbNameIndex[] = {
+            //0,1,2,3,4,5,6,7,8,21,22,27
+            vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3, kW,kVA, pfAvg
+        };
         const int mbScale[mbDataElementCount] =     {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbRegSize[mbDataElementCount] =  {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbDP[mbDataElementCount] =       {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
-    
     #endif
+
+
+    //###########################
+    // Main MODBUS Code
+    //###########################
     
     // What buffer to use here? 256 is safe because JKBMS is ok with 310.
     // Is this why we could only fetch 12 registers at a time? (Maybe not bcuase rPI can only do 6 Regs at a time.)
@@ -180,12 +396,8 @@
     const uint8_t mbRegCount = MODBUS_REGMAX;
     uint16_t mbResult[mbRegCount];      // Register size is 16 bit. Some values use 2 registers.
 
-    // Jiggery Pokery to convert uint32 to float
-    // by pointing the two data types at the same address.
-    mbData cvD;                         // uint32
-    //float * cvDFlt = &cvD.d1;         // Should work without recast? implied?
-    float * cvDFlt = (float *) &cvD;    // Specifically cast as address to a float.
-
+    float cvD[mbDataElementCount];
+    
     Modbus::ResultCode cbResult;
 
     bool modbusSuccess = false;         // Used by debug page to determine modbus read outcome
@@ -217,6 +429,7 @@
     // Returns TRUE if there was a successful handshake. See mbResult via callback for reply outcome.
     // Returns FALSE if the Modbus was busy and couldn't send.
     bool mbFetch(uint16_t baseReg, uint16_t numReg, uint16_t mbRegs[]){
+    //    return true;  // For faking device present.
         if (!mb.slave()) { // Is the wire busy?
             mb.readHreg(MODBUS_ID, baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
             //mb.readHreg(MODBUS_ID, 1054, mbRegs, 2, mbCallback);       // Send Read Hreg from Modbus Server
@@ -262,7 +475,10 @@
         modbus_LastResult = "";
         mbCall = "";
 
-        // We can only fetch MODBUS_REG_PER registers at a time :-(
+        //Main MODBUS Fetch Registers Code
+        //################################
+
+        // This because (eg EM21) only allows for fetching "MODBUS_REG_PER" registers at a time :-(
         uint16_t i=0;    
         uint16_t regfetch = MODBUS_REG_PER;
         while (i < MODBUS_REGMAX){
@@ -297,39 +513,57 @@
         CONSOLELN(FPSTR("Done Handshake - mbCall:"));
         CONSOLE(mbCall);
         
-        // Are we done with this info now? Call was successful so the rest is data wrangling?
+        //Store the result codes from the modbus exchange for the debug html:
         mbCall.replace("\n","<br>");
         modbus_LastResult = mbCall;
+
+        //and set up the debug html for the actual data values:
         modbus_LastResult += FPSTR("<table class=\"table\"><tbody>");
 
         // Convert the register buffer values to useful data.
-        uint16_t regAdr = 0;
-        char dbuff[10];
+        // A value may use 1 or 2 registers and may need scaling.
+        //#######################################################
         char *mbDN[mbDataElementCount];
+        float cvData[mbDataElementCount];
+        uint16_t regAdr = 0;
         for (uint16_t i=0; i<mbDataElementCount; i++){
             if (mbRegSize[i] == 2) {
-                cvDFlt[i] = reg2uint32(&mbResult[regAdr]) / ((float) mbScale[i]);
+                //Two registers for this value
+                cvData[i] = reg2uint32(&mbResult[regAdr]) / ((float) mbScale[i]);
             }
-            if (mbRegSize[i] == 1) {        
-                cvDFlt[i] = mbResult[regAdr] / ((float) mbScale[i]);
+            if (mbRegSize[i] == 1) {  
+                //Only one register for this value      
+                cvData[i] = mbResult[regAdr] / ((float) mbScale[i]);
             }
             regAdr += mbRegSize[i];
-            mbDN[i] = (char *)mbDataNames::mbDataNames[mbNameIndex[i]];  // We get the Field names from our Global list indexed into by our device definition.
+        }
+
+        //Register values are now translated to data in cvData.
+        //Next, pick the results we want in the order we want.
+        //####################################################
+        for (uint16_t d=0; d<mbResult2SendCount; d++){
+            byte s = mbResultMap[d];  // s is source index, d is destination.
+                    
+            //For emoncms:
+            cvD[d] = cvData[s];
+            mbDN[d] = (char *)mbDataNames::mbDataNames[mbNameIndex[s]];  // We get the Field names from our Global list indexed into by our device definition.
+
+            //Build debug page html
             modbus_LastResult += FPSTR("<tr><td>");
-            modbus_LastResult += FPSTR(mbDN[i]);
+            modbus_LastResult += FPSTR(mbDN[d]);
             modbus_LastResult += FPSTR("</td><td>");
             
-            //Bug with this when compiling for esp32. Maybe broken for 8266 now?
+            //Bug with this when compiling for esp32. So using dtostrf instead. Maybe broken for 8266 also?
             //modbus_LastResult += String(cvDFlt[i],mbDP[i]);
-            dtostrf(cvDFlt[i],1,mbDP[i],dbuff);  // dtostrf(float, min width, precision, stringbuffer)
+            char dbuff[10];
+            dtostrf(cvData[s],1,mbDP[s],dbuff);  // dtostrf(float, min width, precision, stringbuffer)
             modbus_LastResult += dbuff;
-            
             modbus_LastResult += FPSTR("</td></tr>");
         }
         modbus_LastResult += FPSTR("</tbody></table>");
     
         CONSOLE(F("Emoncms sending mbData..."));
-        emoncms::send2emoncms(mbDN,(float *) &cvD, mbDataElementCount);
+        emoncms::send2emoncms(mbDN, cvD, mbDataElementCount);
         return true;
     }
 
