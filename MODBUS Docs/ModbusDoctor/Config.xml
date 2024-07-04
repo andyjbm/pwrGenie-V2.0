@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Config xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <LicenceAgreement>true</LicenceAgreement>
+  <ModbusType>RTU</ModbusType>
+  <IP>127.0.0.1</IP>
+  <Port>502</Port>
+  <RtuSettings>&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;SerialMaster xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;BaudRate&gt;x9600&lt;/BaudRate&gt;
+  &lt;DataBits&gt;x8&lt;/DataBits&gt;
+  &lt;StopBits&gt;One&lt;/StopBits&gt;
+  &lt;Parity&gt;None&lt;/Parity&gt;
+  &lt;SerialPortName&gt;COM3&lt;/SerialPortName&gt;
+  &lt;PortName&gt;COM3&lt;/PortName&gt;
+  &lt;DRT&gt;false&lt;/DRT&gt;
+  &lt;RTS&gt;false&lt;/RTS&gt;
+  &lt;TimeOut&gt;1000&lt;/TimeOut&gt;
+&lt;/SerialMaster&gt;</RtuSettings>
+  <TimeOut>1000</TimeOut>
+</Config>
