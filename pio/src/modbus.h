@@ -247,15 +247,6 @@
         };
     };
 
-    /* This for the results after register data wrangling.
-    struct mbData {
-            float   f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,
-                    f20,f21,f22,f23,f24,f25,f26,f27,f28,f29,f30,f31,f32,f33,f34,f35,f36,f37,f38,f39,
-                    f40,f41,f42,f43,f44,f45,f46,f47,f48,f49,f50,f51,f52,f53,f54,f55,f56,f57,f58,f59,
-                    f60,f61,f62,f63,f64,f65,f66,f67,f68,f69,f70,f71,f72,f73;
-    };
-    */
-
     #ifdef MODBUS_DEVICE_EM21
         const uint8_t MODBUS_ID       = 1;
         const uint16_t MODBUS_HBASE    = 0;
@@ -263,15 +254,7 @@
         const uint8_t MODBUS_REG_PER  = 12;         // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 60;         // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
         const uint8_t mbDataElementCount = 31;   // Number of parameters these registers fit into.
-        
-        //Maps the MODBUS Register into the data element.
-        //The index is the DataElement index, The value is the MODBUS Register index.
-        //NOTE THE MODBUS Address depends on the size of other data elements before it!
-        //Allows for skipping some registers and changing the order of the resulting data.
-        const byte mbReg2DataMap[mbDataElementCount] = {
-            0,2,4, 6,8,10, 12,14,16, 18,20,22, 24,26,28, 30,32,34,
-            36,38,40,42,44,  46,47,48,49,50,51, 52,54
-        };
+        const uint8_t mbResult2SendCount = 31;   // The number of values from what we collected to send to EMONCMS.
 
         // Array of the names for EM21 - in MODBUS Register order.  
         const uint16_t mbNameIndex[] = {
@@ -280,6 +263,11 @@
             vLNAvg,vLLAvg, kW,kVA,kVAr, pf1,pf2,pf3,pfAvg, PhS,fHz, KWhT,kVArT
             };
  
+        //Map used to pick the dataElements we want and in the order we want.
+        const byte mbResultMap[mbResult2SendCount] = {
+            0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
+        };
+
         const int mbScale[mbDataElementCount] = {
             10,10,10,  10,10,10,  1000,1000,1000,  10,10,10, 10,10,10, 
             10,10,10,  10,10, 1000,1000,1000, 1000,1000,1000,1000, 1, 1, 10, 10 
@@ -297,12 +285,14 @@
         const uint8_t MODBUS_REG_PER  = 12;     // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 12;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
         const uint8_t mbDataElementCount = 12;  // Number of parameters these registers fit into.
+        const uint8_t mbResult2SendCount = 12;   // The number of values from what we collected to send to EMONCMS.
 
-        const byte mbReg2DataMap[mbDataElementCount] = { 0,1,2,3,4,5,6,7,8,9,10,11 };
         const uint16_t mbNameIndex[] = {
             //0,1,2,3,4,5,6,7,8,21,22,27
             vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3, kW,kVA, pfAvg
             };
+
+        const byte mbResultMap[mbResult2SendCount] = { 0,1,2,3,4,5,6,7,8,9,10,11};
         const int mbScale[mbDataElementCount] =     {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbRegSize[mbDataElementCount] =  {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbDP[mbDataElementCount] =       {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
@@ -369,12 +359,14 @@
         const uint8_t MODBUS_REG_PER  = 12;     // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 12;     // Number of registers to be fetched/ We only need 56 but have to fetch in blocks of 12 from the EM21 => Since learned this may be because of the default 64 byte buffer on SoftwareSerial.
         const uint8_t mbDataElementCount = 12;  // Number of parameters these registers fit into.
+        const uint8_t mbResult2SendCount = 12;   // The number of values from what we collected to send to EMONCMS.
 
-        const byte mbReg2DataMap[mbDataElementCount] = { 0,1,2,3,4,5,6,7,8,9,10,11 };
         const uint16_t mbNameIndex[] = {
             //0,1,2,3,4,5,6,7,8,21,22,27
             vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3, kW,kVA, pfAvg
         };
+
+        const byte mbResultMap[mbResult2SendCount] = { 0,1,2,3,4,5,6,7,8,9,10,11};
         const int mbScale[mbDataElementCount] =     {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbRegSize[mbDataElementCount] =  {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
         const byte mbDP[mbDataElementCount] =       {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
