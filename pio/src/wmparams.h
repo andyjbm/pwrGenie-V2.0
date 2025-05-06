@@ -52,7 +52,7 @@
   const char Pn11[] PROGMEM = "Config Page Username";
   const char Pn12[] PROGMEM = "Config Page Password";
 
-  const char Pn21[] PROGMEM = "Battery conversion factor";
+  const char Pn21[] PROGMEM = "Battery conversion factor (-ve for calibration voltage)";
   const char Pn22[] PROGMEM = "pwrGenie Source & Send Enabled";
 
   // Keep in sync with enum pgmode_opt
@@ -86,7 +86,7 @@
     new ESPAsync_WMParameter("P11", FPSTR(pgpNames[pgParam::username]),    emtDM, USRNSIZE),
     new ESPAsync_WMParameter("P12", FPSTR(pgpNames[pgParam::password]),    emtDM, PWDSIZE),
 
-    new ESPAsync_WMParameter("P21", FPSTR(pgpNames[pgParam::vfact]),       "150", 7, (const char*)FPSTR(TYPE_NUMBER)), // Default Voltage Scale.
+    new ESPAsync_WMParameter("P21", FPSTR(pgpNames[pgParam::vfact]),       "150", 9, (const char*)FPSTR(TYPE_NUMBER)), // Default Voltage Scale.
     new ESPAsync_WMParameter("<hr>"), // Line Break
     new ESPAsync_WMParameter("P22", FPSTR(pgpNames[pgParam::pg_Mode]),     emtDM, NUMBERSIZE, "", 1, WMParam_type::isSelection, pgModeOptions, pgModeOptionsCount),
     new ESPAsync_WMParameter("<hr>"),  // Line Break

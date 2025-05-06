@@ -56,7 +56,16 @@
     jsonDoc["P13"] = wm.getSSID1();   
     jsonDoc["P14"] = wm.getPW1(); 
     
-    jsonDoc["P21"] = wm.getParameter(pgParam::vfact)->getParam_asString();   // Save number to jSon as string.
+    //jsonDoc["P21"] = wm.getParameter(pgParam::vfact)->getParam_asString();   // Save number to jSon as string.
+    float vF = wm.getParameter(pgParam::vfact)->getParam_asFloat();
+    if (vF < 0) { // -ve value indicates actual Voltage entered for calibration purposes.
+      analogRead(A0); // Ditch the 1st read.
+      vF = -((float)analogRead(A0)) / vF; // Calculate the factor from the voltage given and voltage read.
+      CONSOLELN(F("Voltage given, calculating vfactor:"), vF);
+    }
+    jsonDoc["P21"] = (String)vF;                                     // Save number to json as string...
+    wm.getParameter(pgParam::vfact)     ->setValue(jsonDoc["P21"]);  // ...and save the caclulated vfactor to the parameter for next config page load.
+
     jsonDoc["P22"] = wm.getParameter(pgParam::pg_Mode)->getParam_asString();
 
     jsonDoc["E01"] = wm.getParameter(pgParam::e_server)->getParam_asString();

@@ -71,7 +71,11 @@
   float ReadPsuVolts(float vfactor) {
     //return 100; // Temp while we debug wifi
     analogRead(A0); // Dump the 1st read because wifi also uses ADC.
-    float psuVolts = ((float)(analogRead(A0) / vfactor));
+    int ar = analogRead(A0);
+    float psuVolts = ((float)(ar) / vfactor);
+    float revEng = ((float)(ar) / psuVolts);
+    CONSOLELN(F("AnalogRead:"), ar, F("psuVolts:"), psuVolts, F("vfactor:"), vfactor, F("Rev Eng:"), revEng);
+
     if (psuVolts < 0 || psuVolts > 99) psuVolts=999; // Check for broken config or psuVolts out of range.
     return psuVolts;
   }
