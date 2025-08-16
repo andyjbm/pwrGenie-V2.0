@@ -296,7 +296,6 @@ void console_InfoPrint(){
 }
 
 
-
 //The main code loop
 void loop() {
 
@@ -356,6 +355,10 @@ void loop() {
       #if defined(PWR_GENIE_MODE_MODBUS)
           CONSOLELN(F("MODBUS Source Enabled, Calling doModbusWork():"));
           modbusSuccess = doModbusWork();
+          if (!modbusSuccess) {
+            CONSOLE(F("Modbus failed so Emoncms sending ADCv: "));
+            emoncms::send2emoncms("");  // Empty Params will just send the psuVolts.
+          }
 
       // SPL Meter Specific code:
       #elif defined(PWR_GENIE_MODE_SPL)
