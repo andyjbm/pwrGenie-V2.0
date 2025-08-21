@@ -24,8 +24,9 @@
       channel,
       username,       // Config page Username
       password,       // Config Password
-      //wifiSSID1,      // 2nd Host SSID for client mode.
+      //wifiSSID1,      // 2nd Host SSID for client mode, stored in esp wifi.
       //wifiPassword1, 
+      modbusID,
 
       vfact, // =21,
       lineBreak1,
@@ -51,7 +52,8 @@
   const char Pn10[] PROGMEM = "Channel Number";
   const char Pn11[] PROGMEM = "Config Page Username";
   const char Pn12[] PROGMEM = "Config Page Password";
-
+  const char Pn15[] PROGMEM = "Modbus ID/Address";
+  
   const char Pn21[] PROGMEM = "Battery conversion factor (-ve for calibration voltage)";
   const char Pn22[] PROGMEM = "pwrGenie Source & Send Enabled";
 
@@ -67,12 +69,12 @@
   const char emtFM[] PROGMEM = "";
   const char emtDM[]         = "";
 
-  const char * pgpNames[] = {Pn01, Pn02, Pn03, Pn04, Pn05, Pn08, Pn09, Pn10, Pn11, Pn12,
+  const char * pgpNames[] = {Pn01, Pn02, Pn03, Pn04, Pn05, Pn08, Pn09, Pn10, Pn11, Pn12, Pn15,
                              Pn21, emtFM, Pn22, emtFM, // Line Breaks have no name.
                              En01, En02, En03, En04, En05};
 
   // The array of Parameter definitions. Instantiated once and then pointed to by the WMParameter Collection.
-  #define PG_PARAMCOUNT 19
+  #define PG_PARAMCOUNT 20
   ESPAsync_WMParameter *pgParamsX[] = {
     // Format is:           ("HTMLID","LABEL NAME (appears on config page)", "default Value", "Value Size", "Param Type", "Options", "Number of Options" )
     new ESPAsync_WMParameter("P01", FPSTR(pgpNames[pgParam::devicename]),  emtDM, NAMESIZE),
@@ -85,6 +87,7 @@
     new ESPAsync_WMParameter("P10", FPSTR(pgpNames[pgParam::channel]),     emtDM, NUMBERSIZE, (const char*)FPSTR(TYPE_NUMBER)),
     new ESPAsync_WMParameter("P11", FPSTR(pgpNames[pgParam::username]),    emtDM, USRNSIZE),
     new ESPAsync_WMParameter("P12", FPSTR(pgpNames[pgParam::password]),    emtDM, PWDSIZE),
+    new ESPAsync_WMParameter("P15", FPSTR(pgpNames[pgParam::modbusID]),    emtDM, NUMBERSIZE, (const char*)FPSTR(TYPE_NUMBER)),
 
     new ESPAsync_WMParameter("P21", FPSTR(pgpNames[pgParam::vfact]),       "150", 9, (const char*)FPSTR(TYPE_NUMBER)), // Default Voltage Scale.
     new ESPAsync_WMParameter("<hr>"), // Line Break

@@ -248,7 +248,7 @@
     };
 
     #ifdef MODBUS_DEVICE_EM21
-        const uint8_t MODBUS_ID       = 1;
+//        const uint8_t MODBUS_ID       = 1;        // Set on config page
         const uint16_t MODBUS_HBASE    = 0;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 12;         // Regs count to fetch in each block request.
@@ -279,7 +279,7 @@
         const byte mbDP[mbDataElementCount] =      {2,2,2,  2,2,2,  2,2,2,  2,2,2,  2,2,2,  2,2,2,  2,2,2,2,2,  3,3,3, 3,2,1,  2,2};
     
     #elif defined(MODBUS_DEVICE_APM303)    
-        const uint8_t MODBUS_ID       = 1;
+        //const uint8_t MODBUS_ID       = 1;       // Set on config page
         const uint16_t MODBUS_HBASE    = 0;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 12;     // Regs count to fetch in each block request.
@@ -298,7 +298,7 @@
         const byte mbDP[mbDataElementCount] =       {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
     
     #elif defined(MODBUS_DEVICE_APM403)
-        const uint8_t MODBUS_ID       = 1;
+        const uint8_t MODBUS_ID       = 1;       // Set on config page
         const uint16_t MODBUS_HBASE    = 1000; //1036;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 50;     // Regs count to fetch in each block request.
@@ -353,7 +353,7 @@
             };
 
     #elif defined(MODBUS_DEVICE_DSE)    
-        const uint8_t MODBUS_ID       = 1;
+        //const uint8_t MODBUS_ID       = 1;       // Set on config page
         const uint16_t MODBUS_HBASE    = 0;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 12;     // Regs count to fetch in each block request.
@@ -416,6 +416,7 @@
     	S.begin(MODBUS_BAUD);
         mb.begin(&S, mb_TX_EN_PIN); // TX_EN_PIN needed for non-Auto direction RS485 boards.
         mb.master();
+        //mb.server(ecmsParams::ModbusID());       // Set on Device Config page.
     }
 
     // Returns TRUE if there was a successful handshake. See mbResult via callback for reply outcome.
@@ -423,7 +424,8 @@
     bool mbFetch(uint16_t baseReg, uint16_t numReg, uint16_t mbRegs[]){
     //    return true;  // For faking device present.
         if (!mb.slave()) { // Is the wire busy?
-            mb.readHreg(MODBUS_ID, baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
+//            mb.readHreg(MODBUS_ID, baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
+            mb.readHreg(ecmsParams::ModbusID(), baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
             //mb.readHreg(MODBUS_ID, 1054, mbRegs, 2, mbCallback);       // Send Read Hreg from Modbus Server
             while(mb.slave()) { mb.task(); delay(10); }                 // Wait for send and receive reply to take place.
             return true;                                                // Complete or timed out. See the callback for results.

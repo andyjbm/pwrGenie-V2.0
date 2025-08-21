@@ -55,6 +55,7 @@
     jsonDoc["P12"] = wm.getParameter(pgParam::password)->getParam_asString();
     jsonDoc["P13"] = wm.getSSID1();   
     jsonDoc["P14"] = wm.getPW1(); 
+    jsonDoc["P15"] = wm.getParameter(pgParam::modbusID)->getParam_asString();
     
     //jsonDoc["P21"] = wm.getParameter(pgParam::vfact)->getParam_asString();   // Save number to jSon as string.
     float vF = wm.getParameter(pgParam::vfact)->getParam_asFloat();
@@ -187,6 +188,7 @@
 
             if (jsonDoc.containsKey("P13")) strcpy(pg_wifiSSID1, jsonDoc["P13"]); // = (const char *)jsonDoc["wifiSSID"];
             if (jsonDoc.containsKey("P14")) strcpy(pg_wifiPassword1, jsonDoc["P14"]); // = (const char *)jsonDoc["wifiPassword"];
+            if (jsonDoc.containsKey("P15")) wm.getParameter(pgParam::modbusID)  ->setValue(jsonDoc["P15"]);
 
             if (jsonDoc.containsKey("P21")) wm.getParameter(pgParam::vfact)     ->setValue(jsonDoc["P21"]);
             if (jsonDoc.containsKey("P22")) wm.getParameter(pgParam::pg_Mode)   ->setValue(jsonDoc["P22"]);

@@ -88,7 +88,7 @@ LICENSE file in the root directory of this source tree.
    #define WIFI_CONECTION_TIMEOUT 10000 // 10 Seconds
 
    #define LOOP_INFO_TIME         10000 // in mSec
-   #define PWRGENIE_FW_VERSION    "0.9.1"
+   #define PWRGENIE_FW_VERSION    "0.9.3"
 
    //#define SECURE_ENABLED   // Enables SSL sending on 443 for emoncms. Breaks pages - heap corruption? Blank pages sent.
    

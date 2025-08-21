@@ -13,5 +13,7 @@
       inline const String server() {return wm.getParameter(pgParam::e_server)->getParam_asString();}
       inline const String node()   {return wm.getParameter(pgParam::e_node)->getParam_asString();}
       inline const String apikey() {return wm.getParameter(pgParam::e_apikey)->getParam_asString();}
+
+      inline u_int8_t     ModbusID()   {return wm.getParameter(pgParam::modbusID)->getParam_asInt();}
    };
 #endif
