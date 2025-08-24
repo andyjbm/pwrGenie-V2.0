@@ -520,6 +520,9 @@ bool ESPAsync_WiFiManager::autoConnect(char const *apName, char const *apPasswor
 
   if (WiFi.status() == WL_CONNECTED)
   {
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(true);
+
     LOGINFO(F("AutoConnect connected and done!"));
 
     // Start the Portal without the AP? Would happen here if so.
