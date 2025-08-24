@@ -43,6 +43,11 @@
         const char mbrcXX[] PROGMEM ="No ResultCode Match.";
     };
 
+
+    // This is an friendly-named index into the datanames arrays below
+    // so as not to have to use d14, r10142, d21, d36, r1043 in the code
+    // which isn't very helpful.
+    // It *MUST* be kept in sync positionally with the arrays below!
     enum indexDataNames{ vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3,iN,   //0 to 9
                         p1,p2,p3, VA1,VA2,VA3, VAr1,VAr2,VAr3,          //10 to 18
                         vLNAvg,vLLAvg, kW,kVA,kVAr,                     //19 to 23
@@ -54,9 +59,9 @@
                         LpH,Loadpc,Runtime,                             //42 to...
                         CoolTemp,tIntManifold,POil,PIntake,
                         SootLoad,AshLoad,DevTank,Fuelpc,                //...52
-                        RPM1,RPM2,RPM3,Hz1,Hz2,Hz3,                     //52 to 58
+                        RPM1,RPM2,RPM3,Hz1,Hz2,Hz3,RPM4,                 //52 to 59
                         
-                        d59,d60,d61,d62,d63,d64,d65,d66,d67,d68,d69, d70,d71,d72,d73,
+                        d60,d61,d62,d63,d64,d65,d66,d67,d68,d69, d70,d71,d72,d73,
 
                         r1000,r1001,r1002,r1003,r1004,r1005,r1006,r1007,r1008,r1009,
                         r1010,r1011,r1012,r1013,r1014,r1015,r1016,r1017,r1018,r1019,
@@ -70,6 +75,7 @@
 
     namespace mbDataNames{
         // Parameter names. Across all devices.
+        // These are home grown once we know what a parameter is called!
         const char d0[] PROGMEM = "vL1";
         const char d1[] PROGMEM = "vL2";
         const char d2[] PROGMEM = "vL3";
@@ -120,26 +126,26 @@
 
         const char d39[] PROGMEM = "vBatt1";
         const char d40[] PROGMEM = "vBatt2";
-        const char d41[] PROGMEM = "12vAlt?";
+        const char d41[] PROGMEM = "12vAlt";
         
-        const char d42[] PROGMEM = "L/h";
-        const char d43[] PROGMEM = "Load%";
-        const char d44[] PROGMEM = "Runtime?";
+        const char d42[] PROGMEM = "L-h";
+        const char d43[] PROGMEM = "Load";
+        const char d44[] PROGMEM = "Runtime";
         const char d45[] PROGMEM = "Coolant Temp";        //80
         const char d46[] PROGMEM = "t-IntManifold";
         const char d47[] PROGMEM = "P-Oil";
         const char d48[] PROGMEM = "P-Intake";
         const char d49[] PROGMEM = "SootLoad";
         const char d50[] PROGMEM = "AshLoad";             //90
-        const char d51[] PROGMEM = "DevTank%";
-        const char d52[] PROGMEM = "FuelTank%";
+        const char d51[] PROGMEM = "DevTank";
+        const char d52[] PROGMEM = "FuelTank";
         const char d53[] PROGMEM = "RPM1"; 
         const char d54[] PROGMEM = "RPM2"; 
         const char d55[] PROGMEM = "RPM3"; 
         const char d56[] PROGMEM = "Hz1"; 
         const char d57[] PROGMEM = "Hz2"; 
         const char d58[] PROGMEM = "Hz3"; 
-        const char d59[] PROGMEM = "d59"; 
+        const char d59[] PROGMEM = "RPM4"; 
         const char d60[] PROGMEM = "d60";
         const char d61[] PROGMEM = "d61";
         const char d62[] PROGMEM = "d62";
@@ -154,7 +160,12 @@
         const char d71[] PROGMEM = "d71";
         const char d72[] PROGMEM = "d72";
         const char d73[] PROGMEM = "d73";
-        
+
+        // These are default MODBUS Register names
+        // for things we have not identified yet.
+        // We can quickly rename these as we are reverse engineering
+        // a device but then ideally rename them back to their reg number
+        // and create a new parameter name in the list above.
         const char r1000[] PROGMEM = "r1000";        //74
         const char r1001[] PROGMEM = "r1001";
         const char r1002[] PROGMEM = "r1002";
@@ -230,6 +241,8 @@
         const char r1072[] PROGMEM = "r1072";
         const char r1073[] PROGMEM = "r1073";  //147
 
+        // This is an index of the datanames above. There should be *EXACTLY*
+        // the same *number of elements* as there are parameter names above.
         const char * const mbDataNames[] = {
             d0,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,
             d20,d21,d22,d23,d24,d25,d26,d27,d28,d29,d30,d31,d32,d33,d34,d35,d36,d37,d38,d39,
@@ -298,30 +311,28 @@
         const byte mbDP[mbDataElementCount] =       {  1,1,1,  1,1,1,  1,1,1,  1,1,1 };
     
     #elif defined(MODBUS_DEVICE_APM403)
-        const uint8_t MODBUS_ID       = 1;       // Set on config page
+        //const uint8_t MODBUS_ID       = 1;       // Depreciated. Set on config page now.
         const uint16_t MODBUS_HBASE    = 1000; //1036;
         const uint16_t MODBUS_BAUD    = 9600;
         const uint8_t MODBUS_REG_PER  = 50;     // Regs count to fetch in each block request.
         const uint8_t MODBUS_REGMAX   = 74;     //38 //18   // Number of registers to be fetched.
+    
         const uint8_t mbDataElementCount = 74;  //38 //18 // Number of parameters these registers fit into.
 
         const uint8_t mbResult2SendCount = 74;  // The number of values from what we collected to send to EMONCMS.
 
+        // THese are arrays of parameter info that this device is going to collect and send to EMONCMS.
         const uint16_t mbNameIndex[] = {
-            r1000,RPM1,r1002,r1003,RPM2,LpH,CoolTemp,tIntManifold,POil,PIntake,
-            Loadpc,r1011,r1012,r1013,Runtime,SootLoad,AshLoad,DevTank,Hz1,RPM3,
-            r1020,r1021,r1022,r1023,r1024,r1025,r1026,r1027,r1028,r1029,
-            r1030,r1031,r1032,r1033,r1034,r1035,
+            r1000,RPM1,r1002,r1003,RPM2,LpH,CoolTemp,tIntManifold,POil,PIntake, // r1000 to r1009
+            Loadpc,r1011,r1012,r1013,Runtime,SootLoad,AshLoad,DevTank,Hz1,RPM3, // r1010 to r1019
 
-        //    74,75,76,77,78,79,80,81,82,83,      //reg 1000 to 1009
-        //    84,85,86,87,88,89,90,91,92,93,      //reg 1010 to 1019
-        //    94,95,96,97,98,99,100,101,102,103,  //reg 1020 to 1029
-        //    104,105,106,107,108,109,            //reg 1030 to 1035
+            kW, p1,p2,p3, kVAr,VAr1,VAr2,VAr3, kVA,VA1,VA2,VA3,     // r1020 to r1031
+            pfAvg, pf1,pf2,pf3,                                     // r1032 to r1035
 
             fHz, vL1,vL2,VL3, vL1L2,vL2L3,vL1L3, i1,i2,i3,iN,
             bfHz, bL1,bL2,bL3, bL1L2,bL2L3,bL1L3,
 
-            vBatt1, v12Alt, r1056,r1057, Fuelpc, r1059, Runtime,
+            vBatt1, v12Alt, r1056,r1057, Fuelpc, r1059, RPM4,
             r1061, r1062, r1063, r1064, r1065, r1066, r1067, r1068, r1069,
             vBatt2, r1071,r1072,r1073
 
@@ -340,16 +351,29 @@
         };
 
         const int mbScale[mbDataElementCount] =     { 
-            1,1,1,1,1, 10, 1,1, 100,100, 1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,
+            1,1,1,1,1, 10, 1,1, 100,100, 1,  1,1,1,1,1,1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 100,100,100,100,
             10,  1,1,1,  1,1,1,  1,1,1,1,  10,  1,1,1,  1,1,1, 10,10, 1,1, 1, 1,1,1,1,1,1, 1,1,1,1,1,10,1,1,1
             };
         const byte mbRegSize[mbDataElementCount] =  {
-            1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,
-            1,  1,1,1,  1,1,1,  1,1,1,1,   1,  1,1,1,  1,1,1,  1, 1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1
+            1,1,1,1,1, 1,1,1,1,1,  1,1,1,1,1, 1,1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
+            1, 1,1,1, 1,1,1, 1,1,1,1, 1, 1,1,1, 1,1,1, 1,1, 1,1, 1, 1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1
             };
         const byte mbDP[mbDataElementCount] =       {
-            1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,
-            1,  1,1,1,  1,1,1,  1,1,1,1,   1,  1,1,1,  1,1,1,  1,1, 1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1
+            1,1,1,1,1,1,1,1,1,1,  1,1,1,1,1,1,1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 2,2,2,2,
+            1,  1,1,1,  1,1,1,  1,1,1,1, 1, 1,1,1, 1,1,1, 1,1, 1,1, 1, 1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1
+            };
+
+        const byte mbSignedInt[mbDataElementCount] ={
+            0,0,0,0,0,0,0,0,0,0,                    // r1000 to r1009
+            0,0,0,0,0,0,0,0,0,0,                    // r1010 to r1019
+
+            0,0,0,0,  0,0,0,0,  0,0,0,0,  1,1,1,1,  // r1020 to r1035
+            0, 0,0,0,  0,0,0,  0,0,0,0,
+            0, 0,0,0,  0,0,0,
+
+            0,0,0,0,0,0,0,
+            0,0,0,0,0,0,0,0,0, // r1061 to r1069
+            0,0,0,0            // r1070 to r1073
             };
 
     #elif defined(MODBUS_DEVICE_DSE)    
@@ -424,9 +448,7 @@
     bool mbFetch(uint16_t baseReg, uint16_t numReg, uint16_t mbRegs[]){
     //    return true;  // For faking device present.
         if (!mb.slave()) { // Is the wire busy?
-//            mb.readHreg(MODBUS_ID, baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
             mb.readHreg(ecmsParams::ModbusID(), baseReg, mbRegs, numReg, mbCallback); // Send Read Hreg from Modbus Server
-            //mb.readHreg(MODBUS_ID, 1054, mbRegs, 2, mbCallback);       // Send Read Hreg from Modbus Server
             while(mb.slave()) { mb.task(); delay(10); }                 // Wait for send and receive reply to take place.
             return true;                                                // Complete or timed out. See the callback for results.
         }
@@ -522,8 +544,13 @@
         uint16_t regAdr = 0;
         for (uint16_t i=0; i<mbDataElementCount; i++){
             if (mbRegSize[i] == 2) {
+
                 //Two registers for this value
-                cvData[i] = reg2uint32(&mbResult[regAdr]) / ((float) mbScale[i]);
+                if (mbSignedInt[i] == 0) { // It's not a signed int. 
+                    cvData[i] = reg2uint32(&mbResult[regAdr]) / ((float) mbScale[i]);
+                } else { // It's signed
+                    cvData[i] = ((int16_t)reg2uint32(&mbResult[regAdr])) / ((float) mbScale[i]);
+                }
             }
             if (mbRegSize[i] == 1) {  
                 //Only one register for this value      
